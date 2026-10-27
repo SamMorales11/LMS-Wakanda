@@ -1,4 +1,3 @@
-import { defineEventHandler, getRequestPath, getMethod } from 'h3'
 import { getUserSession } from '../utils/session'
 import { UnauthorizedError, ForbiddenError, handleServerError } from '../utils/errors'
 

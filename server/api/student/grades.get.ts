@@ -1,4 +1,3 @@
-import { defineEventHandler } from 'h3'
 import { createApiResponse } from '../../../server/utils/response'
 import { requireUserRole } from '../../../server/utils/auth'
 

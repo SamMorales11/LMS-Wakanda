@@ -1,4 +1,3 @@
-import { defineEventHandler, getRouterParam } from 'h3'
 import { userService } from '../../../server/services'
 import { updateUserSchema } from '../../../server/utils/schemas'
 import { validateBody } from '../../../server/utils/validation'

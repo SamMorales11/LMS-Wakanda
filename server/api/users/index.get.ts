@@ -1,4 +1,3 @@
-import { defineEventHandler } from 'h3'
 import { userService } from '../../../server/services'
 import { userQuerySchema } from '../../../server/utils/schemas'
 import { validateQuery } from '../../../server/utils/validation'

@@ -1,4 +1,3 @@
-import { defineEventHandler } from 'h3'
 import { systemService } from '../../server/services'
 import { createApiResponse } from '../../server/utils/response'
 import { handleServerError } from '../../server/utils/errors'

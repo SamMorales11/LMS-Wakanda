@@ -1,4 +1,3 @@
-import { defineEventHandler } from 'h3'
 import { authService } from '../../../server/services'
 import { loginSchema } from '../../../server/utils/schemas'
 import { validateBody } from '../../../server/utils/validation'

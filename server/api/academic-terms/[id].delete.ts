@@ -1,4 +1,3 @@
-import { defineEventHandler, getRouterParam } from 'h3'
 import { academicTermService } from '../../../server/services'
 import { createApiResponse } from '../../../server/utils/response'
 import { handleServerError, BadRequestError } from '../../../server/utils/errors'

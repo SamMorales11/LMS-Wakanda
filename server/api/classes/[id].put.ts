@@ -1,4 +1,3 @@
-import { defineEventHandler, getRouterParam } from 'h3'
 import { classService } from '../../../server/services'
 import { updateCourseClassSchema } from '../../../server/utils/schemas'
 import { validateBody } from '../../../server/utils/validation'

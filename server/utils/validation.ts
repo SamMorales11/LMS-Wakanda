@@ -1,5 +1,3 @@
-import type { H3Event } from 'h3'
-import { readBody, getQuery } from 'h3'
 import { z, type ZodSchema } from 'zod'
 import { ValidationError } from './errors'
 

@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs'
-import type { H3Event } from 'h3'
 import type { AuthSessionUser, AuthResponse, UserRole } from '~/types'
 import { userRepository, type IUserRepository } from '../repositories'
 import { getUserSession } from '../utils/session'

@@ -9,10 +9,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     await authStore.fetchUser()
   }
 
-  // Jika belum login, redirect ke halaman utama atau halaman login
+  // Jika belum login, redirect ke halaman login
   if (!authStore.isAuthenticated) {
     return navigateTo({
-      path: '/',
+      path: '/login',
       query: { redirect: to.fullPath, error: 'auth_required' }
     })
   }

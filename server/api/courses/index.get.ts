@@ -1,4 +1,3 @@
-import { defineEventHandler, getQuery } from 'h3'
 import { courseService } from '../../../server/services'
 import { createApiResponse } from '../../../server/utils/response'
 import { handleServerError } from '../../../server/utils/errors'

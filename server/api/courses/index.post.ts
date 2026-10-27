@@ -1,4 +1,3 @@
-import { defineEventHandler, setResponseStatus } from 'h3'
 import { courseService } from '../../../server/services'
 import { createCourseSchema } from '../../../server/utils/schemas'
 import { validateBody } from '../../../server/utils/validation'

@@ -1,5 +1,3 @@
-import { createError } from 'h3'
-
 export class DomainError extends Error {
   public readonly statusCode: number
   public readonly code: string

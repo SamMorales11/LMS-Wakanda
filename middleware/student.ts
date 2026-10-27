@@ -9,7 +9,7 @@ export default defineNuxtRouteMiddleware(async () => {
   }
 
   if (!authStore.isAuthenticated) {
-    return navigateTo({ path: '/', query: { error: 'login_required' } })
+    return navigateTo({ path: '/login', query: { error: 'login_required' } })
   }
 
   if (!authStore.isStudent && !authStore.isAdmin) {

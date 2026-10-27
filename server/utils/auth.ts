@@ -1,4 +1,3 @@
-import type { H3Event } from 'h3'
 import type { AuthSessionUser, UserRole } from '~/types'
 import { UnauthorizedError, ForbiddenError } from './errors'
 

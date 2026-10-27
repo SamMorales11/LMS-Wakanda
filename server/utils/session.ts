@@ -1,5 +1,3 @@
-import type { H3Event } from 'h3'
-import { useSession } from 'h3'
 import type { AuthSessionUser } from '~/types'
 
 export interface SessionData {
