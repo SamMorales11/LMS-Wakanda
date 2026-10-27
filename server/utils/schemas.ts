@@ -107,3 +107,76 @@ export type CreateCourseInput = z.infer<typeof createCourseSchema>
 export type UpdateCourseInput = z.infer<typeof updateCourseSchema>
 export type CreateCourseClassInput = z.infer<typeof createCourseClassSchema>
 export type UpdateCourseClassInput = z.infer<typeof updateCourseClassSchema>
+
+// ============================================================================
+// 6. Object Storage Validation Schemas (Cloudflare R2 & Local Fallback)
+// ============================================================================
+
+export const ALLOWED_STORAGE_MIME_TYPES = [
+  'application/pdf',
+  'application/zip',
+  'application/x-zip-compressed',
+  'multipart/x-zip'
+] as const
+
+export const MAX_STORAGE_FILE_SIZE = 25 * 1024 * 1024 // 25 MB
+
+export const storageCategorySchema = z.enum([
+  'assignments',
+  'submissions',
+  'materials',
+  'syllabi',
+  'general'
+])
+
+export const presignedUploadSchema = z.object({
+  fileName: z
+    .string({ required_error: 'Nama berkas (fileName) wajib disertakan' })
+    .min(1, 'Nama berkas tidak boleh kosong')
+    .max(255, 'Nama berkas maksimal 255 karakter')
+    .refine(
+      (name) => !name.includes('..') && !name.includes('/') && !name.includes('\\'),
+      'Nama berkas tidak boleh mengandung karakter path traversal'
+    )
+    .refine(
+      (name) => /\.(pdf|zip)$/i.test(name),
+      'Ekstensi berkas hanya diperbolehkan format .pdf atau .zip'
+    ),
+  fileType: z
+    .string({ required_error: 'Tipe MIME berkas (fileType) wajib disertakan' })
+    .refine(
+      (type) => (ALLOWED_STORAGE_MIME_TYPES as readonly string[]).includes(type),
+      'Tipe berkas tidak didukung. Hanya berkas PDF (application/pdf) dan ZIP (application/zip) yang diizinkan'
+    ),
+  fileSize: z
+    .number({ required_error: 'Ukuran berkas (fileSize) wajib disertakan' })
+    .positive('Ukuran berkas harus lebih besar dari 0 byte')
+    .max(
+      MAX_STORAGE_FILE_SIZE,
+      `Ukuran berkas melebihi batas maksimum (${MAX_STORAGE_FILE_SIZE / (1024 * 1024)} MB)`
+    ),
+  category: storageCategorySchema.default('general'),
+  isPublic: z.boolean().default(false)
+})
+
+export type PresignedUploadInput = z.infer<typeof presignedUploadSchema>
+
+export const signedReadUrlSchema = z.object({
+  fileKey: z
+    .string({ required_error: 'Kunci berkas (fileKey) wajib disertakan' })
+    .min(1, 'Kunci berkas tidak boleh kosong')
+    .max(500, 'Kunci berkas terlalu panjang')
+    .refine(
+      (key) => !key.includes('..'),
+      'Kunci berkas tidak boleh mengandung path traversal (..)'
+    ),
+  expiresInSeconds: z
+    .number()
+    .int()
+    .min(60, 'Masa berlaku minimal 60 detik (1 menit)')
+    .max(86400, 'Masa berlaku maksimal 86400 detik (24 jam)')
+    .default(900) // 15 menit
+})
+
+export type SignedReadUrlInput = z.infer<typeof signedReadUrlSchema>
+

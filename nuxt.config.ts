@@ -9,6 +9,13 @@ export default defineNuxtConfig({
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL || '',
     sessionSecret: process.env.SESSION_SECRET || 'wakanda-super-secure-session-secret-key-32chars-min-2026!',
+    // Cloudflare R2 Object Storage
+    r2AccountId: process.env.R2_ACCOUNT_ID || '',
+    r2AccessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+    r2SecretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+    r2BucketName: process.env.R2_BUCKET_NAME || '',
+    r2PublicUrl: process.env.R2_PUBLIC_URL || '',
+    storageDriver: process.env.STORAGE_DRIVER || 'auto',
     public: {}
   },
 

@@ -20,10 +20,11 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  // Endpoint publik tanpa autentikasi
+  // Endpoint publik tanpa autentikasi sesi (termasuk storage local yang divalidasi via signed HMAC token)
   const publicApiPaths = [
     '/api/auth/login',
-    '/api/health'
+    '/api/health',
+    '/api/storage/local'
   ]
 
   if (publicApiPaths.some(p => path === p || path.startsWith(`${p}/`))) {

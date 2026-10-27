@@ -18,4 +18,5 @@ export interface ApiMeta {
   total?: number
   timestamp: string
   requestId?: string
+  [key: string]: unknown
 }
