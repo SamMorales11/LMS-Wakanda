@@ -180,3 +180,40 @@ export const signedReadUrlSchema = z.object({
 
 export type SignedReadUrlInput = z.infer<typeof signedReadUrlSchema>
 
+// ============================================================================
+// 7. Course Session Materials Schemas (Distribusi Materi & Status Bacaan)
+// ============================================================================
+
+export const sessionMaterialTypeSchema = z.enum(['SLIDE', 'CODE', 'VIDEO', 'DOCUMENT'], {
+  errorMap: () => ({ message: 'Tipe materi harus salah satu dari: SLIDE, CODE, VIDEO, DOCUMENT' })
+})
+
+export const createSessionMaterialSchema = z.object({
+  title: z
+    .string({ required_error: 'Judul materi wajib diisi' })
+    .min(2, 'Judul materi minimal 2 karakter')
+    .max(255, 'Judul materi maksimal 255 karakter'),
+  materialType: sessionMaterialTypeSchema.default('SLIDE'),
+  description: z.string().max(2000, 'Deskripsi maksimal 2000 karakter').optional(),
+  fileKey: z.string().max(500).optional(),
+  fileUrl: z.string().url('Format URL berkas tidak valid').optional().or(z.literal('')),
+  fileName: z.string().max(255).optional(),
+  fileSize: z.number().int().positive().optional(),
+  externalUrl: z.string().url('Format URL eksternal tidak valid').optional().or(z.literal('')),
+  orderIndex: z.number().int().min(0).default(0),
+  isPublished: z.boolean().default(true)
+})
+
+export type CreateSessionMaterialInput = z.infer<typeof createSessionMaterialSchema>
+
+export const updateSessionMaterialSchema = createSessionMaterialSchema.partial()
+
+export type UpdateSessionMaterialInput = z.infer<typeof updateSessionMaterialSchema>
+
+export const toggleMaterialReadSchema = z.object({
+  isCompleted: z.boolean().default(true)
+})
+
+export type ToggleMaterialReadInput = z.infer<typeof toggleMaterialReadSchema>
+
+

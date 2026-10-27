@@ -6,6 +6,7 @@ import { classEnrollments } from './enrollments'
 import { attendanceTokens, attendanceLogs } from './attendance'
 import { assignments, submissions, quizzes, quizAttempts } from './assessments'
 import { gradeWeights, finalGrades, gradeAuditLogs } from './grades'
+import { sessionMaterials, materialReadProgress } from './materials'
 
 // Users Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -20,7 +21,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   quizAttempts: many(quizAttempts),
   finalGrades: many(finalGrades, { relationName: 'student' }),
   approvedFinalGrades: many(finalGrades, { relationName: 'approver' }),
-  gradeAuditLogs: many(gradeAuditLogs)
+  gradeAuditLogs: many(gradeAuditLogs),
+  materialProgress: many(materialReadProgress)
 }))
 
 // Programs Relations
@@ -82,7 +84,29 @@ export const classSessionsRelations = relations(classSessions, ({ one, many }) =
   tokens: many(attendanceTokens),
   attendanceLogs: many(attendanceLogs),
   assignments: many(assignments),
-  quizzes: many(quizzes)
+  quizzes: many(quizzes),
+  materials: many(sessionMaterials)
+}))
+
+// Session Materials Relations
+export const sessionMaterialsRelations = relations(sessionMaterials, ({ one, many }) => ({
+  session: one(classSessions, {
+    fields: [sessionMaterials.sessionId],
+    references: [classSessions.id]
+  }),
+  readProgress: many(materialReadProgress)
+}))
+
+// Material Read Progress Relations
+export const materialReadProgressRelations = relations(materialReadProgress, ({ one }) => ({
+  material: one(sessionMaterials, {
+    fields: [materialReadProgress.materialId],
+    references: [sessionMaterials.id]
+  }),
+  student: one(users, {
+    fields: [materialReadProgress.studentId],
+    references: [users.id]
+  })
 }))
 
 // Class Enrollments Relations

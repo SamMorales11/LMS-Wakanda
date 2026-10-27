@@ -11,6 +11,7 @@ export * from './enrollments'
 export * from './attendance'
 export * from './assessments'
 export * from './grades'
+export * from './materials'
 
 // 3. Relations
 export * from './relations'
@@ -23,6 +24,7 @@ import { classEnrollments } from './enrollments'
 import { attendanceTokens, attendanceLogs } from './attendance'
 import { assignments, submissions, quizzes, quizAttempts } from './assessments'
 import { gradeWeights, finalGrades, gradeAuditLogs } from './grades'
+import { sessionMaterials, materialReadProgress } from './materials'
 
 export type User = InferSelectModel<typeof users>
 export type NewUser = InferInsertModel<typeof users>
@@ -74,3 +76,9 @@ export type NewFinalGrade = InferInsertModel<typeof finalGrades>
 
 export type GradeAuditLog = InferSelectModel<typeof gradeAuditLogs>
 export type NewGradeAuditLog = InferInsertModel<typeof gradeAuditLogs>
+
+export type SessionMaterial = InferSelectModel<typeof sessionMaterials>
+export type NewSessionMaterial = InferInsertModel<typeof sessionMaterials>
+
+export type MaterialReadProgress = InferSelectModel<typeof materialReadProgress>
+export type NewMaterialReadProgress = InferInsertModel<typeof materialReadProgress>

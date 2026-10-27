@@ -69,3 +69,11 @@ export const gradeStatusEnum = pgEnum('grade_status', [
   'APPROVED',
   'PUBLISHED'
 ])
+
+// Session Material Types (PDF Slide, Source Code, Video Link, Document)
+export const sessionMaterialTypeEnum = pgEnum('session_material_type', [
+  'SLIDE',
+  'CODE',
+  'VIDEO',
+  'DOCUMENT'
+])
