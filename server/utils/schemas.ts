@@ -216,4 +216,45 @@ export const toggleMaterialReadSchema = z.object({
 
 export type ToggleMaterialReadInput = z.infer<typeof toggleMaterialReadSchema>
 
+// ============================================================================
+// 8. Attendance Engine Schemas (Presensi Token PIN 6-Digit & Dynamic QR Code)
+// ============================================================================
+
+export const attendanceStatusSchema = z.enum(
+  ['PRESENT', 'LATE', 'PERMIT', 'SICK', 'ABSENT'],
+  {
+    errorMap: () => ({
+      message: 'Status presensi harus salah satu dari: PRESENT, LATE, PERMIT, SICK, ABSENT'
+    })
+  }
+)
+
+export const openAttendanceSchema = z.object({
+  sessionId: z.string({ required_error: 'ID Sesi wajib disertakan' }).uuid('Format ID sesi harus UUID valid'),
+  durationMinutes: z.number().int().min(1, 'Durasi minimal 1 menit').max(180, 'Durasi maksimal 180 menit').default(15)
+})
+
+export type OpenAttendanceInput = z.infer<typeof openAttendanceSchema>
+
+export const checkInSchema = z.object({
+  token: z
+    .string({ required_error: 'Token PIN 6-digit atau payload QR presensi wajib diisi' })
+    .min(6, 'Token presensi minimal 6 karakter')
+    .max(500, 'Token presensi melebihi panjang maksimal'),
+  sessionId: z.string().uuid('Format ID sesi harus UUID valid').optional(),
+  deviceInfo: z.string().max(255).optional()
+})
+
+export type CheckInInput = z.infer<typeof checkInSchema>
+
+export const manualAttendanceSchema = z.object({
+  sessionId: z.string({ required_error: 'ID Sesi wajib disertakan' }).uuid('Format ID sesi harus UUID valid'),
+  studentId: z.string({ required_error: 'ID Mahasiswa wajib disertakan' }).uuid('Format ID mahasiswa harus UUID valid'),
+  status: attendanceStatusSchema,
+  notes: z.string().max(500).optional()
+})
+
+export type ManualAttendanceInput = z.infer<typeof manualAttendanceSchema>
+
+
 

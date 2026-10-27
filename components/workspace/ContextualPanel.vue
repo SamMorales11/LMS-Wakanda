@@ -1,46 +1,141 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAcademicStore } from '~/stores/useAcademicStore'
+import { useAttendanceStore } from '~/stores/useAttendanceStore'
+import QrCodeModal from './QrCodeModal.vue'
+import ManualAttendanceModal from './ManualAttendanceModal.vue'
 
 const authStore = useAuthStore()
 const academicStore = useAcademicStore()
+const attendanceStore = useAttendanceStore()
 
 const selectedSession = computed(() => academicStore.selectedSession)
 const selectedSessionNum = computed(() => academicStore.selectedSessionNumber)
+const selectedClass = computed(() => academicStore.selectedClass)
 
-// State Token Presensi
-const studentTokenInput = ref('')
-const attendanceFeedback = ref<string | null>(null)
-const attendanceError = ref<string | null>(null)
-const isTokenGenerated = ref(false)
-const generatedToken = ref('849-216')
-const tokenRemainingSeconds = ref(900) // 15 menit
-const isAttended = ref(false)
+// Local UI state
+const studentPinInput = ref('')
+const actionSuccess = ref<string | null>(null)
+const actionError = ref<string | null>(null)
+const isQrModalOpen = ref(false)
+const isManualModalOpen = ref(false)
 
-// Generate Token (Dosen)
-const handleGenerateToken = () => {
-  const randomNum = Math.floor(100000 + Math.random() * 900000).toString()
-  generatedToken.value = `${randomNum.slice(0, 3)}-${randomNum.slice(3)}`
-  isTokenGenerated.value = true
-  attendanceFeedback.value = `Token presensi untuk Pertemuan ${selectedSessionNum.value} berhasil diaktifkan!`
+// Muat data presensi setiap kali sesi atau kelas berubah
+const loadAttendanceData = async () => {
+  actionSuccess.value = null
+  actionError.value = null
+
+  if (selectedSession.value?.id) {
+    await attendanceStore.fetchSessionOverview(
+      selectedSession.value.id,
+      academicStore.selectedClassId || undefined
+    )
+  }
+
+  if (academicStore.selectedClassId) {
+    if (authStore.isStudent) {
+      await attendanceStore.fetchStudentSummary(academicStore.selectedClassId)
+    }
+  }
 }
 
-// Submit Token (Mahasiswa)
-const handleStudentSubmitToken = () => {
-  attendanceFeedback.value = null
-  attendanceError.value = null
+watch(
+  () => [selectedSession.value?.id, academicStore.selectedClassId],
+  () => {
+    loadAttendanceData()
+  },
+  { immediate: true }
+)
 
-  if (!studentTokenInput.value.trim()) {
-    attendanceError.value = 'Silakan masukkan 6 digit token presensi.'
+// Dosen: Buka Presensi
+const handleOpenSession = async (durationMinutes: number = 15) => {
+  if (!selectedSession.value?.id) return
+  actionSuccess.value = null
+  actionError.value = null
+
+  try {
+    const token = await attendanceStore.openSession(selectedSession.value.id, durationMinutes)
+    if (token) {
+      actionSuccess.value = `Sesi presensi aktif! PIN: ${token.formattedToken}`
+    }
+  } catch (err: any) {
+    actionError.value = err.message || 'Gagal membuka sesi presensi'
+  }
+}
+
+// Dosen: Tutup Presensi
+const handleCloseSession = async () => {
+  if (!selectedSession.value?.id) return
+  actionSuccess.value = null
+  actionError.value = null
+
+  try {
+    await attendanceStore.closeSession(selectedSession.value.id)
+    actionSuccess.value = 'Sesi presensi berhasil ditutup'
+  } catch (err: any) {
+    actionError.value = err.message || 'Gagal menutup sesi presensi'
+  }
+}
+
+// Mahasiswa: Check-In
+const handleStudentCheckIn = async () => {
+  actionSuccess.value = null
+  actionError.value = null
+
+  const pin = studentPinInput.value.trim().replace('-', '')
+  if (pin.length < 6) {
+    actionError.value = 'Silakan masukkan 6 digit token PIN presensi yang valid.'
     return
   }
 
-  // Simulasi validasi presensi
-  isAttended.value = true
-  attendanceFeedback.value = `Kehadiran Pertemuan ${selectedSessionNum.value} berhasil diverifikasi! Tercatat pada ${new Date().toLocaleTimeString()} WIB.`
-  studentTokenInput.value = ''
+  try {
+    const res = await attendanceStore.checkIn(pin, selectedSession.value?.id)
+    if (res.success) {
+      actionSuccess.value = res.message
+      studentPinInput.value = ''
+      if (academicStore.selectedClassId) {
+        await attendanceStore.fetchStudentSummary(academicStore.selectedClassId)
+      }
+    }
+  } catch (err: any) {
+    actionError.value = err.message || 'Presensi gagal. Periksa kembali PIN Anda.'
+  }
 }
+
+// Format input PIN otomatis menjadi xxx-xxx
+const handlePinInput = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  const raw = target.value.replace(/[^0-9]/g, '').slice(0, 6)
+  if (raw.length > 3) {
+    studentPinInput.value = `${raw.slice(0, 3)}-${raw.slice(3)}`
+  } else {
+    studentPinInput.value = raw
+  }
+}
+
+// Hitung persentase kehadiran & status UAS
+const attendancePercentage = computed(() => {
+  if (attendanceStore.studentSummary) {
+    return attendanceStore.studentSummary.attendancePercentage
+  }
+  return 0
+})
+
+const isEligibleForUAS = computed(() => {
+  if (attendanceStore.studentSummary) {
+    return attendanceStore.studentSummary.isEligibleForFinalExam
+  }
+  return attendancePercentage.value >= 75
+})
+
+const attendedSessionsCount = computed(() => {
+  return attendanceStore.studentSummary?.attendedSessions ?? 0
+})
+
+const totalSessionsCount = computed(() => {
+  return attendanceStore.studentSummary?.totalSessions ?? 16
+})
 
 // Sample Upcoming Deadlines
 const upcomingDeadlines = [
@@ -89,11 +184,14 @@ const upcomingDeadlines = [
 
 <template>
   <aside class="w-full lg:w-80 xl:w-96 bg-white border-l border-slate-200/80 flex flex-col h-full shrink-0 shadow-xs overflow-y-auto p-5 space-y-6">
-    <!-- PANEL 1: PRESENSI CEPAT SESI (Quick Attendance) -->
+    <!-- PANEL 1: PRESENSI CEPAT SESI (Attendance Engine) -->
     <section class="space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-semantic-success animate-pulse"></span>
+          <span
+            class="w-2.5 h-2.5 rounded-full"
+            :class="attendanceStore.hasActiveToken ? 'bg-semantic-success animate-pulse' : 'bg-slate-300'"
+          ></span>
           <h3 class="text-sm font-bold text-academic-navy font-jakarta">
             Presensi Sesi {{ selectedSessionNum }}
           </h3>
@@ -107,54 +205,100 @@ const upcomingDeadlines = [
       <div class="p-4 rounded-2xl bg-alabaster-slate border border-slate-200 space-y-3.5">
         <div class="text-xs font-inter text-slate-600 flex items-center justify-between">
           <span>Status Sesi:</span>
-          <span class="font-bold text-semantic-success flex items-center gap-1 font-mono text-[11px]">
-            ● Terjadwal Aktif
+          <span
+            class="font-bold flex items-center gap-1 font-mono text-[11px]"
+            :class="attendanceStore.hasActiveToken ? 'text-semantic-success' : 'text-slate-500'"
+          >
+            ● {{ attendanceStore.hasActiveToken ? 'Presensi Terbuka' : 'Presensi Ditutup' }}
           </span>
         </div>
 
-        <!-- Role: Dosen (Generator Token) -->
+        <!-- Role: Dosen (Generator PIN 6-Digit & QR Code Dinamis) -->
         <div v-if="authStore.isLecturer || authStore.isAdmin" class="space-y-3">
-          <div v-if="!isTokenGenerated" class="space-y-2">
+          <!-- State 1: Belum Ada Token Aktif -->
+          <div v-if="!attendanceStore.hasActiveToken" class="space-y-2.5">
             <p class="text-[11px] text-slate-500 font-inter">
-              Sebagai Dosen Pengampu, Anda dapat mengaktifkan token presensi dinamis untuk sesi ini:
+              Sebagai Dosen Pengampu, buka presensi untuk sesi ini dengan token PIN 6-digit & QR Code dinamis:
             </p>
             <button
               type="button"
-              @click="handleGenerateToken"
-              class="w-full py-2.5 px-3 rounded-xl bg-scholarly-teal hover:bg-teal-700 text-white font-semibold text-xs transition shadow-xs flex items-center justify-center gap-2 font-jakarta"
+              @click="handleOpenSession(15)"
+              :disabled="attendanceStore.isOpeningSession"
+              class="w-full py-2.5 px-3 rounded-xl bg-scholarly-teal hover:bg-teal-700 text-white font-semibold text-xs transition shadow-xs flex items-center justify-center gap-2 font-jakarta disabled:opacity-50"
             >
-              <span>🔑 Buat Token Presensi Sesi</span>
+              <svg v-if="attendanceStore.isOpeningSession" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span v-else>🔑 Buka Presensi Sesi (15 Menit)</span>
             </button>
           </div>
 
-          <div v-else class="space-y-2.5 text-center">
+          <!-- State 2: Token Sedang Aktif -->
+          <div v-else class="space-y-3 text-center">
             <span class="text-[11px] text-slate-500 font-inter block">Bagikan Token Ini ke Mahasiswa:</span>
+            
+            <!-- 6-digit PIN in JetBrains Mono -->
             <div class="p-3 bg-white rounded-xl border border-teal-300 font-mono text-2xl font-black text-academic-navy tracking-widest shadow-inner">
-              {{ generatedToken }}
+              {{ attendanceStore.activeToken?.formattedToken }}
             </div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono px-1">
-              <span>Batas Berlaku:</span>
-              <span class="text-amber-alert font-bold">14:59 Menit</span>
+
+            <!-- Batas Waktu Countdown -->
+            <div class="flex items-center justify-between text-[11px] font-mono px-1">
+              <span class="text-slate-500">Sisa Berlaku:</span>
+              <span class="text-amber-alert font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                ⏳ {{ attendanceStore.formattedRemainingTime }}
+              </span>
             </div>
-            <button
-              type="button"
-              @click="isTokenGenerated = false"
-              class="w-full py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium transition"
-            >
-              Tutup Presensi
-            </button>
+
+            <!-- Tombol Aksi Dosen -->
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                @click="isQrModalOpen = true"
+                class="py-2 px-2.5 rounded-xl bg-academic-navy hover:bg-blue-900 text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5 font-jakarta"
+              >
+                <span>📱 QR Code</span>
+              </button>
+              <button
+                type="button"
+                @click="handleCloseSession"
+                class="py-2 px-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-semibold transition font-jakarta"
+              >
+                Tutup Presensi
+              </button>
+            </div>
+          </div>
+
+          <!-- Summary Kehadiran Cepat Dosen -->
+          <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs font-inter">
+            <span class="text-slate-600">Mahasiswa Hadir:</span>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-academic-navy font-mono">
+                {{ attendanceStore.sessionOverview?.presentCount ?? 0 }} / {{ attendanceStore.sessionOverview?.totalEnrolled ?? 0 }}
+              </span>
+              <button
+                type="button"
+                @click="isManualModalOpen = true"
+                class="text-[10px] text-scholarly-teal hover:underline font-semibold font-jakarta"
+              >
+                Kelola ⚙️
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Role: Mahasiswa (Input Token) -->
+        <!-- Role: Mahasiswa (Check-In Presensi PIN / QR) -->
         <div v-else class="space-y-3">
-          <div v-if="!isAttended" class="space-y-2.5">
+          <!-- State: Mahasiswa Belum Hadir -->
+          <div v-if="!attendanceStore.isStudentAttended" class="space-y-2.5">
             <label class="block text-xs font-semibold text-slate-700 font-jakarta">
               Masukkan 6-Digit Token Perkuliahan:
             </label>
             <div class="flex gap-2">
               <input
-                v-model="studentTokenInput"
+                :value="studentPinInput"
+                @input="handlePinInput"
                 type="text"
                 maxlength="7"
                 placeholder="mis. 849-216"
@@ -162,48 +306,72 @@ const upcomingDeadlines = [
               />
               <button
                 type="button"
-                @click="handleStudentSubmitToken"
-                class="px-4 py-2 rounded-xl bg-academic-navy hover:bg-blue-900 text-white text-xs font-semibold transition shrink-0 font-jakarta"
+                @click="handleStudentCheckIn"
+                :disabled="attendanceStore.isCheckingIn"
+                class="px-4 py-2 rounded-xl bg-academic-navy hover:bg-blue-900 text-white text-xs font-semibold transition shrink-0 font-jakarta disabled:opacity-50 flex items-center justify-center min-w-[70px]"
               >
-                Kirim
+                <svg v-if="attendanceStore.isCheckingIn" class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span v-else>Kirim</span>
               </button>
             </div>
             <p class="text-[10px] text-slate-400 font-inter">
-              Token diberikan oleh Dosen Pengampu saat sesi tatap muka berlangsung.
+              PIN 6-digit diberikan Dosen Pengampu saat sesi tatap muka berlangsung.
             </p>
           </div>
 
+          <!-- State: Mahasiswa Sudah Hadir -->
           <div v-else class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
             <div class="w-7 h-7 rounded-full bg-semantic-success text-white flex items-center justify-center font-bold text-xs mx-auto">
               ✓
             </div>
             <p class="text-xs font-bold text-semantic-success font-jakarta">Presensi Terverifikasi</p>
-            <p class="text-[10px] text-slate-500 font-inter">Anda tercatat HADIR pada sesi ini.</p>
+            <p class="text-[10px] text-slate-600 font-inter">
+              Status: <strong class="font-mono">{{ attendanceStore.currentStudentSessionLog?.status }}</strong>
+              (Tercatat otomatis via Strict Server Timestamp)
+            </p>
           </div>
         </div>
 
         <!-- Feedback Alert -->
-        <div v-if="attendanceFeedback" class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-semantic-success text-[11px] font-medium font-inter">
-          {{ attendanceFeedback }}
+        <div v-if="actionSuccess || attendanceStore.feedback" class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-semantic-success text-[11px] font-medium font-inter">
+          {{ actionSuccess || attendanceStore.feedback }}
         </div>
-        <div v-if="attendanceError" class="p-2.5 rounded-xl bg-red-50 border border-red-200 text-semantic-danger text-[11px] font-medium font-inter">
-          {{ attendanceError }}
+        <div v-if="actionError || attendanceStore.error" class="p-2.5 rounded-xl bg-red-50 border border-red-200 text-semantic-danger text-[11px] font-medium font-inter">
+          {{ actionError || attendanceStore.error }}
         </div>
 
-        <!-- Rekap Persentase Kehadiran -->
+        <!-- Rekap Persentase Kehadiran Semester (16 Sesi & Syarat UAS >= 75%) -->
         <div class="pt-2 border-t border-slate-200/80 space-y-2">
           <div class="flex items-center justify-between text-xs font-inter">
             <span class="text-slate-600 font-medium">Rekap Kehadiran:</span>
-            <span class="font-bold text-academic-navy font-mono">15 / 16 Sesi (93.75%)</span>
+            <span class="font-bold text-academic-navy font-mono">
+              {{ attendedSessionsCount }} / {{ totalSessionsCount }} Sesi ({{ attendancePercentage.toFixed(1) }}%)
+            </span>
           </div>
 
-          <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-            <div class="h-full bg-semantic-success rounded-full" style="width: 93.75%;"></div>
+          <!-- Progress Bar Otomatis -->
+          <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+            <div
+              class="h-full rounded-full transition-all duration-500"
+              :class="isEligibleForUAS ? 'bg-semantic-success' : 'bg-amber-alert'"
+              :style="{ width: `${Math.min(100, Math.max(0, attendancePercentage))}%` }"
+            ></div>
           </div>
 
+          <!-- Indikator Kelayakan UAS 75% -->
           <div class="flex items-center justify-between text-[10px] text-slate-500 font-inter">
             <span>Syarat Min. UAS: 75%</span>
-            <span class="text-semantic-success font-semibold">Memenuhi Syarat UAS</span>
+            <span
+              class="font-semibold px-2 py-0.5 rounded-md font-mono text-[9px] uppercase"
+              :class="isEligibleForUAS
+                ? 'bg-emerald-100 text-semantic-success border border-emerald-200'
+                : 'bg-amber-100 text-amber-800 border border-amber-200'"
+            >
+              {{ isEligibleForUAS ? '✓ Memenuhi Syarat UAS' : '⚠️ Belum Memenuhi Syarat' }}
+            </span>
           </div>
         </div>
       </div>
@@ -275,5 +443,23 @@ const upcomingDeadlines = [
         </p>
       </div>
     </section>
+
+    <!-- Modal QR Code Dinamis (Dosen) -->
+    <QrCodeModal
+      :is-open="isQrModalOpen"
+      :token="attendanceStore.activeToken"
+      :session-number="selectedSessionNum"
+      :session-title="selectedSession?.title"
+      :remaining-formatted="attendanceStore.formattedRemainingTime"
+      @close="isQrModalOpen = false"
+    />
+
+    <!-- Modal Manajemen Presensi Manual (Dosen) -->
+    <ManualAttendanceModal
+      :is-open="isManualModalOpen"
+      :overview="attendanceStore.sessionOverview"
+      @close="isManualModalOpen = false"
+      @updated="loadAttendanceData"
+    />
   </aside>
 </template>
