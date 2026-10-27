@@ -8,6 +8,7 @@ export default defineNuxtConfig({
   // Runtime Configuration
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL || '',
+    sessionSecret: process.env.SESSION_SECRET || 'wakanda-super-secure-session-secret-key-32chars-min-2026!',
     public: {}
   },
 

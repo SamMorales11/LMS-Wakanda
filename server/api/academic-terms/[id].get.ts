@@ -1,0 +1,20 @@
+import { defineEventHandler, getRouterParam } from 'h3'
+import { academicTermService } from '../../../server/services'
+import { createApiResponse } from '../../../server/utils/response'
+import { handleServerError, BadRequestError } from '../../../server/utils/errors'
+
+export default defineEventHandler(async (event) => {
+  try {
+    const id = getRouterParam(event, 'id')
+    if (!id) {
+      throw new BadRequestError('ID semester tidak valid')
+    }
+
+    const term = await academicTermService.getTermById(id)
+    return createApiResponse(term, 'Detail tahun akademik berhasil diambil', {
+      requestId: event.context.requestId
+    })
+  } catch (error) {
+    return handleServerError(error)
+  }
+})

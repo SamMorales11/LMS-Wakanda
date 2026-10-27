@@ -1,14 +1,17 @@
-import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
+import { Pool, neon } from '@neondatabase/serverless'
+import { drizzle } from 'drizzle-orm/neon-serverless'
 import * as schema from './schema'
 
 const connectionString = process.env.DATABASE_URL || ''
 
-// Neon serverless SQL query client
-export const sql = neon(connectionString)
+// Connection pool supporting stateful ACID database transactions over WebSocket
+export const pool = new Pool({ connectionString })
 
-// Drizzle ORM instance with strict typed schema
-export const db = drizzle(sql, { schema })
+// Drizzle ORM instance with strict typed schema & transaction support
+export const db = drizzle(pool, { schema })
+
+// Neon serverless raw SQL query client
+export const sql = neon(connectionString)
 
 export type DatabaseInstance = typeof db
 

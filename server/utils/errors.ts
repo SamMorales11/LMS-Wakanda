@@ -41,6 +41,18 @@ export class ConflictError extends DomainError {
   }
 }
 
+export class UnauthorizedError extends DomainError {
+  constructor(message = 'Authentication required to access this resource', details?: unknown) {
+    super(message, 401, 'UNAUTHORIZED', details)
+  }
+}
+
+export class ForbiddenError extends DomainError {
+  constructor(message = 'You do not have permission to perform this action', details?: unknown) {
+    super(message, 403, 'FORBIDDEN', details)
+  }
+}
+
 /**
  * Maps a DomainError to an H3 Nitro error.
  */

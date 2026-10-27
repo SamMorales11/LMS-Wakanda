@@ -1,2 +1,5 @@
 export * from './base.repository'
 export * from './user.repository'
+export * from './academic-term.repository'
+export * from './course.repository'
+export * from './class.repository'

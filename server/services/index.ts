@@ -1,2 +1,6 @@
 export * from './user.service'
 export * from './system.service'
+export * from './auth.service'
+export * from './academic-term.service'
+export * from './course.service'
+export * from './class.service'

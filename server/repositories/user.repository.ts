@@ -5,6 +5,7 @@ import { db, users, type User as DrizzleUser } from '../database'
 
 export interface IUserRepository extends IBaseRepository<DomainUser, string, CreateUserDto> {
   findByEmail(email: string): Promise<DomainUser | null>
+  findByEmailWithPassword(email: string): Promise<DrizzleUser | null>
   findByRole(role: UserRole): Promise<DomainUser[]>
 }
 
@@ -33,6 +34,12 @@ export class UserRepository implements IUserRepository {
     const normalized = email.trim().toLowerCase()
     const rows = await db.select().from(users).where(eq(users.email, normalized)).limit(1)
     return rows[0] ? this.toDomain(rows[0]) : null
+  }
+
+  public async findByEmailWithPassword(email: string): Promise<DrizzleUser | null> {
+    const normalized = email.trim().toLowerCase()
+    const rows = await db.select().from(users).where(eq(users.email, normalized)).limit(1)
+    return rows[0] || null
   }
 
   public async findByRole(role: UserRole): Promise<DomainUser[]> {
