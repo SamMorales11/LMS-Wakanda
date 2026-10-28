@@ -8,8 +8,11 @@ import SessionWorkspace from '~/components/workspace/SessionWorkspace.vue'
 import AttendanceRecapView from '~/components/workspace/AttendanceRecapView.vue'
 import AssignmentRecapView from '~/components/workspace/AssignmentRecapView.vue'
 import GradeWeightsView from '~/components/workspace/GradeWeightsView.vue'
+import GradebookView from '~/components/workspace/GradebookView.vue'
+import StudentGradesView from '~/components/workspace/StudentGradesView.vue'
 import ArchitectureInspector from '~/components/workspace/ArchitectureInspector.vue'
 import ContextualPanel from '~/components/workspace/ContextualPanel.vue'
+import OnlineExamModal from '~/components/workspace/OnlineExamModal.vue'
 
 const authStore = useAuthStore()
 const academicStore = useAcademicStore()
@@ -126,7 +129,8 @@ onMounted(async () => {
               class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
               :class="activeMainTab === 'grades' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
             >
-              <span>⚖️ Bobot Nilai (100%)</span>
+              <span v-if="authStore.isLecturer || authStore.isAdmin">⚖️ Gradebook & Penilaian</span>
+              <span v-else>📈 Transparansi Nilai & Simulasi UAS</span>
             </button>
 
             <button
@@ -150,7 +154,8 @@ onMounted(async () => {
         <SessionWorkspace v-if="activeMainTab === 'workspace'" />
         <AttendanceRecapView v-else-if="activeMainTab === 'recap-attendance'" />
         <AssignmentRecapView v-else-if="activeMainTab === 'recap-assignments'" />
-        <GradeWeightsView v-else-if="activeMainTab === 'grades'" />
+        <GradebookView v-else-if="activeMainTab === 'grades' && (authStore.isLecturer || authStore.isAdmin)" />
+        <StudentGradesView v-else-if="activeMainTab === 'grades'" />
         <ArchitectureInspector v-else-if="activeMainTab === 'architecture'" />
 
         <!-- Floating Mobile Quick Action for Attendance on Phones -->
@@ -183,5 +188,8 @@ onMounted(async () => {
         <ContextualPanel />
       </div>
     </div>
+
+    <!-- Modal Ujian Daring Mahasiswa (Global Real-time Timer & Navigasi) -->
+    <OnlineExamModal />
   </div>
 </template>

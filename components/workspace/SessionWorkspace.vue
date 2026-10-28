@@ -3,16 +3,20 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useAcademicStore } from '~/stores/useAcademicStore'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAssignmentStore } from '~/stores/useAssignmentStore'
-import type { ClassSessionDto, SessionMaterialDto, AssignmentDto, SubmissionDto, ApiResponse } from '~/types'
+import { useQuizStore } from '~/stores/useQuizStore'
+import type { ClassSessionDto, SessionMaterialDto, AssignmentDto, SubmissionDto, QuizDto, ApiResponse } from '~/types'
 import PdfViewerModal from './PdfViewerModal.vue'
 import AddMaterialModal from './AddMaterialModal.vue'
 import AddAssignmentModal from './AddAssignmentModal.vue'
 import SubmitAssignmentModal from './SubmitAssignmentModal.vue'
 import AssignmentSubmissionsModal from './AssignmentSubmissionsModal.vue'
+import GradingSubmissionsModal from './GradingSubmissionsModal.vue'
+import GradingQuizAttemptsModal from './GradingQuizAttemptsModal.vue'
 
 const academicStore = useAcademicStore()
 const authStore = useAuthStore()
 const assignmentStore = useAssignmentStore()
+const quizStore = useQuizStore()
 
 const currentClass = computed(() => academicStore.selectedClassDetail || academicStore.selectedClass)
 const sessions = computed(() => academicStore.sessions)
@@ -47,6 +51,12 @@ const isSubmitAssignmentOpen = ref(false)
 const selectedAssignmentForSubmit = ref<AssignmentDto | null>(null)
 const isOverviewModalOpen = ref(false)
 
+// State Ujian & Grading (Fase 3)
+const isGradingSubmissionsOpen = ref(false)
+const selectedAssignmentIdForGrading = ref<string | null>(null)
+const isGradingQuizAttemptsOpen = ref(false)
+const selectedQuizIdForGrading = ref<string | null>(null)
+
 // Load Materi & Tugas per Sesi
 const fetchMaterials = async (sessionId?: string) => {
   if (!sessionId) {
@@ -76,6 +86,12 @@ const fetchAssignments = async (sessionId?: string) => {
   }
 }
 
+const fetchQuizzes = async (sessionId?: string) => {
+  if (sessionId) {
+    await quizStore.fetchSessionQuizzes(sessionId)
+  }
+}
+
 // Watch perubahan sesi aktif
 watch(
   () => selectedSession.value?.id,
@@ -83,6 +99,7 @@ watch(
     if (newSessionId) {
       fetchMaterials(newSessionId)
       fetchAssignments(newSessionId)
+      fetchQuizzes(newSessionId)
     }
   },
   { immediate: true }
@@ -92,8 +109,28 @@ onMounted(() => {
   if (selectedSession.value?.id) {
     fetchMaterials(selectedSession.value.id)
     fetchAssignments(selectedSession.value.id)
+    fetchQuizzes(selectedSession.value.id)
   }
 })
+
+// Modal Actions for Assignments & Grading
+const handleOpenGradingSubmissions = (assignmentId: string) => {
+  selectedAssignmentIdForGrading.value = assignmentId
+  isGradingSubmissionsOpen.value = true
+}
+
+const handleOpenGradingQuizAttempts = (quizId: string) => {
+  selectedQuizIdForGrading.value = quizId
+  isGradingQuizAttemptsOpen.value = true
+}
+
+const handleStartExam = async (quizId: string) => {
+  try {
+    await quizStore.initiateExam(quizId)
+  } catch (err: any) {
+    alert(err.message || 'Gagal memulai ujian')
+  }
+}
 
 // Modal Actions for Assignments
 const handleOpenSubmitModal = (a: AssignmentDto) => {
@@ -697,10 +734,19 @@ const formatFileSize = (bytes?: number | null) => {
                 <template v-if="authStore.isLecturer || authStore.isAdmin">
                   <button
                     type="button"
-                    @click="handleOpenOverviewModal(a)"
-                    class="flex-1 py-2 px-3 rounded-xl bg-academic-navy hover:bg-blue-900 text-white font-semibold text-xs font-jakarta transition flex items-center justify-center gap-1.5"
+                    @click="handleOpenGradingSubmissions(a.id)"
+                    class="flex-1 py-2 px-3 rounded-xl bg-scholarly-teal hover:bg-teal-700 text-white font-semibold text-xs font-jakarta transition flex items-center justify-center gap-1.5 shadow-2xs"
                   >
-                    <span>📊 Lihat Pengumpulan ({{ a.submissionCount || 0 }})</span>
+                    <span>📋 Nilai Berkas ({{ a.submissionCount || 0 }})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    @click="handleOpenOverviewModal(a)"
+                    class="py-2 px-3 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold text-xs font-jakarta transition flex items-center justify-center gap-1.5"
+                    title="Ikhtisar Pengumpulan"
+                  >
+                    <span>📊 Ikhtisar</span>
                   </button>
 
                   <button
@@ -736,6 +782,143 @@ const formatFileSize = (bytes?: number | null) => {
                     <span v-if="a.mySubmission">🔄 Unggah Ulang Berkas Tugas</span>
                     <span v-else-if="a.isExpired">📤 Kumpulkan Tugas (Terlambat)</span>
                     <span v-else>📤 Kumpulkan Tugas (Tepat Waktu)</span>
+                  </button>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- BAGIAN 3: UJIAN & KUIS PERKULIAHAN (FASE 3)    -->
+        <!-- ============================================== -->
+        <div class="space-y-4 pt-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-4 rounded-full bg-academic-navy"></span>
+              <h4 class="text-sm font-bold text-academic-navy font-jakarta tracking-tight">
+                Ujian & Evaluasi Sesi (Kuis / UTS / UAS)
+              </h4>
+            </div>
+            <span class="text-xs font-mono font-semibold text-slate-500">
+              {{ quizStore.sessionQuizzes.length }} Ujian Terdaftar
+            </span>
+          </div>
+
+          <!-- Empty State Ujian -->
+          <div
+            v-if="quizStore.sessionQuizzes.length === 0"
+            class="p-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 text-center space-y-2"
+          >
+            <span class="text-2xl">📝</span>
+            <p class="text-xs font-semibold text-slate-600 font-jakarta">
+              Tidak Ada Ujian Aktif pada Sesi Ini
+            </p>
+            <p class="text-[11px] text-slate-400 font-inter max-w-md mx-auto">
+              {{ selectedSession?.sessionType === 'MIDTERM_EXAM' ? 'Sesi ini dijadwalkan untuk Evaluasi Ujian Tengah Semester (UTS).' : (selectedSession?.sessionType === 'FINAL_EXAM' ? 'Sesi ini dijadwalkan untuk Evaluasi Ujian Akhir Semester (UAS).' : 'Kuis mingguan dapat diselenggarakan pada pertemuan reguler sesuai silabus.') }}
+            </p>
+          </div>
+
+          <!-- Grid Daftar Kuis & Ujian -->
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              v-for="q in quizStore.sessionQuizzes"
+              :key="q.id"
+              class="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-academic-navy transition space-y-4 font-inter shadow-xs flex flex-col justify-between"
+            >
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wider text-white"
+                      :class="q.quizType === 'FINAL_EXAM' ? 'bg-red-600' : (q.quizType === 'MIDTERM_EXAM' ? 'bg-amber-600' : 'bg-scholarly-teal')"
+                    >
+                      {{ q.quizType }}
+                    </span>
+                    <span class="text-[10px] font-mono text-slate-400">
+                      {{ q.durationMinutes }} Menit • {{ q.questionsCount }} Soal
+                    </span>
+                  </div>
+
+                  <span
+                    class="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase"
+                    :class="q.accessStatus === 'ACTIVE' ? 'bg-emerald-100 text-semantic-success' : (q.accessStatus === 'UPCOMING' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500')"
+                  >
+                    {{ q.accessStatus === 'ACTIVE' ? 'Sedang Berlangsung' : (q.accessStatus === 'UPCOMING' ? 'Belum Dimulai' : 'Ujian Ditutup') }}
+                  </span>
+                </div>
+
+                <div>
+                  <h5 class="text-sm font-bold text-academic-navy font-jakarta leading-snug">
+                    {{ q.title }}
+                  </h5>
+                  <p v-if="q.description" class="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
+                    {{ q.description }}
+                  </p>
+                </div>
+
+                <!-- Info Jadwal & Passing Score -->
+                <div class="p-3 rounded-xl bg-alabaster-slate border border-slate-200 text-xs space-y-1.5 font-mono">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-500">Mulai:</span>
+                    <span class="font-bold text-slate-700">
+                      {{ new Date(q.startTime).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-500">Selesai:</span>
+                    <span class="font-bold text-slate-700">
+                      {{ new Date(q.endTime).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-200/60">
+                    <span>Maks: {{ q.maxScore }} Poin</span>
+                    <span>Kelulusan: {{ q.passingScore }} Poin</span>
+                  </div>
+                </div>
+
+                <!-- Hasil Mahasiswa jika sudah pernah mencoba -->
+                <div v-if="authStore.isStudent && q.myLatestAttempt" class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-200 space-y-1 text-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-700 font-jakarta">Status Ujian Anda:</span>
+                    <span class="font-mono font-bold text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                      {{ q.myLatestAttempt.status }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between font-mono pt-1">
+                    <span class="text-slate-500">Nilai Akhir:</span>
+                    <span class="font-bold text-academic-navy text-sm">
+                      {{ q.myLatestAttempt.score || q.myLatestAttempt.autoScore || '0.00' }} / {{ q.maxScore }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Row Buttons -->
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <!-- Dosen Controls -->
+                <template v-if="authStore.isLecturer || authStore.isAdmin">
+                  <button
+                    type="button"
+                    @click="handleOpenGradingQuizAttempts(q.id)"
+                    class="w-full py-2 px-3 rounded-xl bg-academic-navy hover:bg-blue-900 text-white font-semibold text-xs font-jakarta transition flex items-center justify-center gap-1.5 shadow-xs"
+                  >
+                    <span>📋 Koreksi Lembar Jawaban & Esai</span>
+                  </button>
+                </template>
+
+                <!-- Mahasiswa Controls -->
+                <template v-else>
+                  <button
+                    type="button"
+                    @click="handleStartExam(q.id)"
+                    :disabled="q.accessStatus !== 'ACTIVE'"
+                    class="w-full py-2.5 px-3 rounded-xl text-white font-bold text-xs font-jakarta transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
+                    :class="q.accessStatus === 'ACTIVE' ? 'bg-scholarly-teal hover:bg-teal-700 active:scale-95' : 'bg-slate-300 text-slate-500'"
+                  >
+                    <span v-if="q.myLatestAttempt && q.myLatestAttempt.status === 'IN_PROGRESS'">⚡ Lanjutkan Ujian Daring</span>
+                    <span v-else-if="q.accessStatus === 'ACTIVE'">🚀 Mulai Kerjakan Ujian Daring</span>
+                    <span v-else>Ujian Belum Dibuka / Selesai</span>
                   </button>
                 </template>
               </div>
@@ -816,6 +999,20 @@ const formatFileSize = (bytes?: number | null) => {
       :overview="assignmentStore.currentOverview"
       @close="isOverviewModalOpen = false"
       @graded="fetchAssignments(selectedSession?.id)"
+    />
+
+    <!-- Modal Penilaian Berkas Tugas & Rubrik (Dosen / Admin - Fase 3) -->
+    <GradingSubmissionsModal
+      :is-open="isGradingSubmissionsOpen"
+      :assignment-id="selectedAssignmentIdForGrading"
+      @close="isGradingSubmissionsOpen = false"
+    />
+
+    <!-- Modal Penilaian Ujian Daring & Esai (Dosen / Admin - Fase 3) -->
+    <GradingQuizAttemptsModal
+      :is-open="isGradingQuizAttemptsOpen"
+      :quiz-id="selectedQuizIdForGrading"
+      @close="isGradingQuizAttemptsOpen = false"
     />
   </div>
 </template>
