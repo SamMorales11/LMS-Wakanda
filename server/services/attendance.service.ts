@@ -376,6 +376,34 @@ export class AttendanceService {
   }
 
   /**
+   * Mengambil matriks rekapitulasi presensi semester seluruh mahasiswa dalam satu kelas (Dosen / Admin)
+   */
+  public async getClassAttendanceRecap(classId: string): Promise<{
+    classId: string
+    totalSessions: number
+    students: StudentAttendanceSummaryDto[]
+  }> {
+    const students = await this.repo.findEnrolledStudents(classId)
+    const summaries = await Promise.all(
+      students.map(async (st) => {
+        const sum = await this.calculateStudentAttendanceSummary(classId, st.id)
+        return {
+          ...sum,
+          studentName: st.name,
+          studentNim: st.nimNidn,
+          studentEmail: st.email
+        }
+      })
+    )
+
+    return {
+      classId,
+      totalSessions: 16,
+      students: summaries
+    }
+  }
+
+  /**
    * Mengambil ikhtisar presensi sesi perkuliahan (Token aktif, rekap hadir, daftar mahasiswa)
    */
   public async getSessionAttendanceOverview(

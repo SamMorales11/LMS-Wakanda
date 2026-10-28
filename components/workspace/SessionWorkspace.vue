@@ -2,12 +2,17 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useAcademicStore } from '~/stores/useAcademicStore'
 import { useAuthStore } from '~/stores/useAuthStore'
-import type { ClassSessionDto, SessionMaterialDto, ApiResponse } from '~/types'
+import { useAssignmentStore } from '~/stores/useAssignmentStore'
+import type { ClassSessionDto, SessionMaterialDto, AssignmentDto, SubmissionDto, ApiResponse } from '~/types'
 import PdfViewerModal from './PdfViewerModal.vue'
 import AddMaterialModal from './AddMaterialModal.vue'
+import AddAssignmentModal from './AddAssignmentModal.vue'
+import SubmitAssignmentModal from './SubmitAssignmentModal.vue'
+import AssignmentSubmissionsModal from './AssignmentSubmissionsModal.vue'
 
 const academicStore = useAcademicStore()
 const authStore = useAuthStore()
+const assignmentStore = useAssignmentStore()
 
 const currentClass = computed(() => academicStore.selectedClassDetail || academicStore.selectedClass)
 const sessions = computed(() => academicStore.sessions)
@@ -36,7 +41,13 @@ const isPdfModalOpen = ref(false)
 const previewPdfTitle = ref('')
 const previewPdfUrl = ref('')
 
-// Load Materi per Sesi
+// State Tugas & Pengumpulan (Assignments & Submissions)
+const isAddAssignmentOpen = ref(false)
+const isSubmitAssignmentOpen = ref(false)
+const selectedAssignmentForSubmit = ref<AssignmentDto | null>(null)
+const isOverviewModalOpen = ref(false)
+
+// Load Materi & Tugas per Sesi
 const fetchMaterials = async (sessionId?: string) => {
   if (!sessionId) {
     materials.value = []
@@ -59,12 +70,19 @@ const fetchMaterials = async (sessionId?: string) => {
   }
 }
 
+const fetchAssignments = async (sessionId?: string) => {
+  if (sessionId) {
+    await assignmentStore.fetchSessionAssignments(sessionId)
+  }
+}
+
 // Watch perubahan sesi aktif
 watch(
   () => selectedSession.value?.id,
   (newSessionId) => {
     if (newSessionId) {
       fetchMaterials(newSessionId)
+      fetchAssignments(newSessionId)
     }
   },
   { immediate: true }
@@ -73,8 +91,29 @@ watch(
 onMounted(() => {
   if (selectedSession.value?.id) {
     fetchMaterials(selectedSession.value.id)
+    fetchAssignments(selectedSession.value.id)
   }
 })
+
+// Modal Actions for Assignments
+const handleOpenSubmitModal = (a: AssignmentDto) => {
+  selectedAssignmentForSubmit.value = a
+  isSubmitAssignmentOpen.value = true
+}
+
+const handleOpenOverviewModal = async (a: AssignmentDto) => {
+  await assignmentStore.fetchAssignmentOverview(a.id)
+  isOverviewModalOpen.value = true
+}
+
+const handleDeleteAssignment = async (a: AssignmentDto) => {
+  if (!confirm(`Hapus tugas '${a.title}'? Tindakan ini tidak dapat dibatalkan.`)) return
+  try {
+    await assignmentStore.deleteAssignment(a.id, selectedSession.value?.id)
+  } catch (err: any) {
+    alert(err.message || 'Gagal menghapus tugas')
+  }
+}
 
 // Format tanggal sesi perkuliahan
 const formatSessionDate = (dateStr?: string) => {
@@ -496,6 +535,214 @@ const formatFileSize = (bytes?: number | null) => {
           </div>
         </div>
 
+        <!-- MANAJEMEN TUGAS & PENGUMPULAN BERKAS (Strict Server-Side Timestamp Validation) -->
+        <div class="space-y-4 pt-4 border-t border-slate-100">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
+                  Tugas Perkuliahan Sesi {{ selectedSession.sessionNumber }}
+                </h4>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                  {{ assignmentStore.assignments.length }} Tugas
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 font-inter mt-0.5">
+                Pengumpulan berkas PDF/ZIP dengan validasi ketat batas normal (due_date) dan penutupan (cutoff_date).
+              </p>
+            </div>
+
+            <!-- Tombol Buat Tugas untuk Dosen / Admin -->
+            <button
+              v-if="authStore.isLecturer || authStore.isAdmin"
+              type="button"
+              @click="isAddAssignmentOpen = true"
+              class="px-3.5 py-1.5 rounded-xl bg-academic-navy hover:bg-blue-900 text-white font-semibold text-xs transition shadow-xs flex items-center gap-1.5 font-jakarta"
+            >
+              <span>+ Buat Tugas Baru</span>
+            </button>
+          </div>
+
+          <!-- Loading State Tugas -->
+          <div v-if="assignmentStore.isLoading" class="p-6 text-center space-y-2">
+            <div class="w-6 h-6 border-2 border-academic-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <span class="text-xs text-slate-400 font-inter">Memuat data tugas...</span>
+          </div>
+
+          <!-- Empty State Tugas -->
+          <div v-else-if="assignmentStore.assignments.length === 0" class="p-8 text-center rounded-2xl bg-alabaster-slate border border-slate-200 space-y-3">
+            <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-xl">
+              📝
+            </div>
+            <div class="space-y-1">
+              <h5 class="text-xs font-bold text-academic-navy font-jakarta">Belum Ada Tugas Pada Sesi Ini</h5>
+              <p class="text-[11px] text-slate-500 font-inter max-w-sm mx-auto">
+                {{ authStore.isLecturer || authStore.isAdmin ? 'Klik tombol "+ Buat Tugas Baru" untuk menambahkan penugasan dengan parameter due_date dan cutoff_date.' : 'Tidak ada tugas yang dijadwalkan untuk pertemuan ini.' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Grid Daftar Tugas Perkuliahan -->
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              v-for="a in assignmentStore.assignments"
+              :key="a.id"
+              class="p-5 rounded-2xl border transition space-y-4 font-inter flex flex-col justify-between"
+              :class="a.isClosed ? 'bg-slate-50 border-slate-200' : 'bg-white border-slate-200/90 hover:border-academic-navy shadow-xs'"
+            >
+              <div class="space-y-3">
+                <!-- Top Row: Badge & Max Score -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-academic-navy border border-blue-200">
+                      Tugas Sesi
+                    </span>
+                    <span class="text-[10px] font-mono text-slate-400">
+                      Maks: {{ a.maxScore }} Poin
+                    </span>
+                  </div>
+
+                  <!-- Status Tutup / Kadaluarsa -->
+                  <span
+                    v-if="a.isClosed"
+                    class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-red-100 text-semantic-danger border border-red-200 uppercase"
+                  >
+                    Penutupan Berakhir
+                  </span>
+                  <span
+                    v-else-if="a.isExpired"
+                    class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase"
+                  >
+                    Batas Normal Lewat
+                  </span>
+                  <span
+                    v-else
+                    class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-emerald-100 text-semantic-success border border-emerald-200 uppercase"
+                  >
+                    Pengumpulan Aktif
+                  </span>
+                </div>
+
+                <!-- Judul & Deskripsi -->
+                <div>
+                  <h5 class="text-sm font-bold text-academic-navy font-jakarta leading-snug">
+                    {{ a.title }}
+                  </h5>
+                  <p v-if="a.description" class="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
+                    {{ a.description }}
+                  </p>
+                </div>
+
+                <!-- Jadwal Batas Waktu Normal vs Cutoff Date -->
+                <div class="p-3 rounded-xl bg-alabaster-slate border border-slate-200 text-xs space-y-1.5 font-mono">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-500">Batas Normal (due_date):</span>
+                    <span class="font-bold text-academic-navy">
+                      {{ new Date(a.dueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }} WIB
+                    </span>
+                  </div>
+
+                  <div v-if="a.cutoffDate" class="flex items-center justify-between text-slate-600">
+                    <span class="text-slate-500">Penutupan (cutoff_date):</span>
+                    <span class="font-bold text-amber-800">
+                      {{ new Date(a.cutoffDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }} WIB
+                    </span>
+                  </div>
+
+                  <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-200/60">
+                    <span>Format: {{ a.allowedFileTypes.toUpperCase() }}</span>
+                    <span>Maks: {{ a.maxFileSizeMb }} MB</span>
+                  </div>
+                </div>
+
+                <!-- Bagian Status Mahasiswa -->
+                <div v-if="authStore.isStudent" class="pt-2 border-t border-slate-100">
+                  <!-- State Sudah Dikumpulkan -->
+                  <div v-if="a.mySubmission" class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-200 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[11px] font-bold text-slate-700 font-jakarta">Pengumpulan Anda:</span>
+                      <!-- Status Ketepatan Waktu: Tepat Waktu (#16A34A) vs Terlambat (#DC2626) -->
+                      <span
+                        class="px-2 py-0.5 rounded font-mono text-[10px] font-bold text-white uppercase"
+                        :style="{ backgroundColor: a.mySubmission.timingColor }"
+                      >
+                        ● {{ a.mySubmission.timingLabel }}
+                      </span>
+                    </div>
+
+                    <div class="text-[11px] text-slate-500 font-mono">
+                      <span>Terkirim: {{ new Date(a.mySubmission.submittedAt).toLocaleTimeString('id-ID') }} WIB</span>
+                      <span v-if="a.mySubmission.fileName" class="block truncate">Berkas: {{ a.mySubmission.fileName }}</span>
+                    </div>
+
+                    <!-- Nilai Mahasiswa jika sudah dinilai -->
+                    <div v-if="a.mySubmission.status === 'GRADED'" class="pt-1.5 border-t border-emerald-200/60 flex items-center justify-between">
+                      <span class="text-[11px] text-slate-600">Nilai Tugas:</span>
+                      <span class="font-bold font-mono text-scholarly-teal text-xs">
+                        {{ a.mySubmission.score }} / {{ a.maxScore }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- State Belum Mengumpulkan -->
+                  <div v-else class="text-center py-2 text-xs text-slate-500 font-inter">
+                    Anda belum mengumpulkan tugas ini.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Row Buttons -->
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <!-- Dosen Controls -->
+                <template v-if="authStore.isLecturer || authStore.isAdmin">
+                  <button
+                    type="button"
+                    @click="handleOpenOverviewModal(a)"
+                    class="flex-1 py-2 px-3 rounded-xl bg-academic-navy hover:bg-blue-900 text-white font-semibold text-xs font-jakarta transition flex items-center justify-center gap-1.5"
+                  >
+                    <span>📊 Lihat Pengumpulan ({{ a.submissionCount || 0 }})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    @click="handleDeleteAssignment(a)"
+                    title="Hapus Tugas"
+                    class="p-2 rounded-xl text-slate-400 hover:text-semantic-danger hover:bg-red-50 transition"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </template>
+
+                <!-- Mahasiswa Controls -->
+                <template v-else>
+                  <button
+                    v-if="a.isClosed"
+                    type="button"
+                    disabled
+                    class="w-full py-2 px-3 rounded-xl bg-slate-100 text-slate-400 font-semibold text-xs font-jakarta cursor-not-allowed"
+                  >
+                    ⛔ Pengumpulan Ditutup (Melewati Batas Cutoff)
+                  </button>
+
+                  <button
+                    v-else
+                    type="button"
+                    @click="handleOpenSubmitModal(a)"
+                    class="w-full py-2 px-3 rounded-xl text-white font-semibold text-xs font-jakarta transition shadow-xs flex items-center justify-center gap-1.5"
+                    :class="a.isExpired ? 'bg-semantic-danger hover:bg-red-700' : 'bg-scholarly-teal hover:bg-teal-700'"
+                  >
+                    <span v-if="a.mySubmission">🔄 Unggah Ulang Berkas Tugas</span>
+                    <span v-else-if="a.isExpired">📤 Kumpulkan Tugas (Terlambat)</span>
+                    <span v-else>📤 Kumpulkan Tugas (Tepat Waktu)</span>
+                  </button>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Bobot Komponen Penilaian Sesi Terkait -->
         <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200/60 flex items-center justify-between flex-wrap gap-3">
           <div class="flex items-center gap-3">
@@ -542,6 +789,33 @@ const formatFileSize = (bytes?: number | null) => {
       :session-number="selectedSession.sessionNumber"
       @close="isAddModalOpen = false"
       @created="fetchMaterials(selectedSession?.id)"
+    />
+
+    <!-- Modal Buat Tugas Baru (Dosen / Admin) -->
+    <AddAssignmentModal
+      v-if="currentClass && selectedSession"
+      :is-open="isAddAssignmentOpen"
+      :class-id="currentClass.id"
+      :session-id="selectedSession.id"
+      :session-number="selectedSession.sessionNumber"
+      @close="isAddAssignmentOpen = false"
+      @created="fetchAssignments(selectedSession?.id)"
+    />
+
+    <!-- Modal Kumpulkan Tugas Berkas PDF/ZIP (Mahasiswa) -->
+    <SubmitAssignmentModal
+      :is-open="isSubmitAssignmentOpen"
+      :assignment="selectedAssignmentForSubmit"
+      @close="isSubmitAssignmentOpen = false"
+      @submitted="fetchAssignments(selectedSession?.id)"
+    />
+
+    <!-- Modal Ikhtisar & Penilaian Pengumpulan Mahasiswa (Dosen / Admin) -->
+    <AssignmentSubmissionsModal
+      :is-open="isOverviewModalOpen"
+      :overview="assignmentStore.currentOverview"
+      @close="isOverviewModalOpen = false"
+      @graded="fetchAssignments(selectedSession?.id)"
     />
   </div>
 </template>

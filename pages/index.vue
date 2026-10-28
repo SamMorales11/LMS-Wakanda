@@ -2,17 +2,21 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAcademicStore } from '~/stores/useAcademicStore'
+import { useAttendanceStore } from '~/stores/useAttendanceStore'
 import SidebarNav from '~/components/workspace/SidebarNav.vue'
 import SessionWorkspace from '~/components/workspace/SessionWorkspace.vue'
+import AttendanceRecapView from '~/components/workspace/AttendanceRecapView.vue'
+import AssignmentRecapView from '~/components/workspace/AssignmentRecapView.vue'
 import GradeWeightsView from '~/components/workspace/GradeWeightsView.vue'
 import ArchitectureInspector from '~/components/workspace/ArchitectureInspector.vue'
 import ContextualPanel from '~/components/workspace/ContextualPanel.vue'
 
 const authStore = useAuthStore()
 const academicStore = useAcademicStore()
+const attendanceStore = useAttendanceStore()
 
 // State Navigasi Tab Utama di Zona Tengah
-const activeMainTab = ref<'workspace' | 'grades' | 'architecture'>('workspace')
+const activeMainTab = ref<'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'architecture'>('workspace')
 
 // State Mobile Responsive Drawers
 const isMobileSidebarOpen = ref(false)
@@ -51,10 +55,11 @@ onMounted(async () => {
         <button
           type="button"
           @click="isMobilePanelOpen = !isMobilePanelOpen"
-          class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition focus:outline-none text-xs font-semibold font-jakarta"
+          class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition focus:outline-none text-xs font-semibold font-jakarta flex items-center gap-1.5"
           title="Buka Presensi & Tenggat"
         >
-          Presensi
+          <span v-if="attendanceStore.hasActiveToken" class="w-2 h-2 rounded-full bg-semantic-success animate-pulse"></span>
+          <span>Presensi</span>
         </button>
       </div>
     </header>
@@ -84,14 +89,14 @@ onMounted(async () => {
       <!-- ============================================== -->
       <!-- ZONA 2 (TENGAH): WORKSPACE UTAMA 16 PERTEMUAN  -->
       <!-- ============================================== -->
-      <main class="flex-1 flex flex-col min-w-0 bg-slate-50/60 overflow-hidden">
-        <!-- Sub-Header Tab Switcher di Atas Workspace -->
-        <div class="h-14 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between shrink-0">
-          <div class="flex items-center space-x-4 sm:space-x-6 text-xs font-semibold font-inter">
+      <main class="flex-1 flex flex-col min-w-0 bg-slate-50/60 overflow-hidden relative">
+        <!-- Sub-Header Tab Switcher di Atas Workspace (Scrollable on Mobile) -->
+        <div class="h-14 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between shrink-0 overflow-x-auto no-scrollbar">
+          <div class="flex items-center space-x-3 sm:space-x-6 text-xs font-semibold font-inter shrink-0">
             <button
               type="button"
               @click="activeMainTab = 'workspace'"
-              class="h-14 border-b-2 transition flex items-center gap-1.5"
+              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
               :class="activeMainTab === 'workspace' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
             >
               <span>📚 16 Pertemuan</span>
@@ -99,8 +104,26 @@ onMounted(async () => {
 
             <button
               type="button"
+              @click="activeMainTab = 'recap-attendance'"
+              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
+              :class="activeMainTab === 'recap-attendance' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
+            >
+              <span>📊 Rekap Presensi</span>
+            </button>
+
+            <button
+              type="button"
+              @click="activeMainTab = 'recap-assignments'"
+              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
+              :class="activeMainTab === 'recap-assignments' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
+            >
+              <span>📝 Rekap Tugas</span>
+            </button>
+
+            <button
+              type="button"
               @click="activeMainTab = 'grades'"
-              class="h-14 border-b-2 transition flex items-center gap-1.5"
+              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
               :class="activeMainTab === 'grades' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
             >
               <span>⚖️ Bobot Nilai (100%)</span>
@@ -109,7 +132,7 @@ onMounted(async () => {
             <button
               type="button"
               @click="activeMainTab = 'architecture'"
-              class="h-14 border-b-2 transition flex items-center gap-1.5"
+              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
               :class="activeMainTab === 'architecture' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
             >
               <span>🏛️ Arsitektur & RBAC</span>
@@ -117,7 +140,7 @@ onMounted(async () => {
           </div>
 
           <!-- Sesi / User Indicator Status -->
-          <div class="hidden sm:flex items-center space-x-2 text-xs font-inter text-slate-500">
+          <div class="hidden md:flex items-center space-x-2 text-xs font-inter text-slate-500 shrink-0">
             <span class="w-2 h-2 rounded-full bg-semantic-success"></span>
             <span class="font-mono text-[11px]">DB Neon Connected</span>
           </div>
@@ -125,8 +148,22 @@ onMounted(async () => {
 
         <!-- Render Zona Tengah Berdasarkan Tab Aktif -->
         <SessionWorkspace v-if="activeMainTab === 'workspace'" />
+        <AttendanceRecapView v-else-if="activeMainTab === 'recap-attendance'" />
+        <AssignmentRecapView v-else-if="activeMainTab === 'recap-assignments'" />
         <GradeWeightsView v-else-if="activeMainTab === 'grades'" />
         <ArchitectureInspector v-else-if="activeMainTab === 'architecture'" />
+
+        <!-- Floating Mobile Quick Action for Attendance on Phones -->
+        <div class="lg:hidden fixed bottom-4 right-4 z-30">
+          <button
+            type="button"
+            @click="isMobilePanelOpen = true"
+            class="py-3 px-4 rounded-2xl bg-academic-navy hover:bg-blue-900 text-white font-bold text-xs shadow-xl flex items-center gap-2 border border-white/20 font-jakarta"
+          >
+            <span v-if="attendanceStore.hasActiveToken" class="w-2.5 h-2.5 rounded-full bg-semantic-success animate-ping"></span>
+            <span>🔑 Presensi & Tenggat</span>
+          </button>
+        </div>
       </main>
 
       <!-- ============================================== -->

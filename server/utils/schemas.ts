@@ -256,5 +256,111 @@ export const manualAttendanceSchema = z.object({
 
 export type ManualAttendanceInput = z.infer<typeof manualAttendanceSchema>
 
+// ============================================================================
+// 9. Assignment & Submission Schemas (Tugas & Pengumpulan Berkas PDF/ZIP)
+// ============================================================================
+
+export const createAssignmentSchema = z
+  .object({
+    classId: z.string({ required_error: 'ID Kelas wajib disertakan' }).uuid('Format ID kelas harus UUID valid'),
+    sessionId: z.string().uuid('Format ID sesi harus UUID valid').optional().nullable(),
+    title: z
+      .string({ required_error: 'Judul tugas wajib diisi' })
+      .min(3, 'Judul tugas minimal 3 karakter')
+      .max(255, 'Judul tugas maksimal 255 karakter'),
+    description: z.string().max(5000, 'Deskripsi maksimal 5000 karakter').optional().nullable(),
+    instructions: z.string().max(5000, 'Petunjuk pengerjaan maksimal 5000 karakter').optional().nullable(),
+    maxScore: z.number().min(1, 'Nilai maksimal minimal 1').max(1000, 'Nilai maksimal 1000').default(100),
+    dueDate: z
+      .string({ required_error: 'Batas waktu normal (due_date) wajib diisi' })
+      .refine(val => !isNaN(Date.parse(val)), { message: 'Format due_date harus tanggal/waktu ISO valid' }),
+    cutoffDate: z
+      .string()
+      .refine(val => !val || !isNaN(Date.parse(val)), { message: 'Format cutoff_date harus tanggal/waktu ISO valid' })
+      .optional()
+      .nullable(),
+    allowLateSubmission: z.boolean().default(true),
+    latePenaltyPercentage: z.number().min(0).max(100).default(0),
+    allowedFileTypes: z.string().default('pdf,zip'),
+    maxFileSizeMb: z.number().int().min(1).max(100).default(10),
+    isPublished: z.boolean().default(true)
+  })
+  .refine(
+    data => {
+      if (!data.cutoffDate) return true
+      return new Date(data.cutoffDate).getTime() >= new Date(data.dueDate).getTime()
+    },
+    {
+      message: 'Batas akhir penutupan (cutoff_date) tidak boleh lebih awal dari batas waktu normal (due_date)',
+      path: ['cutoffDate']
+    }
+  )
+
+export type CreateAssignmentInput = z.infer<typeof createAssignmentSchema>
+
+export const updateAssignmentSchema = z
+  .object({
+    title: z.string().min(3).max(255).optional(),
+    description: z.string().max(5000).optional().nullable(),
+    instructions: z.string().max(5000).optional().nullable(),
+    maxScore: z.number().min(1).max(1000).optional(),
+    dueDate: z
+      .string()
+      .refine(val => !isNaN(Date.parse(val)), { message: 'Format due_date harus tanggal/waktu ISO valid' })
+      .optional(),
+    cutoffDate: z
+      .string()
+      .refine(val => !val || !isNaN(Date.parse(val)), { message: 'Format cutoff_date harus tanggal/waktu ISO valid' })
+      .optional()
+      .nullable(),
+    allowLateSubmission: z.boolean().optional(),
+    latePenaltyPercentage: z.number().min(0).max(100).optional(),
+    allowedFileTypes: z.string().optional(),
+    maxFileSizeMb: z.number().int().min(1).max(100).optional(),
+    isPublished: z.boolean().optional()
+  })
+  .refine(
+    data => {
+      if (!data.dueDate || !data.cutoffDate) return true
+      return new Date(data.cutoffDate).getTime() >= new Date(data.dueDate).getTime()
+    },
+    {
+      message: 'Batas akhir penutupan (cutoff_date) tidak boleh lebih awal dari batas waktu normal (due_date)',
+      path: ['cutoffDate']
+    }
+  )
+
+export type UpdateAssignmentInput = z.infer<typeof updateAssignmentSchema>
+
+export const createSubmissionSchema = z
+  .object({
+    assignmentId: z
+      .string({ required_error: 'ID Tugas wajib disertakan' })
+      .uuid('Format ID tugas harus UUID valid'),
+    fileKey: z.string().max(500).optional().nullable(),
+    fileUrl: z.string().optional().nullable(),
+    fileName: z.string().max(255).optional().nullable(),
+    fileSize: z.number().int().positive().optional().nullable(),
+    fileType: z.string().max(100).optional().nullable(),
+    contentText: z.string().max(10000).optional().nullable()
+  })
+  .refine(
+    data => !!(data.fileKey || data.fileUrl || data.contentText),
+    {
+      message: 'Pengumpulan tugas wajib menyertakan berkas unggahan atau teks jawaban',
+      path: ['fileKey']
+    }
+  )
+
+export type CreateSubmissionInput = z.infer<typeof createSubmissionSchema>
+
+export const gradeSubmissionSchema = z.object({
+  score: z.number({ required_error: 'Nilai tugas wajib diisi' }).min(0, 'Nilai tidak boleh negatif').max(1000, 'Nilai melebihi batas'),
+  feedback: z.string().max(2000, 'Catatan umpan balik maksimal 2000 karakter').optional().nullable()
+})
+
+export type GradeSubmissionInput = z.infer<typeof gradeSubmissionSchema>
+
+
 
 

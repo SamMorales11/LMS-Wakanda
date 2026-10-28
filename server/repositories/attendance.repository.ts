@@ -45,6 +45,7 @@ export interface IAttendanceRepository {
   // Class & Student Operations
   findClassSessions(classId: string): Promise<{ id: string; sessionNumber: number; title: string }[]>
   findStudentLogsByClassId(classId: string, studentId: string): Promise<AttendanceLogDto[]>
+  findEnrolledStudents(classId: string): Promise<{ id: string; name: string; nimNidn: string | null; email: string }[]>
   isStudentEnrolledInClass(classId: string, studentId: string): Promise<boolean>
   countEnrolledStudents(classId: string): Promise<number>
   getSessionById(sessionId: string): Promise<{ id: string; classId: string; sessionNumber: number; title: string } | null>
@@ -237,6 +238,22 @@ export class AttendanceRepository implements IAttendanceRepository {
       createdAt: r.log.createdAt instanceof Date ? r.log.createdAt.toISOString() : String(r.log.createdAt),
       updatedAt: r.log.updatedAt instanceof Date ? r.log.updatedAt.toISOString() : String(r.log.updatedAt)
     }))
+  }
+
+  public async findEnrolledStudents(
+    classId: string
+  ): Promise<{ id: string; name: string; nimNidn: string | null; email: string }[]> {
+    return db
+      .select({
+        id: users.id,
+        name: users.name,
+        nimNidn: users.nimNidn,
+        email: users.email
+      })
+      .from(classEnrollments)
+      .innerJoin(users, eq(classEnrollments.studentId, users.id))
+      .where(and(eq(classEnrollments.classId, classId), eq(classEnrollments.status, 'ENROLLED')))
+      .orderBy(users.name)
   }
 
   public async isStudentEnrolledInClass(classId: string, studentId: string): Promise<boolean> {

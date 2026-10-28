@@ -16,9 +16,12 @@ export const assignments = pgTable(
     instructions: text('instructions'),
     maxScore: numeric('max_score', { precision: 5, scale: 2 }).default('100.00').notNull(),
     dueDate: timestamp('due_date', { withTimezone: true }).notNull(),
-    allowLateSubmission: boolean('allow_late_submission').default(false).notNull(),
+    cutoffDate: timestamp('cutoff_date', { withTimezone: true }),
+    allowLateSubmission: boolean('allow_late_submission').default(true).notNull(),
     latePenaltyPercentage: numeric('late_penalty_percentage', { precision: 5, scale: 2 }).default('0.00').notNull(),
-    isPublished: boolean('is_published').default(false).notNull(),
+    allowedFileTypes: varchar('allowed_file_types', { length: 100 }).default('pdf,zip'),
+    maxFileSizeMb: integer('max_file_size_mb').default(10),
+    isPublished: boolean('is_published').default(true).notNull(),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
@@ -26,7 +29,8 @@ export const assignments = pgTable(
   (table) => [
     index('assignments_class_id_idx').on(table.classId),
     index('assignments_session_id_idx').on(table.sessionId),
-    index('assignments_due_date_idx').on(table.dueDate)
+    index('assignments_due_date_idx').on(table.dueDate),
+    index('assignments_cutoff_date_idx').on(table.cutoffDate)
   ]
 )
 
@@ -37,7 +41,11 @@ export const submissions = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     assignmentId: uuid('assignment_id').references(() => assignments.id, { onDelete: 'cascade' }).notNull(),
     studentId: uuid('student_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    fileKey: text('file_key'),
     fileUrl: text('file_url'),
+    fileName: varchar('file_name', { length: 255 }),
+    fileSize: integer('file_size'),
+    fileType: varchar('file_type', { length: 100 }),
     contentText: text('content_text'),
     submittedAt: timestamp('submitted_at', { withTimezone: true }).defaultNow().notNull(),
     isLate: boolean('is_late').default(false).notNull(),

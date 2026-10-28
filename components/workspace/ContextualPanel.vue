@@ -3,12 +3,14 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAcademicStore } from '~/stores/useAcademicStore'
 import { useAttendanceStore } from '~/stores/useAttendanceStore'
+import { useAssignmentStore } from '~/stores/useAssignmentStore'
 import QrCodeModal from './QrCodeModal.vue'
 import ManualAttendanceModal from './ManualAttendanceModal.vue'
 
 const authStore = useAuthStore()
 const academicStore = useAcademicStore()
 const attendanceStore = useAttendanceStore()
+const assignmentStore = useAssignmentStore()
 
 const selectedSession = computed(() => academicStore.selectedSession)
 const selectedSessionNum = computed(() => academicStore.selectedSessionNumber)
@@ -137,49 +139,66 @@ const totalSessionsCount = computed(() => {
   return attendanceStore.studentSummary?.totalSessions ?? 16
 })
 
-// Sample Upcoming Deadlines
-const upcomingDeadlines = [
-  {
-    id: 1,
-    title: 'UTS (Pertemuan 8): Evaluasi Tengah Semester',
-    course: 'IF302 - Web Full-Stack',
-    type: 'EXAM',
-    due: '20 Okt 2026',
-    daysLeft: 5,
-    urgent: true,
-    badge: 'Ujian UTS'
-  },
-  {
-    id: 2,
-    title: 'Tugas 1: Implementasi Clean Architecture',
-    course: 'IF302 - Web Full-Stack',
-    type: 'ASSIGNMENT',
-    due: '18 Okt 2026',
-    daysLeft: 3,
-    urgent: true,
-    badge: 'Tugas'
-  },
-  {
-    id: 3,
-    title: 'Kuis 1: Pola Repository & Zod Validation',
-    course: 'IF302 - Web Full-Stack',
-    type: 'QUIZ',
-    due: '25 Okt 2026',
-    daysLeft: 10,
-    urgent: false,
-    badge: 'Kuis'
-  },
-  {
-    id: 4,
-    title: 'UAS (Pertemuan 16): Presentasi Proyek Akhir',
-    course: 'IF302 - Web Full-Stack',
-    type: 'FINAL',
-    due: '15 Jan 2027',
-    daysLeft: 80,
-    urgent: false,
-    badge: 'Ujian UAS'
+// Tenggat Terdekat Dinamis (Amber Alert #D97706)
+const dynamicDeadlines = computed(() => {
+  const list: Array<{
+    id: string | number
+    title: string
+    course: string
+    type: string
+    due: string
+    daysLeft: number
+    urgent: boolean
+    badge: string
+  }> = []
+
+  const courseName = selectedClass.value?.courseCode || 'MK'
+
+  // 1. Ambil dari tugas-tugas aktif kelas
+  assignmentStore.assignments.forEach(a => {
+    const dueTime = new Date(a.dueDate).getTime()
+    const diffDays = Math.ceil((dueTime - Date.now()) / (1000 * 60 * 60 * 24))
+    const daysLeft = Math.max(0, diffDays)
+    const urgent = daysLeft <= 3
+
+    list.push({
+      id: a.id,
+      title: a.title,
+      course: courseName,
+      type: 'ASSIGNMENT',
+      due: new Date(a.dueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+      daysLeft,
+      urgent,
+      badge: 'Tugas'
+    })
+  })
+
+  // 2. Tambahkan milestone ujian evaluasi semester
+  if (list.length < 3) {
+    list.push({
+      id: 'uts-8',
+      title: 'UTS (Pertemuan 8): Evaluasi Tengah Semester',
+      course: courseName,
+      type: 'EXAM',
+      due: '20 Okt 2026',
+      daysLeft: 5,
+      urgent: true,
+      badge: 'Ujian UTS'
+    })
+    list.push({
+      id: 'uas-16',
+      title: 'UAS (Pertemuan 16): Presentasi Proyek Akhir',
+      course: courseName,
+      type: 'FINAL',
+      due: '15 Jan 2027',
+      daysLeft: 78,
+      urgent: false,
+      badge: 'Ujian UAS'
+    })
   }
-]
+
+  return list.sort((a, b) => a.daysLeft - b.daysLeft)
+})
 </script>
 
 <template>
@@ -377,49 +396,50 @@ const upcomingDeadlines = [
       </div>
     </section>
 
-    <!-- PANEL 2: TENGGAT TERDEKAT (Upcoming Deadlines) -->
+    <!-- PANEL 2: TENGGAT TERDEKAT (Amber Alert #D97706) -->
     <section class="space-y-3.5">
       <div class="flex items-center justify-between">
         <h3 class="text-sm font-bold text-academic-navy font-jakarta flex items-center gap-2">
           <span>⏰</span>
           <span>Tenggat Terdekat</span>
         </h3>
-        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-          {{ upcomingDeadlines.length }} Agenda
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 font-bold">
+          {{ dynamicDeadlines.length }} Agenda
         </span>
       </div>
 
       <div class="space-y-2.5">
         <div
-          v-for="item in upcomingDeadlines"
+          v-for="item in dynamicDeadlines"
           :key="item.id"
-          class="p-3 rounded-2xl border transition space-y-1.5 font-inter"
+          class="p-3.5 rounded-2xl border transition space-y-1.5 font-inter"
           :class="item.urgent
-            ? 'bg-amber-50/50 border-amber-200/80 hover:border-amber-400'
+            ? 'bg-amber-50/80 border-amber-300 hover:border-amber-400 text-amber-950 shadow-xs'
             : 'bg-alabaster-slate border-slate-200 hover:border-slate-300'"
         >
           <div class="flex items-center justify-between">
             <span
               class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase"
-              :class="item.urgent ? 'bg-amber-200/70 text-amber-900' : 'bg-slate-200 text-slate-700'"
+              :class="item.urgent ? 'bg-amber-200/90 text-amber-900 border border-amber-300' : 'bg-slate-200 text-slate-700'"
             >
               {{ item.badge }}
             </span>
             <span
-              class="text-[10px] font-mono font-bold"
-              :class="item.urgent ? 'text-amber-alert' : 'text-slate-500'"
+              class="text-[10px] font-mono font-bold flex items-center gap-1"
+              :class="item.urgent ? 'text-amber-alert font-black' : 'text-slate-500'"
             >
+              <span v-if="item.urgent" class="w-1.5 h-1.5 rounded-full bg-amber-alert animate-ping"></span>
               {{ item.daysLeft }} hari lagi
             </span>
           </div>
 
-          <h4 class="text-xs font-bold text-deep-ink font-jakarta leading-snug line-clamp-2">
+          <h4 class="text-xs font-bold font-jakarta leading-snug line-clamp-2" :class="item.urgent ? 'text-amber-950' : 'text-deep-ink'">
             {{ item.title }}
           </h4>
 
-          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-100">
             <span>{{ item.course }}</span>
-            <span class="font-mono text-slate-600">{{ item.due }}</span>
+            <span class="font-mono text-slate-600 font-medium">{{ item.due }}</span>
           </div>
         </div>
       </div>
