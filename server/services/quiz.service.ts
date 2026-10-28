@@ -218,7 +218,8 @@ export class QuizService implements IQuizService {
         attempt: activeAttempt,
         questions: orderedQuestions,
         remainingSeconds,
-        deadlineAt: new Date(strictDeadlineMs).toISOString()
+        deadlineAt: new Date(strictDeadlineMs).toISOString(),
+        expiresAt: new Date(strictDeadlineMs).toISOString()
       }
     }
 
@@ -242,12 +243,14 @@ export class QuizService implements IQuizService {
       questionOrder = rawQuestions.map(q => q.id)
     }
 
+    const calculatedDeadlineMs = Math.min(now + (quiz.durationMinutes * 60 * 1000), endTimeMs)
     const newAttemptNumber = pastAttemptsCount + 1
     const newAttempt = await this.quizRepo.createAttempt(
       quizId,
       studentId,
       newAttemptNumber,
-      questionOrder
+      questionOrder,
+      new Date(calculatedDeadlineMs)
     )
 
     // Hitung deadline spesifik attempt ini
@@ -273,7 +276,8 @@ export class QuizService implements IQuizService {
       attempt: newAttempt,
       questions: orderedQuestions,
       remainingSeconds,
-      deadlineAt: new Date(strictDeadlineMs).toISOString()
+      deadlineAt: new Date(strictDeadlineMs).toISOString(),
+      expiresAt: new Date(strictDeadlineMs).toISOString()
     }
   }
 

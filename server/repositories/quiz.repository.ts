@@ -40,8 +40,13 @@ export interface IQuizRepository {
     quizId: string,
     studentId: string,
     attemptNumber: number,
-    questionOrder: string[]
+    questionOrder: string[],
+    expiresAt?: Date
   ): Promise<QuizAttemptDto>
+  updateProgressAnswers(
+    attemptId: string,
+    answers: QuizAttemptAnswer[]
+  ): Promise<QuizAttemptDto | null>
   saveAttemptAnswers(
     attemptId: string,
     answers: QuizAttemptAnswer[],
@@ -123,9 +128,11 @@ export class QuizRepository implements IQuizRepository {
     const now = Date.now()
     const startedMs = row.startedAt.getTime()
 
-    // Hitung deadline spesifik: min(quiz.endTime, startedAt + durationMinutes)
+    // Hitung deadline spesifik: min(quiz.endTime, startedAt + durationMinutes) atau gunakan expiresAt
     let deadlineMs = startedMs + 60 * 60 * 1000 // default fallback
-    if (quizRow) {
+    if (row.expiresAt) {
+      deadlineMs = row.expiresAt.getTime()
+    } else if (quizRow) {
       const quizDurationMs = quizRow.durationMinutes * 60 * 1000
       const timerEndMs = startedMs + quizDurationMs
       const quizEndMs = quizRow.endTime.getTime()
@@ -151,6 +158,7 @@ export class QuizRepository implements IQuizRepository {
       studentNim: studentRow?.nimNidn || undefined,
       attemptNumber: row.attemptNumber,
       startedAt: row.startedAt.toISOString(),
+      expiresAt: row.expiresAt ? row.expiresAt.toISOString() : new Date(deadlineMs).toISOString(),
       submittedAt: row.submittedAt ? row.submittedAt.toISOString() : null,
       durationSpentSeconds,
       remainingSeconds,
@@ -484,7 +492,8 @@ export class QuizRepository implements IQuizRepository {
     quizId: string,
     studentId: string,
     attemptNumber: number,
-    questionOrder: string[]
+    questionOrder: string[],
+    expiresAt?: Date
   ): Promise<QuizAttemptDto> {
     const [inserted] = await db
       .insert(quizAttempts)
@@ -495,7 +504,8 @@ export class QuizRepository implements IQuizRepository {
         status: 'IN_PROGRESS',
         questionOrderJsonb: questionOrder,
         answersJsonb: [],
-        startedAt: new Date()
+        startedAt: new Date(),
+        expiresAt: expiresAt || null
       })
       .returning()
 
@@ -512,6 +522,36 @@ export class QuizRepository implements IQuizRepository {
       .limit(1)
 
     return this.toQuizAttemptDto(inserted, quizRow || null, studentRow || null)
+  }
+
+  public async updateProgressAnswers(
+    attemptId: string,
+    answers: QuizAttemptAnswer[]
+  ): Promise<QuizAttemptDto | null> {
+    const [updated] = await db
+      .update(quizAttempts)
+      .set({
+        answersJsonb: answers,
+        updatedAt: new Date()
+      })
+      .where(eq(quizAttempts.id, attemptId))
+      .returning()
+
+    if (!updated) return null
+
+    const [quizRow] = await db
+      .select()
+      .from(quizzes)
+      .where(eq(quizzes.id, updated.quizId))
+      .limit(1)
+
+    const [studentRow] = await db
+      .select({ name: users.name, nimNidn: users.nimNidn })
+      .from(users)
+      .where(eq(users.id, updated.studentId))
+      .limit(1)
+
+    return this.toQuizAttemptDto(updated, quizRow || null, studentRow || null)
   }
 
   public async saveAttemptAnswers(

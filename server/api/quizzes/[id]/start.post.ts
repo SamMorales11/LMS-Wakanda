@@ -1,7 +1,7 @@
-import { quizService } from '../../../services'
+import { quizAttemptService } from '../../../services'
 import { createApiResponse } from '../../../utils/response'
 import { requireUserAuth } from '../../../utils/auth'
-import { handleServerError } from '../../../utils/errors'
+import { handleServerError, BadRequestError } from '../../../utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -9,23 +9,21 @@ export default defineEventHandler(async (event) => {
     const quizId = getRouterParam(event, 'id')
 
     if (!quizId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'ID ujian wajib disertakan'
-      })
+      throw new BadRequestError('ID ujian wajib disertakan')
     }
 
-    const result = await quizService.startOrResumeAttempt(quizId, user.id)
+    const sessionState = await quizAttemptService.initiateOrResumeSession(quizId, user.id)
 
     return createApiResponse(
-      result,
-      `Sesi pengerjaan ujian dimulai. Batas waktu pengerjaan: ${result.deadlineAt}`,
+      sessionState,
+      `Sesi pengerjaan ujian '${sessionState.quizTitle}' dimulai. Batas waktu server (expires_at): ${sessionState.expiresAt}`,
       {
-        attemptId: result.attempt.id,
-        attemptNumber: result.attempt.attemptNumber,
-        remainingSeconds: result.remainingSeconds,
-        deadlineAt: result.deadlineAt,
-        questionsCount: result.questions.length,
+        attemptId: sessionState.attemptId,
+        remainingSeconds: sessionState.remainingSeconds,
+        expiresAt: sessionState.expiresAt,
+        totalQuestions: sessionState.totalQuestions,
+        answeredCount: sessionState.answeredCount,
+        doubtfulCount: sessionState.doubtfulCount,
         requestId: event.context.requestId
       }
     )

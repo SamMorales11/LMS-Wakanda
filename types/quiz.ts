@@ -34,6 +34,7 @@ export interface StudentAnswerDto {
   questionId: string
   selectedOptionId?: string | null
   essayAnswer?: string | null
+  isDoubtful?: boolean
 }
 
 export interface QuizAttemptAnswer {
@@ -41,6 +42,7 @@ export interface QuizAttemptAnswer {
   questionType: QuestionType
   selectedOptionId?: string | null
   essayAnswer?: string | null
+  isDoubtful?: boolean
   isCorrect?: boolean | null
   scoreAwarded?: number | null
   lecturerFeedback?: string | null
@@ -115,6 +117,7 @@ export interface QuizAttemptDto {
   studentNim?: string
   attemptNumber: number
   startedAt: string
+  expiresAt: string | null
   submittedAt: string | null
   durationSpentSeconds?: number | null
   remainingSeconds?: number
@@ -136,10 +139,62 @@ export interface StartQuizAttemptResponseDto {
   questions: QuizQuestionStudentView[]
   remainingSeconds: number
   deadlineAt: string
+  expiresAt: string
+}
+
+export interface AutoSaveAnswerDto {
+  questionId: string
+  selectedOptionId?: string | null
+  essayAnswer?: string | null
+  isDoubtful?: boolean
+}
+
+export interface BatchAutoSaveDto {
+  answers: AutoSaveAnswerDto[]
+}
+
+export interface AutoSaveResponseDto {
+  attemptId: string
+  savedCount: number
+  remainingSeconds: number
+  expiresAt: string
+  isExpired: boolean
+  lastSavedAt: string
+  answers: {
+    questionId: string
+    selectedOptionId?: string | null
+    essayAnswer?: string | null
+    isDoubtful: boolean
+  }[]
+}
+
+export interface QuizSessionQuestionItem extends QuizQuestionStudentView {
+  currentAnswer?: {
+    selectedOptionId?: string | null
+    essayAnswer?: string | null
+    isDoubtful: boolean
+  }
+}
+
+export interface QuizSessionStateDto {
+  attemptId: string
+  quizId: string
+  quizTitle: string
+  quizType: QuizType
+  durationMinutes: number
+  startedAt: string
+  expiresAt: string
+  remainingSeconds: number
+  isExpired: boolean
+  status: QuizAttemptStatus
+  totalQuestions: number
+  answeredCount: number
+  doubtfulCount: number
+  questions: QuizSessionQuestionItem[]
 }
 
 export interface SubmitQuizDto {
-  answers: StudentAnswerDto[]
+  answers?: StudentAnswerDto[]
 }
 
 export interface GradeQuizEssayDto {

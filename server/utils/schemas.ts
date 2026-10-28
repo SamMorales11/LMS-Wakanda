@@ -452,14 +452,40 @@ export const updateQuizSchema = z
 
 export type UpdateQuizInput = z.infer<typeof updateQuizSchema>
 
+export const autoSaveAnswerSchema = z.object({
+  questionId: z.string().min(1, 'ID soal wajib disertakan'),
+  selectedOptionId: z.string().optional().nullable(),
+  essayAnswer: z.string().max(10000).optional().nullable(),
+  isDoubtful: z.boolean().optional().default(false)
+})
+
+export type AutoSaveAnswerInput = z.infer<typeof autoSaveAnswerSchema>
+
+export const batchAutoSaveSchema = z.object({
+  answers: z.array(autoSaveAnswerSchema).min(1, 'Minimal sertakan 1 butir jawaban untuk auto-save')
+})
+
+export type BatchAutoSaveInput = z.infer<typeof batchAutoSaveSchema>
+
+export const toggleDoubtfulSchema = z.object({
+  questionId: z.string().min(1, 'ID soal wajib disertakan'),
+  isDoubtful: z.boolean()
+})
+
+export type ToggleDoubtfulInput = z.infer<typeof toggleDoubtfulSchema>
+
 export const submitQuizAnswerSchema = z.object({
-  answers: z.array(
-    z.object({
-      questionId: z.string().min(1, 'ID soal wajib disertakan'),
-      selectedOptionId: z.string().optional().nullable(),
-      essayAnswer: z.string().max(10000).optional().nullable()
-    })
-  )
+  answers: z
+    .array(
+      z.object({
+        questionId: z.string().min(1, 'ID soal wajib disertakan'),
+        selectedOptionId: z.string().optional().nullable(),
+        essayAnswer: z.string().max(10000).optional().nullable(),
+        isDoubtful: z.boolean().optional()
+      })
+    )
+    .optional()
+    .default([])
 })
 
 export type SubmitQuizAnswerInput = z.infer<typeof submitQuizAnswerSchema>
@@ -478,6 +504,114 @@ export const gradeQuizEssaySchema = z.object({
 })
 
 export type GradeQuizEssayInput = z.infer<typeof gradeQuizEssaySchema>
+
+// --- Academic Grading Module Schemas (Dosen Penilaian Kolektif & Rubrik) ---
+export const gradeSubmissionDetailSchema = z.object({
+  score: z.coerce.number({ required_error: 'Nilai angka wajib diisi' }).min(0, 'Nilai minimal 0').max(1000, 'Nilai melebihi batas skor'),
+  feedback: z.string().max(5000, 'Umpan balik maksimal 5000 karakter').optional().nullable(),
+  rubricFeedback: z.string().max(5000, 'Catatan rubrik maksimal 5000 karakter').optional().nullable(),
+  revisionNotes: z.string().max(5000, 'Catatan revisi maksimal 5000 karakter').optional().nullable(),
+  status: z.enum(['GRADED', 'RESUBMISSION_REQUESTED']).default('GRADED')
+})
+
+export type GradeSubmissionDetailInput = z.infer<typeof gradeSubmissionDetailSchema>
+
+export const batchGradeSubmissionSchema = z.object({
+  grades: z
+    .array(
+      z.object({
+        submissionId: z.string({ required_error: 'ID pengumpulan wajib diisi' }).uuid('Format ID pengumpulan harus UUID valid'),
+        score: z.coerce.number().min(0, 'Nilai minimal 0').max(1000, 'Nilai melebihi batas skor'),
+        feedback: z.string().max(5000).optional().nullable(),
+        rubricFeedback: z.string().max(5000).optional().nullable(),
+        revisionNotes: z.string().max(5000).optional().nullable(),
+        status: z.enum(['GRADED', 'RESUBMISSION_REQUESTED']).default('GRADED')
+      })
+    )
+    .min(1, 'Minimal sertakan 1 data penilaian tugas')
+})
+
+export type BatchGradeSubmissionInput = z.infer<typeof batchGradeSubmissionSchema>
+
+export const gradeQuizEssayDetailSchema = z.object({
+  answers: z
+    .array(
+      z.object({
+        questionId: z.string().min(1, 'ID soal wajib disertakan'),
+        scoreAwarded: z.coerce.number().min(0, 'Nilai minimal 0').max(1000),
+        lecturerFeedback: z.string().max(3000).optional().nullable()
+      })
+    )
+    .min(1, 'Minimal sertakan 1 butir penilaian soal esai'),
+  feedback: z.string().max(3000).optional().nullable()
+})
+
+export type GradeQuizEssayDetailInput = z.infer<typeof gradeQuizEssayDetailSchema>
+
+// --- Gradebook Engine Schemas (Bobot Nilai 100%, Rumus NA, Penyesuaian Manual & Audit Log) ---
+export const gradeComponentSchema = z.enum([
+  'ATTENDANCE',
+  'ASSIGNMENT',
+  'QUIZ',
+  'MIDTERM_EXAM',
+  'FINAL_EXAM'
+])
+
+export const configureGradeWeightsSchema = z
+  .object({
+    weights: z
+      .array(
+        z.object({
+          componentName: gradeComponentSchema,
+          weightPercentage: z.coerce.number().min(0, 'Bobot minimal 0%').max(100, 'Bobot maksimal 100%'),
+          description: z.string().max(255).optional().nullable()
+        })
+      )
+      .length(5, 'Konfigurasi wajib mencakup seluruh 5 komponen (ATTENDANCE, ASSIGNMENT, QUIZ, MIDTERM_EXAM, FINAL_EXAM)')
+  })
+  .refine(
+    data => {
+      const uniqueComponents = new Set(data.weights.map(w => w.componentName))
+      return uniqueComponents.size === 5
+    },
+    {
+      message: 'Komponen penilaian tidak boleh duplikat dan harus mencakup kelima komponen penilaian',
+      path: ['weights']
+    }
+  )
+  .refine(
+    data => {
+      const sum = data.weights.reduce((acc, curr) => acc + curr.weightPercentage, 0)
+      return Math.abs(sum - 100) < 0.01
+    },
+    {
+      message: 'Total persentase bobot seluruh komponen penilaian wajib berjumlah tepat 100%',
+      path: ['weights']
+    }
+  )
+
+export type ConfigureGradeWeightsInput = z.infer<typeof configureGradeWeightsSchema>
+
+export const manualGradeAdjustmentSchema = z.object({
+  studentId: z.string({ required_error: 'ID Mahasiswa wajib diisi' }).uuid('Format ID mahasiswa harus UUID valid'),
+  numericScore: z.coerce.number().min(0, 'Nilai minimal 0').max(100, 'Nilai maksimal 100').optional(),
+  attendanceScore: z.coerce.number().min(0).max(100).optional(),
+  assignmentScore: z.coerce.number().min(0).max(100).optional(),
+  quizScore: z.coerce.number().min(0).max(100).optional(),
+  midtermScore: z.coerce.number().min(0).max(100).optional(),
+  finalExamScore: z.coerce.number().min(0).max(100).optional(),
+  reason: z.string({ required_error: 'Alasan perubahan nilai wajib diisi untuk audit trail' }).trim().min(5, 'Alasan perubahan minimal 5 karakter').max(1000)
+})
+
+export type ManualGradeAdjustmentInput = z.infer<typeof manualGradeAdjustmentSchema>
+
+export const updateGradeStatusSchema = z.object({
+  status: z.enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'PUBLISHED'])
+})
+
+export type UpdateGradeStatusInput = z.infer<typeof updateGradeStatusSchema>
+
+
 
 
 

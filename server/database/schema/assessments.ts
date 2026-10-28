@@ -105,6 +105,7 @@ export const quizAttempts = pgTable(
     studentId: uuid('student_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
     attemptNumber: integer('attempt_number').default(1).notNull(),
     startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
     submittedAt: timestamp('submitted_at', { withTimezone: true }),
     score: numeric('score', { precision: 5, scale: 2 }),
     autoScore: numeric('auto_score', { precision: 5, scale: 2 }),
