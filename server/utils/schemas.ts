@@ -361,6 +361,125 @@ export const gradeSubmissionSchema = z.object({
 
 export type GradeSubmissionInput = z.infer<typeof gradeSubmissionSchema>
 
+// --- Quizzes & Exams Schemas (Kuis Mingguan, UTS Sesi 8, UAS Sesi 16) ---
+export const quizTypeSchema = z.enum(['QUIZ', 'MIDTERM_EXAM', 'FINAL_EXAM'])
+export const questionTypeSchema = z.enum(['MULTIPLE_CHOICE', 'ESSAY'])
+
+export const quizQuestionOptionSchema = z.object({
+  id: z.string().min(1, 'ID opsi tidak boleh kosong'),
+  text: z.string().trim().min(1, 'Teks opsi tidak boleh kosong')
+})
+
+export const quizQuestionSchema = z
+  .object({
+    id: z.string().min(1, 'ID soal wajib disertakan'),
+    type: questionTypeSchema,
+    prompt: z.string().trim().min(1, 'Pertanyaan wajib diisi').max(10000),
+    points: z.coerce.number().min(1, 'Bobot poin soal minimal 1').max(1000),
+    options: z.array(quizQuestionOptionSchema).optional(),
+    correctOptionId: z.string().optional().nullable(),
+    explanation: z.string().max(2000).optional().nullable(),
+    rubric: z.string().max(2000).optional().nullable()
+  })
+  .refine(
+    data => {
+      if (data.type === 'MULTIPLE_CHOICE') {
+        if (!data.options || data.options.length < 2) return false
+        if (!data.correctOptionId) return false
+        return data.options.some(opt => opt.id === data.correctOptionId)
+      }
+      return true
+    },
+    {
+      message: 'Soal Pilihan Ganda wajib memiliki minimal 2 opsi dan 1 kunci jawaban valid yang cocok dengan salah satu opsi.',
+      path: ['correctOptionId']
+    }
+  )
+
+export const createQuizSchema = z
+  .object({
+    classId: z.string({ required_error: 'ID kelas wajib diisi' }).uuid('Format ID kelas harus UUID valid'),
+    sessionId: z.string().uuid('Format ID sesi pertemuan harus UUID valid').optional().nullable(),
+    title: z.string().trim().min(3, 'Judul kuis/ujian minimal 3 karakter').max(255),
+    description: z.string().max(5000).optional().nullable(),
+    quizType: quizTypeSchema.default('QUIZ'),
+    durationMinutes: z.coerce.number().int().min(5, 'Durasi minimal 5 menit').max(360, 'Durasi maksimal 360 menit').default(60),
+    maxScore: z.coerce.number().min(1).max(1000).default(100),
+    passingScore: z.coerce.number().min(0).max(1000).default(70),
+    startTime: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Format start_time harus tanggal/waktu ISO valid' }),
+    endTime: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Format end_time harus tanggal/waktu ISO valid' }),
+    shuffleQuestions: z.boolean().default(true),
+    maxAttempts: z.coerce.number().int().min(1).max(10).default(1),
+    isPublished: z.boolean().default(true),
+    questions: z.array(quizQuestionSchema).min(1, 'Ujian harus memiliki minimal 1 soal pertanyaan')
+  })
+  .refine(
+    data => new Date(data.endTime).getTime() > new Date(data.startTime).getTime(),
+    {
+      message: 'Waktu berakhir ujian (end_time) harus lebih besar daripada waktu mulai (start_time)',
+      path: ['endTime']
+    }
+  )
+
+export type CreateQuizInput = z.infer<typeof createQuizSchema>
+
+export const updateQuizSchema = z
+  .object({
+    title: z.string().trim().min(3).max(255).optional(),
+    description: z.string().max(5000).optional().nullable(),
+    quizType: quizTypeSchema.optional(),
+    sessionId: z.string().uuid().optional().nullable(),
+    durationMinutes: z.coerce.number().int().min(5).max(360).optional(),
+    maxScore: z.coerce.number().min(1).max(1000).optional(),
+    passingScore: z.coerce.number().min(0).max(1000).optional(),
+    startTime: z.string().refine(val => !isNaN(Date.parse(val))).optional(),
+    endTime: z.string().refine(val => !isNaN(Date.parse(val))).optional(),
+    shuffleQuestions: z.boolean().optional(),
+    maxAttempts: z.coerce.number().int().min(1).max(10).optional(),
+    isPublished: z.boolean().optional(),
+    questions: z.array(quizQuestionSchema).min(1).optional()
+  })
+  .refine(
+    data => {
+      if (!data.startTime || !data.endTime) return true
+      return new Date(data.endTime).getTime() > new Date(data.startTime).getTime()
+    },
+    {
+      message: 'Waktu berakhir ujian (end_time) harus lebih besar daripada waktu mulai (start_time)',
+      path: ['endTime']
+    }
+  )
+
+export type UpdateQuizInput = z.infer<typeof updateQuizSchema>
+
+export const submitQuizAnswerSchema = z.object({
+  answers: z.array(
+    z.object({
+      questionId: z.string().min(1, 'ID soal wajib disertakan'),
+      selectedOptionId: z.string().optional().nullable(),
+      essayAnswer: z.string().max(10000).optional().nullable()
+    })
+  )
+})
+
+export type SubmitQuizAnswerInput = z.infer<typeof submitQuizAnswerSchema>
+
+export const gradeQuizEssaySchema = z.object({
+  answers: z
+    .array(
+      z.object({
+        questionId: z.string().min(1, 'ID soal wajib disertakan'),
+        scoreAwarded: z.coerce.number().min(0, 'Nilai tidak boleh negatif').max(1000),
+        lecturerFeedback: z.string().max(2000).optional().nullable()
+      })
+    )
+    .min(1, 'Minimal sertakan 1 penilaian esai'),
+  feedback: z.string().max(2000).optional().nullable()
+})
+
+export type GradeQuizEssayInput = z.infer<typeof gradeQuizEssaySchema>
+
+
 
 
 

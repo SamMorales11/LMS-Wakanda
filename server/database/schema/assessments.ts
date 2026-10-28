@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, boolean, integer, numeric, timestamp, uniqueIndex, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, boolean, integer, numeric, timestamp, uniqueIndex, index, jsonb } from 'drizzle-orm/pg-core'
 import { submissionStatusEnum, quizAttemptStatusEnum } from './enums'
 import { courseClasses } from './academics'
 import { classSessions } from './sessions'
@@ -65,7 +65,7 @@ export const submissions = pgTable(
   ]
 )
 
-// 12. Quizzes (Kuis / Ujian Perkuliahan)
+// 12. Quizzes (Kuis / Ujian Perkuliahan: Kuis Mingguan, UTS Sesi 8, UAS Sesi 16)
 export const quizzes = pgTable(
   'quizzes',
   {
@@ -74,6 +74,7 @@ export const quizzes = pgTable(
     sessionId: uuid('session_id').references(() => classSessions.id, { onDelete: 'set null' }),
     title: varchar('title', { length: 255 }).notNull(),
     description: text('description'),
+    quizType: varchar('quiz_type', { length: 50 }).default('QUIZ').notNull(), // 'QUIZ' | 'MIDTERM_EXAM' | 'FINAL_EXAM'
     durationMinutes: integer('duration_minutes').default(60).notNull(),
     maxScore: numeric('max_score', { precision: 5, scale: 2 }).default('100.00').notNull(),
     passingScore: numeric('passing_score', { precision: 5, scale: 2 }).default('70.00').notNull(),
@@ -81,6 +82,7 @@ export const quizzes = pgTable(
     endTime: timestamp('end_time', { withTimezone: true }).notNull(),
     shuffleQuestions: boolean('shuffle_questions').default(true).notNull(),
     maxAttempts: integer('max_attempts').default(1).notNull(),
+    questionsJsonb: jsonb('questions_jsonb').default([]).notNull(),
     isPublished: boolean('is_published').default(false).notNull(),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -89,11 +91,12 @@ export const quizzes = pgTable(
   (table) => [
     index('quizzes_class_id_idx').on(table.classId),
     index('quizzes_session_id_idx').on(table.sessionId),
-    index('quizzes_start_end_time_idx').on(table.startTime, table.endTime)
+    index('quizzes_start_end_time_idx').on(table.startTime, table.endTime),
+    index('quizzes_quiz_type_idx').on(table.quizType)
   ]
 )
 
-// 13. Quiz Attempts (Percobaan Pengerjaan Kuis)
+// 13. Quiz Attempts (Percobaan Pengerjaan Kuis Mahasiswa)
 export const quizAttempts = pgTable(
   'quiz_attempts',
   {
@@ -104,8 +107,14 @@ export const quizAttempts = pgTable(
     startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
     submittedAt: timestamp('submitted_at', { withTimezone: true }),
     score: numeric('score', { precision: 5, scale: 2 }),
+    autoScore: numeric('auto_score', { precision: 5, scale: 2 }),
+    manualScore: numeric('manual_score', { precision: 5, scale: 2 }),
     status: quizAttemptStatusEnum('status').default('IN_PROGRESS').notNull(),
+    questionOrderJsonb: jsonb('question_order_jsonb'),
+    answersJsonb: jsonb('answers_jsonb'),
     feedback: text('feedback'),
+    gradedBy: uuid('graded_by').references(() => users.id, { onDelete: 'set null' }),
+    gradedAt: timestamp('graded_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
   },

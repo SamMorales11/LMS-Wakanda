@@ -5,6 +5,11 @@ export default defineNuxtConfig({
   // Developer Tools
   devtools: { enabled: true },
 
+  // Experimental Features
+  experimental: {
+    appManifest: false
+  },
+
   // Runtime Configuration
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL || '',
