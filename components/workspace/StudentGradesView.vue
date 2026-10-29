@@ -4,6 +4,7 @@ import { useGradebookStore } from '~/stores/useGradebookStore'
 import { useAcademicStore } from '~/stores/useAcademicStore'
 import { useAuthStore } from '~/stores/useAuthStore'
 import type { LetterGrade } from '~/types'
+import EwsAlertBanner from './EwsAlertBanner.vue'
 
 const gradebookStore = useGradebookStore()
 const academicStore = useAcademicStore()
@@ -116,6 +117,9 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
 
 <template>
   <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 font-sans">
+    <!-- Banner Peringatan Dini EWS Otomatis Mahasiswa -->
+    <EwsAlertBanner />
+
     <!-- ============================================== -->
     <!-- HEADER EVALUASI AKADEMIK MAHASISWA            -->
     <!-- ============================================== -->

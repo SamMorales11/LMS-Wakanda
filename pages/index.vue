@@ -10,6 +10,7 @@ import AssignmentRecapView from '~/components/workspace/AssignmentRecapView.vue'
 import GradeWeightsView from '~/components/workspace/GradeWeightsView.vue'
 import GradebookView from '~/components/workspace/GradebookView.vue'
 import StudentGradesView from '~/components/workspace/StudentGradesView.vue'
+import EwsDashboardView from '~/components/workspace/EwsDashboardView.vue'
 import ArchitectureInspector from '~/components/workspace/ArchitectureInspector.vue'
 import ContextualPanel from '~/components/workspace/ContextualPanel.vue'
 import OnlineExamModal from '~/components/workspace/OnlineExamModal.vue'
@@ -19,7 +20,7 @@ const academicStore = useAcademicStore()
 const attendanceStore = useAttendanceStore()
 
 // State Navigasi Tab Utama di Zona Tengah
-const activeMainTab = ref<'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'architecture'>('workspace')
+const activeMainTab = ref<'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'ews' | 'architecture'>('workspace')
 
 // State Mobile Responsive Drawers
 const isMobileSidebarOpen = ref(false)
@@ -133,13 +134,24 @@ onMounted(async () => {
               <span v-else>📈 Transparansi Nilai & Simulasi UAS</span>
             </button>
 
+            <!-- Tab EWS & Analitik Kelulusan (Dosen / Admin) -->
+            <button
+              v-if="authStore.isLecturer || authStore.isAdmin"
+              type="button"
+              @click="activeMainTab = 'ews'"
+              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
+              :class="activeMainTab === 'ews' ? 'border-semantic-danger text-semantic-danger font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
+            >
+              <span>🚨 EWS &amp; Analitik</span>
+            </button>
+
             <button
               type="button"
               @click="activeMainTab = 'architecture'"
               class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
               :class="activeMainTab === 'architecture' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
             >
-              <span>🏛️ Arsitektur & RBAC</span>
+              <span>🏛️ Arsitektur &amp; RBAC</span>
             </button>
           </div>
 
@@ -156,6 +168,7 @@ onMounted(async () => {
         <AssignmentRecapView v-else-if="activeMainTab === 'recap-assignments'" />
         <GradebookView v-else-if="activeMainTab === 'grades' && (authStore.isLecturer || authStore.isAdmin)" />
         <StudentGradesView v-else-if="activeMainTab === 'grades'" />
+        <EwsDashboardView v-else-if="activeMainTab === 'ews' && (authStore.isLecturer || authStore.isAdmin)" />
         <ArchitectureInspector v-else-if="activeMainTab === 'architecture'" />
 
         <!-- Floating Mobile Quick Action for Attendance on Phones -->

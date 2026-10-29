@@ -12,6 +12,7 @@ import SubmitAssignmentModal from './SubmitAssignmentModal.vue'
 import AssignmentSubmissionsModal from './AssignmentSubmissionsModal.vue'
 import GradingSubmissionsModal from './GradingSubmissionsModal.vue'
 import GradingQuizAttemptsModal from './GradingQuizAttemptsModal.vue'
+import EwsAlertBanner from './EwsAlertBanner.vue'
 
 const academicStore = useAcademicStore()
 const authStore = useAuthStore()
@@ -266,6 +267,9 @@ const formatFileSize = (bytes?: number | null) => {
     </div>
 
     <div v-else class="space-y-6">
+      <!-- Banner Peringatan Dini EWS Otomatis Mahasiswa -->
+      <EwsAlertBanner />
+
       <!-- Header Banner Kelas Aktif -->
       <section class="bg-gradient-to-r from-academic-navy via-blue-900 to-academic-navy rounded-3xl p-6 sm:p-8 text-white shadow-sm relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-scholarly-teal/20 rounded-full blur-2xl pointer-events-none"></div>

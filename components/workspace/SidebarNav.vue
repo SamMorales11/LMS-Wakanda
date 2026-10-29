@@ -5,11 +5,11 @@ import { useAuthStore } from '~/stores/useAuthStore'
 import { useAcademicStore } from '~/stores/useAcademicStore'
 
 defineProps<{
-  activeMainTab: 'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'architecture'
+  activeMainTab: 'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'ews' | 'architecture'
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:activeMainTab', tab: 'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'architecture'): void
+  (e: 'update:activeMainTab', tab: 'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'ews' | 'architecture'): void
 }>()
 
 const router = useRouter()
@@ -111,6 +111,20 @@ const activeClassId = computed(() => academicStore.selectedClassId)
           </svg>
           <span v-if="authStore.isLecturer || authStore.isAdmin" class="truncate">Gradebook & Penilaian</span>
           <span v-else class="truncate">Transparansi Nilai & Simulasi</span>
+        </button>
+
+        <!-- Tab Navigasi EWS untuk Dosen & Admin -->
+        <button
+          v-if="authStore.isLecturer || authStore.isAdmin"
+          type="button"
+          @click="emit('update:activeMainTab', 'ews')"
+          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium font-inter transition text-left"
+          :class="activeMainTab === 'ews' ? 'bg-academic-navy text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'"
+        >
+          <svg class="w-4 h-4 shrink-0 text-semantic-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span class="truncate">Early Warning System (EWS)</span>
         </button>
 
         <button

@@ -17,6 +17,7 @@ const searchQuery = ref('')
 const isConfigureWeightsOpen = ref(false)
 const isAuditLogsOpen = ref(false)
 const isAdjustModalOpen = ref(false)
+const isExportMenuOpen = ref(false)
 const selectedStudentToAdjust = ref<StudentGradeBreakdownDto | null>(null)
 
 const loadGradebook = async () => {
@@ -149,6 +150,123 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
             </svg>
             <span>Audit Trail</span>
           </button>
+
+          <!-- Tombol Aksi Cepat Unduh Excel & Cetak Transkrip -->
+          <a
+            v-if="academicStore.selectedClassId"
+            :href="`/api/reports/classes/${academicStore.selectedClassId}/gradebook`"
+            download
+            class="px-3.5 py-2.5 rounded-xl bg-scholarly-teal hover:bg-teal-700 text-white font-bold text-xs font-jakarta transition flex items-center gap-1.5 shadow-xs shrink-0"
+            title="Unduh Rekap Nilai Format Spreadsheet Excel (.xlsx)"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Unduh Excel</span>
+          </a>
+
+          <a
+            v-if="academicStore.selectedClassId"
+            :href="`/api/reports/classes/${academicStore.selectedClassId}/transcript`"
+            target="_blank"
+            class="px-3.5 py-2.5 rounded-xl bg-academic-navy hover:bg-slate-800 text-white font-bold text-xs font-jakarta transition flex items-center gap-1.5 shadow-xs shrink-0"
+            title="Buka Dokumen Cetak Transkrip Nilai Resmi ITW"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span>Cetak Transkrip</span>
+          </a>
+
+          <!-- Ekspor & Cetak Laporan Dropdown -->
+          <div class="relative">
+            <button
+              type="button"
+              @click="isExportMenuOpen = !isExportMenuOpen"
+              class="px-4 py-2.5 rounded-xl bg-academic-navy hover:bg-slate-800 text-white font-bold text-xs font-jakarta transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Ekspor &amp; Cetak</span>
+              <svg class="w-3.5 h-3.5 text-slate-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div
+              v-if="isExportMenuOpen"
+              class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+              @mouseleave="isExportMenuOpen = false"
+            >
+              <div class="px-3 py-1.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">
+                Format Spreadsheet Excel (.xlsx)
+              </div>
+              <a
+                :href="`/api/reports/classes/${academicStore.selectedClassId}/gradebook`"
+                download
+                @click="isExportMenuOpen = false"
+                class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition"
+              >
+                <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
+                  XLS
+                </span>
+                <div>
+                  <div class="font-bold font-jakarta text-slate-800">Rekap Nilai Akhir</div>
+                  <div class="text-[10px] text-slate-500">Nilai lengkap, NA, &amp; Indeks A-E</div>
+                </div>
+              </a>
+              <a
+                :href="`/api/reports/classes/${academicStore.selectedClassId}/attendance-matrix`"
+                download
+                @click="isExportMenuOpen = false"
+                class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition"
+              >
+                <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
+                  XLS
+                </span>
+                <div>
+                  <div class="font-bold font-jakarta text-slate-800">Matriks Presensi 16 Sesi</div>
+                  <div class="text-[10px] text-slate-500">H/T/I/S/A &amp; Kelayakan UAS</div>
+                </div>
+              </a>
+
+              <div class="my-1.5 border-t border-slate-100"></div>
+
+              <div class="px-3 py-1.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">
+                Dokumen Laporan Cetak Resmi
+              </div>
+              <a
+                :href="`/api/reports/classes/${academicStore.selectedClassId}/transcript`"
+                target="_blank"
+                @click="isExportMenuOpen = false"
+                class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition"
+              >
+                <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                  DOC
+                </span>
+                <div>
+                  <div class="font-bold font-jakarta text-slate-800">Transkrip Nilai Kelas</div>
+                  <div class="text-[10px] text-slate-500">Kop ITW &amp; Lembar Pengesahan</div>
+                </div>
+              </a>
+              <a
+                :href="`/api/reports/classes/${academicStore.selectedClassId}/berita-acara`"
+                target="_blank"
+                @click="isExportMenuOpen = false"
+                class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition"
+              >
+                <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                  DOC
+                </span>
+                <div>
+                  <div class="font-bold font-jakarta text-slate-800">Berita Acara Perkuliahan</div>
+                  <div class="text-[10px] text-slate-500">Log 16 Pertemuan &amp; Paraf Dosen</div>
+                </div>
+              </a>
+            </div>
+          </div>
 
           <!-- Publikasi Nilai Dropdown / Button -->
           <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
