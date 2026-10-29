@@ -19,6 +19,7 @@ import {
   NotFoundError,
   ForbiddenError
 } from '../utils/errors'
+import { memoryCache, CacheKeys } from '../utils/cache'
 
 export interface IQuizService {
   createQuiz(dto: CreateQuizDto, lecturerId: string): Promise<QuizDto>
@@ -134,6 +135,9 @@ export class QuizService implements IQuizService {
       throw new Error('Gagal memperbarui ujian')
     }
 
+    // Invalidate master questions cache on update
+    memoryCache.delete(CacheKeys.quizQuestions(id))
+
     return updated
   }
 
@@ -143,7 +147,11 @@ export class QuizService implements IQuizService {
       throw new NotFoundError('Ujian tidak ditemukan')
     }
 
-    return await this.quizRepo.delete(id)
+    const deleted = await this.quizRepo.delete(id)
+    if (deleted) {
+      memoryCache.delete(CacheKeys.quizQuestions(id))
+    }
+    return deleted
   }
 
   /**

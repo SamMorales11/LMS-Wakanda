@@ -22,6 +22,7 @@ import {
   ConflictError
 } from '../utils/errors'
 import type { AttendanceToken } from '../database'
+import { memoryCache, CacheKeys } from '../utils/cache'
 
 export class AttendanceService {
   constructor(private readonly repo: IAttendanceRepository = attendanceRepository) {}
@@ -125,6 +126,12 @@ export class AttendanceService {
       createdBy: lecturerId
     })
 
+    // In-Memory Caching: Simpan token aktif ke memory untuk akses ultra-cepat (< 200 ms)
+    const remainingMs = Math.max(0, validUntil.getTime() - Date.now())
+    if (remainingMs > 0) {
+      memoryCache.set(CacheKeys.attendanceToken(pinNumber), tokenRecord, remainingMs)
+    }
+
     return this.toTokenDto(tokenRecord)
   }
 
@@ -138,6 +145,9 @@ export class AttendanceService {
     }
 
     await this.repo.deactivateTokensBySessionId(sessionId)
+    // Hapus token aktif dari in-memory cache
+    memoryCache.deletePrefix('att_tok:')
+
     return {
       success: true,
       message: `Sesi presensi Pertemuan ${session.sessionNumber} berhasil ditutup.`
@@ -179,8 +189,17 @@ export class AttendanceService {
       throw new BadRequestError('Token PIN presensi harus terdiri dari 6 digit angka')
     }
 
-    // 2. Cari token presensi aktif di database
-    const tokenRecord = await this.repo.findTokenByValue(cleanToken)
+    // 2. In-Memory Cache Lookup: Cari token presensi aktif di cache / DB
+    let tokenRecord: AttendanceToken | null | undefined = memoryCache.get<AttendanceToken>(CacheKeys.attendanceToken(cleanToken))
+    if (!tokenRecord) {
+      tokenRecord = await this.repo.findTokenByValue(cleanToken)
+      if (tokenRecord && tokenRecord.isActive) {
+        const remainingMs = Math.max(0, tokenRecord.validUntil.getTime() - Date.now())
+        if (remainingMs > 0) {
+          memoryCache.set(CacheKeys.attendanceToken(cleanToken), tokenRecord, remainingMs)
+        }
+      }
+    }
     if (!tokenRecord) {
       throw new BadRequestError('Kode presensi tidak ditemukan atau sudah tidak berlaku')
     }
@@ -205,9 +224,13 @@ export class AttendanceService {
       )
     }
 
-    // 5. Validasi Sesi & Cek Presensi Terdahulu (Concurrent Query)
+    // 5. Validasi Sesi & Cek Presensi Terdahulu (Concurrent Query with In-Memory Cache)
     const [session, existingLog] = await Promise.all([
-      this.repo.getSessionById(tokenRecord.sessionId),
+      memoryCache.remember(
+        CacheKeys.session(tokenRecord.sessionId),
+        300_000,
+        () => this.repo.getSessionById(tokenRecord.sessionId)
+      ),
       this.repo.findLog(tokenRecord.sessionId, studentId)
     ])
 
@@ -215,7 +238,11 @@ export class AttendanceService {
       throw new NotFoundError('Sesi perkuliahan tidak valid')
     }
 
-    const isEnrolled = await this.repo.isStudentEnrolledInClass(session.classId, studentId)
+    const isEnrolled = await memoryCache.remember(
+      CacheKeys.enrollment(session.classId, studentId),
+      600_000,
+      () => this.repo.isStudentEnrolledInClass(session.classId, studentId)
+    )
     if (!isEnrolled) {
       throw new ForbiddenError('Anda tidak terdaftar sebagai peserta pada kelas perkuliahan ini')
     }
@@ -313,7 +340,11 @@ export class AttendanceService {
     studentId: string
   ): Promise<StudentAttendanceSummaryDto> {
     const [sessions, logs] = await Promise.all([
-      this.repo.findClassSessions(classId),
+      memoryCache.remember(
+        `class_sessions:${classId}`,
+        600_000,
+        () => this.repo.findClassSessions(classId)
+      ),
       this.repo.findStudentLogsByClassId(classId, studentId)
     ])
 

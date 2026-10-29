@@ -20,7 +20,8 @@ export const attendanceTokens = pgTable(
   (table) => [
     uniqueIndex('attendance_tokens_token_idx').on(table.token),
     index('attendance_tokens_session_id_idx').on(table.sessionId),
-    index('attendance_tokens_valid_range_idx').on(table.validFrom, table.validUntil)
+    index('attendance_tokens_valid_range_idx').on(table.validFrom, table.validUntil),
+    index('attendance_tokens_active_lookup_idx').on(table.token, table.isActive, table.validUntil)
   ]
 )
 
@@ -43,6 +44,7 @@ export const attendanceLogs = pgTable(
     uniqueIndex('attendance_logs_session_student_idx').on(table.sessionId, table.studentId),
     index('attendance_logs_session_id_idx').on(table.sessionId),
     index('attendance_logs_student_id_idx').on(table.studentId),
-    index('attendance_logs_status_idx').on(table.status)
+    index('attendance_logs_status_idx').on(table.status),
+    index('attendance_logs_student_session_status_idx').on(table.studentId, table.sessionId, table.status)
   ]
 )

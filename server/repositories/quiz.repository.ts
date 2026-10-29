@@ -539,19 +539,8 @@ export class QuizRepository implements IQuizRepository {
 
     if (!updated) return null
 
-    const [quizRow] = await db
-      .select()
-      .from(quizzes)
-      .where(eq(quizzes.id, updated.quizId))
-      .limit(1)
-
-    const [studentRow] = await db
-      .select({ name: users.name, nimNidn: users.nimNidn })
-      .from(users)
-      .where(eq(users.id, updated.studentId))
-      .limit(1)
-
-    return this.toQuizAttemptDto(updated, quizRow || null, studentRow || null)
+    // Optimasi performa: langsung return DTO tanpa round-trip tambahan quizzes & users
+    return this.toQuizAttemptDto(updated, null, null)
   }
 
   public async saveAttemptAnswers(

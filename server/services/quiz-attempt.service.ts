@@ -15,6 +15,7 @@ import {
   NotFoundError,
   ForbiddenError
 } from '../utils/errors'
+import { memoryCache, CacheKeys } from '../utils/cache'
 
 export interface IQuizAttemptService {
   initiateOrResumeSession(quizId: string, studentId: string): Promise<QuizSessionStateDto>
@@ -92,6 +93,9 @@ export class QuizAttemptService implements IQuizAttemptService {
     if (rawQuestions.length === 0) {
       throw new BadRequestError('Bank soal ujian belum diisi oleh dosen pengampu')
     }
+
+    // Cache bank soal master di in-memory cache untuk auto-save cepat (< 200 ms)
+    memoryCache.set(CacheKeys.quizQuestions(quizId), rawQuestions, 3_600_000)
 
     const questionsMap = new Map<string, QuizQuestion>()
     for (const q of rawQuestions) {
@@ -184,14 +188,18 @@ export class QuizAttemptService implements IQuizAttemptService {
       }
     }
 
-    // Muat data master soal untuk mengetahui questionType
-    const quiz = await this.quizRepo.findById(attempt.quizId, true)
-    if (!quiz) {
-      throw new NotFoundError('Data master ujian tidak ditemukan')
-    }
+    // Muat data master soal dari in-memory cache untuk ultra low latency (< 200 ms)
+    const rawQuestions = await memoryCache.remember(
+      CacheKeys.quizQuestions(attempt.quizId),
+      3_600_000,
+      async () => {
+        const quiz = await this.quizRepo.findById(attempt.quizId, true)
+        return quiz?.questions || []
+      }
+    )
 
     const questionsMap = new Map<string, QuizQuestion>()
-    for (const q of (quiz.questions || [])) {
+    for (const q of rawQuestions) {
       questionsMap.set(q.id, q)
     }
 
@@ -280,13 +288,17 @@ export class QuizAttemptService implements IQuizAttemptService {
       return attempt
     }
 
-    const quiz = await this.quizRepo.findById(attempt.quizId, true)
-    if (!quiz) {
-      throw new NotFoundError('Data master kuis tidak ditemukan')
-    }
+    const rawQuestions = await memoryCache.remember(
+      CacheKeys.quizQuestions(attempt.quizId),
+      3_600_000,
+      async () => {
+        const quiz = await this.quizRepo.findById(attempt.quizId, true)
+        return quiz?.questions || []
+      }
+    )
 
     // Jalankan auto-grading pada seluruh jawaban yang tersimpan sejauh ini
-    const { autoScoreSum, processedAnswers } = this.evaluateAnswers(quiz.questions || [], attempt.answers || [])
+    const { autoScoreSum, processedAnswers } = this.evaluateAnswers(rawQuestions, attempt.answers || [])
 
     const closedAttempt = await this.quizRepo.saveAttemptAnswers(
       attemptId,
@@ -325,11 +337,6 @@ export class QuizAttemptService implements IQuizAttemptService {
       throw new BadRequestError(`Sesi ujian ini telah diselesaikan sebelumnya dengan status: ${attempt.status}`)
     }
 
-    const quiz = await this.quizRepo.findById(attempt.quizId, true)
-    if (!quiz) {
-      throw new NotFoundError('Data master kuis tidak ditemukan')
-    }
-
     // 1. Strict Server-Side Timestamp Validation
     const now = Date.now()
     const expiresAtMs = new Date(attempt.expiresAt || attempt.deadlineAt).getTime()
@@ -337,7 +344,14 @@ export class QuizAttemptService implements IQuizAttemptService {
     const isLateTimedOut = now > (expiresAtMs + GRACE_PERIOD_MS)
 
     // 2. Gabungkan jawaban terakhir jika ada yang dikirimkan bersamaan dengan submit
-    const rawQuestions = quiz.questions || []
+    const rawQuestions = await memoryCache.remember(
+      CacheKeys.quizQuestions(attempt.quizId),
+      3_600_000,
+      async () => {
+        const quiz = await this.quizRepo.findById(attempt.quizId, true)
+        return quiz?.questions || []
+      }
+    )
     const questionsMap = new Map<string, QuizQuestion>()
     for (const q of rawQuestions) {
       questionsMap.set(q.id, q)

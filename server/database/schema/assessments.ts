@@ -123,6 +123,8 @@ export const quizAttempts = pgTable(
     index('quiz_attempts_quiz_student_idx').on(table.quizId, table.studentId),
     index('quiz_attempts_quiz_id_idx').on(table.quizId),
     index('quiz_attempts_student_id_idx').on(table.studentId),
-    index('quiz_attempts_status_idx').on(table.status)
+    index('quiz_attempts_status_idx').on(table.status),
+    index('quiz_attempts_id_student_status_idx').on(table.id, table.studentId, table.status),
+    index('quiz_attempts_status_expires_idx').on(table.status, table.expiresAt)
   ]
 )
