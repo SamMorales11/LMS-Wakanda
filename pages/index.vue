@@ -1,208 +1,668 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import {
+  ShieldCheck,
+  BookOpen,
+  Zap,
+  AlertTriangle,
+  Shield,
+  Calendar,
+  CheckCircle2,
+  ArrowRight,
+  GraduationCap,
+  Layers,
+  Lock,
+  Menu,
+  X
+} from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/useAuthStore'
-import { useAcademicStore } from '~/stores/useAcademicStore'
-import { useAttendanceStore } from '~/stores/useAttendanceStore'
-import SidebarNav from '~/components/workspace/SidebarNav.vue'
-import SessionWorkspace from '~/components/workspace/SessionWorkspace.vue'
-import AttendanceRecapView from '~/components/workspace/AttendanceRecapView.vue'
-import AssignmentRecapView from '~/components/workspace/AssignmentRecapView.vue'
-import GradeWeightsView from '~/components/workspace/GradeWeightsView.vue'
-import GradebookView from '~/components/workspace/GradebookView.vue'
-import StudentGradesView from '~/components/workspace/StudentGradesView.vue'
-import EwsDashboardView from '~/components/workspace/EwsDashboardView.vue'
-import ArchitectureInspector from '~/components/workspace/ArchitectureInspector.vue'
-import ContextualPanel from '~/components/workspace/ContextualPanel.vue'
-import OnlineExamModal from '~/components/workspace/OnlineExamModal.vue'
 
+const router = useRouter()
 const authStore = useAuthStore()
-const academicStore = useAcademicStore()
-const attendanceStore = useAttendanceStore()
 
-// State Navigasi Tab Utama di Zona Tengah
-const activeMainTab = ref<'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'ews' | 'architecture'>('workspace')
+// State Filter Silabus Perkuliahan (Sesi 1-8 Pra-UTS vs Sesi 9-16 Pasca-UTS)
+const activeCurriculumPhase = ref<'all' | 'midterm' | 'final'>('all')
+const isMobileNavOpen = ref(false)
 
-// State Mobile Responsive Drawers
-const isMobileSidebarOpen = ref(false)
-const isMobilePanelOpen = ref(false)
+// 16 Pertemuan IF2041 Struktur Data & Algoritma (Kurikulum Resmi ITW)
+interface SyllabusSession {
+  sessionNumber: number
+  title: string
+  category: 'Teori & Lab' | 'Tugas Besar' | 'Kuis & Praktikum' | 'Evaluasi Tengah Semester' | 'Evaluasi Akhir Semester'
+  topics: string[]
+  badge: 'UTS' | 'UAS' | 'KUIS' | 'TUGAS' | 'MATERI'
+  phase: 'midterm' | 'final'
+}
+
+const syllabusSessions: SyllabusSession[] = [
+  {
+    sessionNumber: 1,
+    title: 'Paradigma Abstract Data Type (ADT) & Memory Management',
+    category: 'Teori & Lab',
+    topics: ['Prinsip Enkapsulasi Modular', 'Struktur Data Statis vs Dinamis', 'Pointer Memory Addressing di C/TypeScript'],
+    badge: 'MATERI',
+    phase: 'midterm'
+  },
+  {
+    sessionNumber: 2,
+    title: 'Array Dinamis, Amortized Analysis & Dynamic Sizing',
+    category: 'Teori & Lab',
+    topics: ['Geometric Expansion Factor', 'Amortized Time Complexity O(1)', 'Alokasi Memori Heap vs Stack'],
+    badge: 'MATERI',
+    phase: 'midterm'
+  },
+  {
+    sessionNumber: 3,
+    title: 'Single & Doubly Linked List dengan Sentinel Nodes',
+    category: 'Kuis & Praktikum',
+    topics: ['Operasi Insert & Delete O(1)', 'Circular Linked List', 'Sentinel Nodes Pattern'],
+    badge: 'KUIS',
+    phase: 'midterm'
+  },
+  {
+    sessionNumber: 4,
+    title: 'Stack & Queue: Operasi Push-Pop & Circular Buffering',
+    category: 'Tugas Besar',
+    topics: ['LIFO & FIFO Architecture', 'Ring Buffer Queue', 'Aplikasi Parser Ekspresi Infix-Postfix'],
+    badge: 'TUGAS',
+    phase: 'midterm'
+  },
+  {
+    sessionNumber: 5,
+    title: 'Rekursi, Call Stack Frame & Divide-and-Conquer',
+    category: 'Teori & Lab',
+    topics: ['Base Case & Recursive Step', 'Stack Overflow Mitigation', 'Master Theorem for Divide-and-Conquer'],
+    badge: 'MATERI',
+    phase: 'midterm'
+  },
+  {
+    sessionNumber: 6,
+    title: 'Struktur Hirarkis: Binary Tree & Tree Traversals',
+    category: 'Teori & Lab',
+    topics: ['In-Order, Pre-Order, Post-Order', 'Level-Order Traversal dengan Queue', 'Kedalaman & Keseimbangan Pohon'],
+    badge: 'MATERI',
+    phase: 'midterm'
+  },
+  {
+    sessionNumber: 7,
+    title: 'Binary Search Tree (BST) & Algoritma Rebalancing',
+    category: 'Kuis & Praktikum',
+    topics: ['Sifat Keterurutan BST', 'Operasi Search, Insert, Delete Node', 'Degradasi Menjadi Linked List'],
+    badge: 'KUIS',
+    phase: 'midterm'
+  },
+  {
+    sessionNumber: 8,
+    title: 'Evaluasi Tengah Semester (UTS Terstandarisasi)',
+    category: 'Evaluasi Tengah Semester',
+    topics: ['Ujian Teori & Implementasi Mandiri', 'Analisis Kompleksitas Sesi 1-7', 'Validasi Anti-Plagiasi Kode'],
+    badge: 'UTS',
+    phase: 'midterm'
+  },
+  {
+    sessionNumber: 9,
+    title: 'Self-Balancing Trees: AVL Trees & Red-Black Invariants',
+    category: 'Teori & Lab',
+    topics: ['Rotasi Tunggal (LL/RR) & Ganda (LR/RL)', 'Balance Factor Calculation', 'Pemberian Warna Node Red-Black'],
+    badge: 'MATERI',
+    phase: 'final'
+  },
+  {
+    sessionNumber: 10,
+    title: 'Graf: Representasi Adjacency Matrix & Adjacency List',
+    category: 'Tugas Besar',
+    topics: ['Directed vs Undirected Graphs', 'Weighted Edges Representation', 'Token Presensi Sesi 10 Aktif (481920)'],
+    badge: 'TUGAS',
+    phase: 'final'
+  },
+  {
+    sessionNumber: 11,
+    title: 'Algoritma Penelusuran Graf: Breadth-First & Depth-First Search',
+    category: 'Teori & Lab',
+    topics: ['Eksplorasi Tingkat dengan Queue (BFS)', 'Penelusuran Mendalam dengan Stack/Rekursi (DFS)', 'Deteksi Siklus pada Graf'],
+    badge: 'MATERI',
+    phase: 'final'
+  },
+  {
+    sessionNumber: 12,
+    title: 'Shortest Path Algorithms: Dijkstra & Bellman-Ford',
+    category: 'Kuis & Praktikum',
+    topics: ['Algoritma Greedy Dijkstra dengan Min-Heap', 'Relaksasi Edge & Deteksi Negative Cycle', 'Aplikasi Routing Jaringan'],
+    badge: 'KUIS',
+    phase: 'final'
+  },
+  {
+    sessionNumber: 13,
+    title: 'Hash Tables, Hash Functions & Collision Resolution',
+    category: 'Teori & Lab',
+    topics: ['Separate Chaining vs Open Addressing', 'Linear/Quadratic Probing & Double Hashing', 'Load Factor & Rehashing Dynamic'],
+    badge: 'MATERI',
+    phase: 'final'
+  },
+  {
+    sessionNumber: 14,
+    title: 'Binary Heaps, Priority Queues & HeapSort',
+    category: 'Teori & Lab',
+    topics: ['Max-Heap & Min-Heap Array Storage', 'Operasi Sift-Up & Sift-Down', 'Algoritma HeapSort O(n log n) In-Place'],
+    badge: 'MATERI',
+    phase: 'final'
+  },
+  {
+    sessionNumber: 15,
+    title: 'Pemrograman Dinamis: Memoization & Tabulation Strategy',
+    category: 'Tugas Besar',
+    topics: ['Optimal Substructure & Overlapping Subproblems', 'Pendekatan Top-Down vs Bottom-Up', 'Knapsack Problem & String Alignment'],
+    badge: 'TUGAS',
+    phase: 'final'
+  },
+  {
+    sessionNumber: 16,
+    title: 'Evaluasi Akhir Semester (UAS & Penutupan Nilai Gradebook)',
+    category: 'Evaluasi Akhir Semester',
+    topics: ['Ujian Komprehensif Seluruh Silabus', 'Perhitungan Nilai Akhir Indeks A-E', 'Sinkronisasi BAA Laporan Berita Acara'],
+    badge: 'UAS',
+    phase: 'final'
+  }
+]
+
+// Computed Silabus Berdasarkan Filter Tab
+const filteredSessions = computed(() => {
+  if (activeCurriculumPhase.value === 'midterm') {
+    return syllabusSessions.filter(s => s.phase === 'midterm')
+  }
+  if (activeCurriculumPhase.value === 'final') {
+    return syllabusSessions.filter(s => s.phase === 'final')
+  }
+  return syllabusSessions
+})
+
+// Navigasi Action Masuk
+const handleNavigateWorkspace = () => {
+  if (authStore.isAuthenticated) {
+    router.push('/workspace')
+  } else {
+    router.push('/login')
+  }
+}
 
 onMounted(async () => {
-  await Promise.all([
-    authStore.fetchUser(),
-    academicStore.initWorkspace()
-  ])
+  if (!authStore.isInitialized) {
+    await authStore.fetchUser()
+  }
 })
 </script>
 
 <template>
-  <div class="h-screen w-screen overflow-hidden bg-alabaster-slate text-deep-ink flex flex-col font-sans antialiased">
-    <!-- Top Mobile / Compact Navigation Header -->
-    <header class="lg:hidden h-14 bg-academic-navy text-white px-4 flex items-center justify-between border-b border-academic-navy/30 shrink-0 z-30">
-      <div class="flex items-center space-x-2">
-        <button
-          type="button"
-          @click="isMobileSidebarOpen = !isMobileSidebarOpen"
-          class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition focus:outline-none"
-          title="Buka Navigasi Kelas"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <span class="font-bold text-sm font-jakarta tracking-tight">LMS Wakanda</span>
+  <div class="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col selection:bg-[#0D9488]/15 selection:text-[#0D9488] relative overflow-x-hidden font-inter">
+    <!-- Architectural Drafting Grid Overlay with Radial Vignette -->
+    <div
+      class="fixed inset-0 pointer-events-none z-0"
+      style="
+        background-image:
+          linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+        background-size: 24px 24px;
+        mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 1) 100%);
+        -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 1) 100%);
+      "
+    ></div>
+
+    <!-- ============================================================== -->
+    <!-- TOP NAVIGATION BAR: SWISS MINIMALIST EDITORIAL BAR             -->
+    <!-- ============================================================== -->
+    <header class="border-b border-slate-200 bg-white/95 backdrop-blur-xs sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <!-- Brand & Institutional Identity -->
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 bg-[#0F172A] text-white flex items-center justify-center font-mono font-bold text-xs tracking-wider border border-[#0F172A] rounded-sm shrink-0">
+            ITW
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-extrabold tracking-tight font-jakarta text-[#0F172A]">
+                Institut Teknologi Wakanda
+              </span>
+              <span class="text-slate-300 hidden sm:inline">/</span>
+              <span class="text-xs text-slate-500 font-mono hidden sm:inline">
+                WAS Portal
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Anchor Links -->
+        <nav class="hidden lg:flex items-center space-x-6 text-xs font-medium font-inter text-slate-600">
+          <a href="#kurikulum" class="hover:text-[#1E3A8A] transition-colors">Silabus 16 Pertemuan</a>
+          <a href="#telemetri" class="hover:text-[#1E3A8A] transition-colors">Telemetri &amp; Metrik</a>
+          <a href="#pilar" class="hover:text-[#1E3A8A] transition-colors">3 Pilar Ekosistem</a>
+        </nav>
+
+        <!-- Right Action Group -->
+        <div class="flex items-center space-x-3">
+          <!-- Auth CTA Button -->
+          <button
+            type="button"
+            @click="handleNavigateWorkspace"
+            class="h-9 px-3.5 sm:px-4 bg-[#1E3A8A] hover:bg-blue-900 active:bg-blue-950 text-white font-jakarta font-bold text-xs tracking-wide transition-all border border-[#1E3A8A] rounded-sm flex items-center gap-2 shadow-none cursor-pointer"
+          >
+            <span v-if="authStore.isAuthenticated" class="truncate max-w-[120px] sm:max-w-none">
+              Workspace ({{ authStore.displayName }})
+            </span>
+            <span v-else>
+              Masuk ke Workspace
+            </span>
+            <ArrowRight class="w-3.5 h-3.5 shrink-0" />
+          </button>
+
+          <!-- Mobile Hamburger Toggle -->
+          <button
+            type="button"
+            @click="isMobileNavOpen = !isMobileNavOpen"
+            class="p-2 text-slate-600 hover:text-slate-900 lg:hidden border border-slate-200 rounded-sm"
+            aria-label="Toggle menu"
+          >
+            <X v-if="isMobileNavOpen" class="w-4 h-4" />
+            <Menu v-else class="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      <div class="flex items-center space-x-2">
-        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-scholarly-teal text-white">
-          {{ academicStore.selectedClass?.code ? `Kelas ${academicStore.selectedClass.code}` : 'Pilih Kelas' }}
-        </span>
-        <button
-          type="button"
-          @click="isMobilePanelOpen = !isMobilePanelOpen"
-          class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition focus:outline-none text-xs font-semibold font-jakarta flex items-center gap-1.5"
-          title="Buka Presensi & Tenggat"
+      <!-- Mobile Dropdown Navigation Menu -->
+      <div
+        v-if="isMobileNavOpen"
+        class="lg:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-2 text-xs font-medium font-inter"
+      >
+        <a
+          href="#kurikulum"
+          @click="isMobileNavOpen = false"
+          class="block py-2 text-slate-700 hover:text-[#1E3A8A]"
         >
-          <span v-if="attendanceStore.hasActiveToken" class="w-2 h-2 rounded-full bg-semantic-success animate-pulse"></span>
-          <span>Presensi</span>
-        </button>
+          Silabus 16 Pertemuan
+        </a>
+        <a
+          href="#telemetri"
+          @click="isMobileNavOpen = false"
+          class="block py-2 text-slate-700 hover:text-[#1E3A8A]"
+        >
+          Telemetri &amp; Metrik
+        </a>
+        <a
+          href="#pilar"
+          @click="isMobileNavOpen = false"
+          class="block py-2 text-slate-700 hover:text-[#1E3A8A]"
+        >
+          3 Pilar Ekosistem
+        </a>
       </div>
     </header>
 
-    <!-- 3-ZONE ACADEMIC WORKSPACE CONTAINER -->
-    <div class="flex-1 flex overflow-hidden relative">
-      <!-- ============================================== -->
-      <!-- ZONA 1 (KIRI): SIDEBAR NAVIGASI AKADEMIK        -->
-      <!-- ============================================== -->
-      <!-- Mobile Overlay Drawer -->
-      <div
-        v-if="isMobileSidebarOpen"
-        class="fixed inset-0 bg-deep-ink/50 backdrop-blur-xs z-40 lg:hidden"
-        @click="isMobileSidebarOpen = false"
-      ></div>
-
-      <div
-        class="fixed inset-y-0 left-0 z-50 lg:static lg:z-auto transition-transform duration-300 ease-in-out lg:translate-x-0"
-        :class="isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-      >
-        <SidebarNav
-          :active-main-tab="activeMainTab"
-          @update:active-main-tab="(tab) => { activeMainTab = tab; isMobileSidebarOpen = false; }"
-        />
-      </div>
-
-      <!-- ============================================== -->
-      <!-- ZONA 2 (TENGAH): WORKSPACE UTAMA 16 PERTEMUAN  -->
-      <!-- ============================================== -->
-      <main class="flex-1 flex flex-col min-w-0 bg-slate-50/60 overflow-hidden relative">
-        <!-- Sub-Header Tab Switcher di Atas Workspace (Scrollable on Mobile) -->
-        <div class="h-14 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between shrink-0 overflow-x-auto no-scrollbar">
-          <div class="flex items-center space-x-3 sm:space-x-6 text-xs font-semibold font-inter shrink-0">
-            <button
-              type="button"
-              @click="activeMainTab = 'workspace'"
-              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
-              :class="activeMainTab === 'workspace' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
-            >
-              <span>📚 16 Pertemuan</span>
-            </button>
-
-            <button
-              type="button"
-              @click="activeMainTab = 'recap-attendance'"
-              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
-              :class="activeMainTab === 'recap-attendance' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
-            >
-              <span>📊 Rekap Presensi</span>
-            </button>
-
-            <button
-              type="button"
-              @click="activeMainTab = 'recap-assignments'"
-              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
-              :class="activeMainTab === 'recap-assignments' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
-            >
-              <span>📝 Rekap Tugas</span>
-            </button>
-
-            <button
-              type="button"
-              @click="activeMainTab = 'grades'"
-              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
-              :class="activeMainTab === 'grades' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
-            >
-              <span v-if="authStore.isLecturer || authStore.isAdmin">⚖️ Gradebook & Penilaian</span>
-              <span v-else>📈 Transparansi Nilai & Simulasi UAS</span>
-            </button>
-
-            <!-- Tab EWS & Analitik Kelulusan (Dosen / Admin) -->
-            <button
-              v-if="authStore.isLecturer || authStore.isAdmin"
-              type="button"
-              @click="activeMainTab = 'ews'"
-              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
-              :class="activeMainTab === 'ews' ? 'border-semantic-danger text-semantic-danger font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
-            >
-              <span>🚨 EWS &amp; Analitik</span>
-            </button>
-
-            <button
-              type="button"
-              @click="activeMainTab = 'architecture'"
-              class="h-14 border-b-2 transition flex items-center gap-1.5 whitespace-nowrap"
-              :class="activeMainTab === 'architecture' ? 'border-scholarly-teal text-scholarly-teal font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'"
-            >
-              <span>🏛️ Arsitektur &amp; RBAC</span>
-            </button>
+    <!-- ============================================================== -->
+    <!-- HERO SECTION: THE RESEARCH INSTITUTION GATEWAY                 -->
+    <!-- ============================================================== -->
+    <section class="relative z-10 pt-12 pb-16 md:pt-20 md:pb-24 border-b border-slate-200 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl space-y-6">
+          <!-- Institutional Badge Tag -->
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[11px] font-semibold tracking-wider uppercase rounded-sm">
+            <ShieldCheck class="w-3.5 h-3.5 text-[#0D9488]" />
+            <span>Pusat Riset Komputasi &amp; Rekayasa Sistem ITW</span>
           </div>
 
-          <!-- Sesi / User Indicator Status -->
-          <div class="hidden md:flex items-center space-x-2 text-xs font-inter text-slate-500 shrink-0">
-            <span class="w-2 h-2 rounded-full bg-semantic-success"></span>
-            <span class="font-mono text-[11px]">DB Neon Connected</span>
+          <!-- Main Hero Title -->
+          <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight font-jakarta text-[#0F172A] leading-[1.12]">
+            Pusat Rekayasa Pengetahuan &amp; Ekosistem Pembelajaran Terpadu.
+          </h1>
+
+          <!-- Hero Subtitle -->
+          <p class="text-base sm:text-lg text-slate-600 font-inter leading-relaxed max-w-3xl">
+            Gerbang akademik terstandarisasi bagi sivitas akademika Institut Teknologi Wakanda. Memadukan kurikulum 16 sesi terstruktur, telemetri deteksi dini kelulusan (EWS), dan ujian online berkecepatan tinggi dengan integritas akademik tanpa kompromi.
+          </p>
+
+          <!-- Action Button Group -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+            <button
+              type="button"
+              @click="handleNavigateWorkspace"
+              class="h-11 px-6 bg-[#1E3A8A] hover:bg-blue-900 active:bg-blue-950 text-white font-jakarta font-bold text-sm tracking-wide transition-all border border-[#1E3A8A] rounded-sm flex items-center justify-center gap-2 shadow-none cursor-pointer"
+            >
+              <span>{{ authStore.isAuthenticated ? 'Lanjutkan ke Workspace Akademik' : 'Masuk ke Academic Workspace Civitas' }}</span>
+              <ArrowRight class="w-4 h-4" />
+            </button>
+
+            <a
+              href="#kurikulum"
+              class="h-11 px-5 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-jakarta font-semibold text-sm transition-all border border-slate-300 rounded-sm flex items-center justify-center gap-2"
+            >
+              <BookOpen class="w-4 h-4 text-[#0D9488]" />
+              <span>Eksplorasi Silabus 16 Pertemuan</span>
+            </a>
+          </div>
+
+          <!-- Latin Institutional Motto Callout -->
+          <div class="pt-4 max-w-2xl">
+            <div class="border-l-2 border-[#0D9488] pl-3.5 py-1">
+              <p class="text-xs font-serif italic text-slate-700">
+                "Scientia, Virtus, et Excellentia."
+              </p>
+              <p class="text-[11px] text-slate-500 font-inter mt-0.5">
+                Mendedikasikan rekayasa perangkat lunak untuk keunggulan sains masa depan melalui tata kelola akademik berbasis Clean Architecture.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TELEMETRY STRIP SECTION: 4 KEY METRICS OF WAS                  -->
+    <!-- ============================================================== -->
+    <section id="telemetri" class="relative z-10 py-12 bg-[#F8FAFC] border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+          <div>
+            <span class="text-[11px] font-mono uppercase font-bold tracking-wider text-[#0D9488]">
+              Indikator Standar Operasi
+            </span>
+            <h2 class="text-2xl font-extrabold tracking-tight font-jakarta text-[#0F172A] mt-1">
+              Telemetri Keandalan &amp; Rekayasa Sistem
+            </h2>
+          </div>
+          <p class="text-xs text-slate-500 font-inter max-w-md">
+            Metrik operasional perkuliahan semester berjalan yang terukur dan terverifikasi secara presisi.
+          </p>
+        </div>
+
+        <!-- 4 Grid Metric Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Metric 1 -->
+          <div class="p-5 bg-white border border-slate-200 rounded-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#1E3A8A]">16</span>
+              <BookOpen class="w-5 h-5 text-slate-400" />
+            </div>
+            <div class="font-jakarta font-bold text-sm text-[#0F172A]">
+              Sesi Silabus Terstruktur
+            </div>
+            <p class="text-xs text-slate-500 font-inter leading-relaxed">
+              Mata kuliah inti IF2041 Struktur Data &amp; Algoritma lengkap dengan modul teori, tugas, kuis, UTS, dan UAS.
+            </p>
+          </div>
+
+          <!-- Metric 2 -->
+          <div class="p-5 bg-white border border-slate-200 rounded-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#0D9488]">&lt; 200ms</span>
+              <Zap class="w-5 h-5 text-slate-400" />
+            </div>
+            <div class="font-jakarta font-bold text-sm text-[#0F172A]">
+              Latensi Respons Engine
+            </div>
+            <p class="text-xs text-slate-500 font-inter leading-relaxed">
+              Optimasi Nitro in-memory cache dan query Drizzle ORM untuk check-in presensi PIN/QR dan auto-save ujian daring.
+            </p>
+          </div>
+
+          <!-- Metric 3 -->
+          <div class="p-5 bg-white border border-slate-200 rounded-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#D97706]">EWS</span>
+              <AlertTriangle class="w-5 h-5 text-slate-400" />
+            </div>
+            <div class="font-jakarta font-bold text-sm text-[#0F172A]">
+              Early Warning System
+            </div>
+            <p class="text-xs text-slate-500 font-inter leading-relaxed">
+              Deteksi dini otomatis risiko kelulusan berdasarkan kehadiran &lt; 75% serta simulasi nilai akhir indeks A–E.
+            </p>
+          </div>
+
+          <!-- Metric 4 -->
+          <div class="p-5 bg-white border border-slate-200 rounded-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#0F172A]">3-Role</span>
+              <Shield class="w-5 h-5 text-slate-400" />
+            </div>
+            <div class="font-jakarta font-bold text-sm text-[#0F172A]">
+              Clean RBAC Integrity
+            </div>
+            <p class="text-xs text-slate-500 font-inter leading-relaxed">
+              Isolasi wewenang terenkripsi ketat antara Administrator BAA, Dosen Pengampu/Pendamping, dan Mahasiswa.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- CURRICULUM SECTION: OPEN SYLLABUS 16 SESSIONS                  -->
+    <!-- ============================================================== -->
+    <section id="kurikulum" class="relative z-10 py-16 bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header & Filter Tabs -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 border-b border-slate-200 pb-5">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 border border-slate-200 text-[10px] font-mono font-bold text-slate-700 uppercase rounded-sm mb-2">
+              <Calendar class="w-3 h-3 text-[#1E3A8A]" />
+              <span>Silabus Terbuka Civitas ITW</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight font-jakarta text-[#0F172A]">
+              IF2041: Struktur Data &amp; Algoritma (Kelas A)
+            </h2>
+            <p class="text-xs text-slate-500 font-inter mt-1">
+              Koordinator: Prof. Shuri Udaku • Pendamping: Dr. T'Challa • Semester Ganjil 20261
+            </p>
+          </div>
+
+          <!-- Phase Filter Tabs -->
+          <div class="inline-flex p-0.5 bg-slate-100 border border-slate-200 rounded-sm text-xs font-mono">
+            <button
+              type="button"
+              @click="activeCurriculumPhase = 'all'"
+              class="px-3 py-1 rounded-sm transition"
+              :class="activeCurriculumPhase === 'all' ? 'bg-white text-[#0F172A] font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+            >
+              Semua (16)
+            </button>
+            <button
+              type="button"
+              @click="activeCurriculumPhase = 'midterm'"
+              class="px-3 py-1 rounded-sm transition"
+              :class="activeCurriculumPhase === 'midterm' ? 'bg-white text-[#0F172A] font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+            >
+              Pra-UTS (1-8)
+            </button>
+            <button
+              type="button"
+              @click="activeCurriculumPhase = 'final'"
+              class="px-3 py-1 rounded-sm transition"
+              :class="activeCurriculumPhase === 'final' ? 'bg-white text-[#0F172A] font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+            >
+              Pasca-UTS (9-16)
+            </button>
           </div>
         </div>
 
-        <!-- Render Zona Tengah Berdasarkan Tab Aktif -->
-        <SessionWorkspace v-if="activeMainTab === 'workspace'" />
-        <AttendanceRecapView v-else-if="activeMainTab === 'recap-attendance'" />
-        <AssignmentRecapView v-else-if="activeMainTab === 'recap-assignments'" />
-        <GradebookView v-else-if="activeMainTab === 'grades' && (authStore.isLecturer || authStore.isAdmin)" />
-        <StudentGradesView v-else-if="activeMainTab === 'grades'" />
-        <EwsDashboardView v-else-if="activeMainTab === 'ews' && (authStore.isLecturer || authStore.isAdmin)" />
-        <ArchitectureInspector v-else-if="activeMainTab === 'architecture'" />
-
-        <!-- Floating Mobile Quick Action for Attendance on Phones -->
-        <div class="lg:hidden fixed bottom-4 right-4 z-30">
-          <button
-            type="button"
-            @click="isMobilePanelOpen = true"
-            class="py-3 px-4 rounded-2xl bg-academic-navy hover:bg-blue-900 text-white font-bold text-xs shadow-xl flex items-center gap-2 border border-white/20 font-jakarta"
+        <!-- 16 Sessions Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div
+            v-for="session in filteredSessions"
+            :key="session.sessionNumber"
+            class="p-4 border rounded-sm flex flex-col justify-between transition hover:shadow-xs group"
+            :class="{
+              'border-[#1E3A8A] bg-blue-50/20': session.badge === 'UTS' || session.badge === 'UAS',
+              'border-slate-200 bg-white hover:border-slate-300': session.badge !== 'UTS' && session.badge !== 'UAS'
+            }"
           >
-            <span v-if="attendanceStore.hasActiveToken" class="w-2.5 h-2.5 rounded-full bg-semantic-success animate-ping"></span>
-            <span>🔑 Presensi & Tenggat</span>
-          </button>
+            <!-- Card Header -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-mono font-bold text-slate-700">
+                  SESI {{ String(session.sessionNumber).padStart(2, '0') }}
+                </span>
+                <span
+                  class="px-1.5 py-0.2 text-[9px] font-mono font-bold rounded-sm tracking-wider uppercase"
+                  :class="{
+                    'bg-[#1E3A8A] text-white': session.badge === 'UTS' || session.badge === 'UAS',
+                    'bg-[#D97706] text-white': session.badge === 'KUIS',
+                    'bg-[#0D9488] text-white': session.badge === 'TUGAS',
+                    'bg-slate-100 text-slate-700 border border-slate-200': session.badge === 'MATERI'
+                  }"
+                >
+                  {{ session.badge }}
+                </span>
+              </div>
+
+              <h3 class="font-jakarta font-bold text-xs sm:text-sm text-[#0F172A] leading-snug">
+                {{ session.title }}
+              </h3>
+            </div>
+
+            <!-- Card Topics -->
+            <div class="mt-3 pt-3 border-t border-slate-100 space-y-1">
+              <div
+                v-for="(topic, idx) in session.topics"
+                :key="idx"
+                class="flex items-start gap-1.5 text-[11px] text-slate-600 font-inter"
+              >
+                <span class="text-slate-400 font-mono mt-0.5">•</span>
+                <span class="line-clamp-1">{{ topic }}</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-
-      <!-- ============================================== -->
-      <!-- ZONA 3 (KANAN): PANEL KONTEKSTUAL PRESENSI     -->
-      <!-- ============================================== -->
-      <!-- Mobile Drawer for Zone 3 -->
-      <div
-        v-if="isMobilePanelOpen"
-        class="fixed inset-0 bg-deep-ink/50 backdrop-blur-xs z-40 lg:hidden"
-        @click="isMobilePanelOpen = false"
-      ></div>
-
-      <div
-        class="fixed inset-y-0 right-0 z-50 lg:static lg:z-auto transition-transform duration-300 ease-in-out lg:translate-x-0"
-        :class="isMobilePanelOpen ? 'translate-x-0' : 'translate-x-full'"
-      >
-        <ContextualPanel />
       </div>
-    </div>
+    </section>
 
-    <!-- Modal Ujian Daring Mahasiswa (Global Real-time Timer & Navigasi) -->
-    <OnlineExamModal />
+    <!-- ============================================================== -->
+    <!-- 3 PILLARS OF WAS SECTION                                       -->
+    <!-- ============================================================== -->
+    <section id="pilar" class="relative z-10 py-16 bg-[#F8FAFC] border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12 space-y-2">
+          <span class="text-[11px] font-mono uppercase font-bold tracking-wider text-[#0D9488]">
+            Arsitektur Solusi
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight font-jakarta text-[#0F172A]">
+            Tiga Pilar Ekosistem Wakanda Academic Space
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-600 font-inter">
+            Dirancang secara modular untuk menjamin ketelitian data evaluasi, kenyamanan pengajaran, dan transparansi kelulusan.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Pilar 1 -->
+          <div class="bg-white border border-slate-200 p-6 rounded-sm space-y-4">
+            <div class="w-10 h-10 bg-blue-50 border border-blue-200 text-[#1E3A8A] flex items-center justify-center rounded-sm">
+              <Layers class="w-5 h-5" />
+            </div>
+            <h3 class="font-jakarta font-bold text-base text-[#0F172A]">
+              1. 3-Zone Ergonomic Workspace
+            </h3>
+            <p class="text-xs text-slate-600 font-inter leading-relaxed">
+              Memisahkan zona navigasi 16 sesi di kiri, ruang interaksi materi/tugas/rekapitulasi di tengah, serta panel kontekstual presensi PIN dinamis dan tenggat di kanan.
+            </p>
+            <ul class="text-xs text-slate-500 font-inter space-y-1.5 pt-2 border-t border-slate-100">
+              <li class="flex items-center gap-1.5">
+                <CheckCircle2 class="w-3.5 h-3.5 text-[#0D9488] shrink-0" />
+                <span>Navigasi instan tanpa reload halaman</span>
+              </li>
+              <li class="flex items-center gap-1.5">
+                <CheckCircle2 class="w-3.5 h-3.5 text-[#0D9488] shrink-0" />
+                <span>Responsif mobile drawer untuk mahasiswa</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Pilar 2 -->
+          <div class="bg-white border border-slate-200 p-6 rounded-sm space-y-4">
+            <div class="w-10 h-10 bg-teal-50 border border-teal-200 text-[#0D9488] flex items-center justify-center rounded-sm">
+              <GraduationCap class="w-5 h-5" />
+            </div>
+            <h3 class="font-jakarta font-bold text-base text-[#0F172A]">
+              2. Early Warning System (EWS) &amp; Gradebook
+            </h3>
+            <p class="text-xs text-slate-600 font-inter leading-relaxed">
+              Melakukan pemantauan aktif terhadap kehadiran mahasiswa dengan ambang batas regulasi 75% serta kalkulasi indeks nilai multi-komponen secara transparan.
+            </p>
+            <ul class="text-xs text-slate-500 font-inter space-y-1.5 pt-2 border-t border-slate-100">
+              <li class="flex items-center gap-1.5">
+                <CheckCircle2 class="w-3.5 h-3.5 text-[#0D9488] shrink-0" />
+                <span>Ekspor resmi Excel (.xlsx) &amp; Berita Acara</span>
+              </li>
+              <li class="flex items-center gap-1.5">
+                <CheckCircle2 class="w-3.5 h-3.5 text-[#0D9488] shrink-0" />
+                <span>Simulasi target nilai UAS untuk mahasiswa</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Pilar 3 -->
+          <div class="bg-white border border-slate-200 p-6 rounded-sm space-y-4">
+            <div class="w-10 h-10 bg-amber-50 border border-amber-200 text-[#D97706] flex items-center justify-center rounded-sm">
+              <Lock class="w-5 h-5" />
+            </div>
+            <h3 class="font-jakarta font-bold text-base text-[#0F172A]">
+              3. Ujian Terproteksi &amp; Presensi Real-Time
+            </h3>
+            <p class="text-xs text-slate-600 font-inter leading-relaxed">
+              Infrastruktur ujian online dengan auto-save interval sub-200ms, timer desinkronisasi toleran, serta token presensi PIN 6-digit dinamis (contoh: 481920).
+            </p>
+            <ul class="text-xs text-slate-500 font-inter space-y-1.5 pt-2 border-t border-slate-100">
+              <li class="flex items-center gap-1.5">
+                <CheckCircle2 class="w-3.5 h-3.5 text-[#0D9488] shrink-0" />
+                <span>Pencegahan kehilangan jawaban saat koneksi terputus</span>
+              </li>
+              <li class="flex items-center gap-1.5">
+                <CheckCircle2 class="w-3.5 h-3.5 text-[#0D9488] shrink-0" />
+                <span>Audit trail waktu submit dan durasi pengerjaan</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- INSTITUTIONAL FOOTER                                           -->
+    <!-- ============================================================== -->
+    <footer class="relative z-10 bg-white border-t border-slate-200 py-10 font-inter text-xs text-slate-500">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-[#0F172A] text-white flex items-center justify-center font-mono font-bold text-xs border border-[#0F172A] rounded-sm">
+              ITW
+            </div>
+            <div>
+              <div class="font-jakarta font-extrabold text-[#0F172A] text-sm">
+                Institut Teknologi Wakanda
+              </div>
+              <div class="text-[11px] text-slate-400">
+                Fakultas Teknologi Informasi, Matematika Komputasi &amp; Rekayasa Vibranium
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-4 text-xs font-inter">
+            <NuxtLink to="/login" class="text-[#0D9488] hover:underline font-medium">
+              Portal Autentikasi Civitas
+            </NuxtLink>
+            <span class="text-slate-300">•</span>
+            <a href="#kurikulum" class="text-slate-600 hover:text-slate-900 transition-colors">
+              Silabus IF2041
+            </a>
+            <span class="text-slate-300">•</span>
+            <a href="#telemetri" class="text-slate-600 hover:text-slate-900 transition-colors">
+              Telemetri Sistem
+            </a>
+          </div>
+        </div>
+
+        <div class="text-[11px] text-slate-400 text-center sm:text-left">
+          &copy; 2026 Institut Teknologi Wakanda. Hak Cipta Dilindungi Undang-Undang.
+        </div>
+      </div>
+    </footer>
   </div>
 </template>

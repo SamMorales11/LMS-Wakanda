@@ -208,7 +208,7 @@ const handleSubmit = async () => {
 
     successMessage.value = `Autentikasi terverifikasi: ${user.name} (${user.role.toUpperCase()})`
 
-    const redirectPath = (route.query.redirect as string) || '/'
+    const redirectPath = (route.query.redirect as string) || '/workspace'
     setTimeout(() => {
       router.push(redirectPath)
     }, 450)
@@ -226,7 +226,7 @@ onMounted(() => {
   }
 
   if (authStore.isAuthenticated) {
-    router.push((route.query.redirect as string) || '/')
+    router.push((route.query.redirect as string) || '/workspace')
   }
 })
 </script>
