@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useIntersectionObserver, useTransition, TransitionPresets } from '@vueuse/core'
 import {
   ShieldCheck,
   BookOpen,
@@ -17,6 +18,7 @@ import {
   X
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/useAuthStore'
+import InteractiveGraphHero from '~/components/landing/InteractiveGraphHero.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -24,6 +26,30 @@ const authStore = useAuthStore()
 // State Filter Silabus Perkuliahan (Sesi 1-8 Pra-UTS vs Sesi 9-16 Pasca-UTS)
 const activeCurriculumPhase = ref<'all' | 'midterm' | 'final'>('all')
 const isMobileNavOpen = ref(false)
+
+// Telemetri Animated Reactive Counter via @vueuse/core
+const telemetrySectionRef = ref<HTMLElement | null>(null)
+const hasAnimatedTelemetry = ref(false)
+const rawSessions = ref(0)
+const rawLatency = ref(0)
+
+const displaySessions = useTransition(rawSessions, {
+  duration: 1200,
+  transition: TransitionPresets.easeOutCubic
+})
+
+const displayLatency = useTransition(rawLatency, {
+  duration: 1400,
+  transition: TransitionPresets.easeOutCubic
+})
+
+useIntersectionObserver(telemetrySectionRef, ([entry]) => {
+  if (entry?.isIntersecting && !hasAnimatedTelemetry.value) {
+    hasAnimatedTelemetry.value = true
+    rawSessions.value = 16
+    rawLatency.value = 186
+  }
+})
 
 // 16 Pertemuan IF2041 Struktur Data & Algoritma (Kurikulum Resmi ITW)
 interface SyllabusSession {
@@ -194,37 +220,35 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col selection:bg-[#0D9488]/15 selection:text-[#0D9488] relative overflow-x-hidden font-inter">
-    <!-- Architectural Drafting Grid Overlay with Radial Vignette -->
+  <div class="min-h-screen bg-[#F1F5F9] text-[#0F172A] flex flex-col selection:bg-[#0D9488]/20 selection:text-[#0D9488] relative overflow-x-hidden font-inter">
+    <!-- Architectural Drafting Grid Overlay with Subtle Layering -->
     <div
       class="fixed inset-0 pointer-events-none z-0"
       style="
         background-image:
-          linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+          linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
         background-size: 24px 24px;
-        mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 1) 100%);
-        -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 1) 100%);
       "
     ></div>
 
     <!-- ============================================================== -->
-    <!-- TOP NAVIGATION BAR: SWISS MINIMALIST EDITORIAL BAR             -->
+    <!-- TOP NAVIGATION BAR: SWISS MINIMALIST EDITORIAL BAR (DARK NAVY) -->
     <!-- ============================================================== -->
-    <header class="border-b border-slate-200 bg-white/95 backdrop-blur-xs sticky top-0 z-30">
+    <header class="border-b border-slate-800 bg-[#0B132B]/95 backdrop-blur-md sticky top-0 z-30">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <!-- Brand & Institutional Identity -->
         <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 bg-[#0F172A] text-white flex items-center justify-center font-mono font-bold text-xs tracking-wider border border-[#0F172A] rounded-sm shrink-0">
+          <div class="w-9 h-9 bg-[#1E3A8A] text-white flex items-center justify-center font-mono font-bold text-xs tracking-wider border border-teal-500/40 rounded-sm shrink-0 shadow-sm">
             ITW
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-sm font-extrabold tracking-tight font-jakarta text-[#0F172A]">
+              <span class="text-sm font-extrabold tracking-tight font-jakarta text-white">
                 Institut Teknologi Wakanda
               </span>
-              <span class="text-slate-300 hidden sm:inline">/</span>
-              <span class="text-xs text-slate-500 font-mono hidden sm:inline">
+              <span class="text-slate-600 hidden sm:inline">/</span>
+              <span class="text-xs text-teal-400 font-mono hidden sm:inline">
                 WAS Portal
               </span>
             </div>
@@ -232,10 +256,10 @@ onMounted(async () => {
         </div>
 
         <!-- Desktop Navigation Anchor Links -->
-        <nav class="hidden lg:flex items-center space-x-6 text-xs font-medium font-inter text-slate-600">
-          <a href="#kurikulum" class="hover:text-[#1E3A8A] transition-colors">Silabus 16 Pertemuan</a>
-          <a href="#telemetri" class="hover:text-[#1E3A8A] transition-colors">Telemetri &amp; Metrik</a>
-          <a href="#pilar" class="hover:text-[#1E3A8A] transition-colors">3 Pilar Ekosistem</a>
+        <nav class="hidden lg:flex items-center space-x-6 text-xs font-medium font-inter text-slate-300">
+          <a href="#kurikulum" class="hover:text-teal-400 transition-colors">Silabus 16 Pertemuan</a>
+          <a href="#telemetri" class="hover:text-teal-400 transition-colors">Telemetri &amp; Metrik</a>
+          <a href="#pilar" class="hover:text-teal-400 transition-colors">3 Pilar Ekosistem</a>
         </nav>
 
         <!-- Right Action Group -->
@@ -244,7 +268,7 @@ onMounted(async () => {
           <button
             type="button"
             @click="handleNavigateWorkspace"
-            class="h-9 px-3.5 sm:px-4 bg-[#1E3A8A] hover:bg-blue-900 active:bg-blue-950 text-white font-jakarta font-bold text-xs tracking-wide transition-all border border-[#1E3A8A] rounded-sm flex items-center gap-2 shadow-none cursor-pointer"
+            class="h-9 px-3.5 sm:px-4 bg-[#0D9488] hover:bg-teal-700 active:bg-teal-800 text-white font-jakarta font-bold text-xs tracking-wide transition-all border border-teal-400/40 rounded-sm flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <span v-if="authStore.isAuthenticated" class="truncate max-w-[120px] sm:max-w-none">
               Workspace ({{ authStore.displayName }})
@@ -259,7 +283,7 @@ onMounted(async () => {
           <button
             type="button"
             @click="isMobileNavOpen = !isMobileNavOpen"
-            class="p-2 text-slate-600 hover:text-slate-900 lg:hidden border border-slate-200 rounded-sm"
+            class="p-2 text-slate-300 hover:text-white lg:hidden border border-slate-700 rounded-sm"
             aria-label="Toggle menu"
           >
             <X v-if="isMobileNavOpen" class="w-4 h-4" />
@@ -271,26 +295,26 @@ onMounted(async () => {
       <!-- Mobile Dropdown Navigation Menu -->
       <div
         v-if="isMobileNavOpen"
-        class="lg:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-2 text-xs font-medium font-inter"
+        class="lg:hidden border-t border-slate-800 bg-[#0F172A] px-4 py-3 space-y-2 text-xs font-medium font-inter"
       >
         <a
           href="#kurikulum"
           @click="isMobileNavOpen = false"
-          class="block py-2 text-slate-700 hover:text-[#1E3A8A]"
+          class="block py-2 text-slate-300 hover:text-teal-400"
         >
           Silabus 16 Pertemuan
         </a>
         <a
           href="#telemetri"
           @click="isMobileNavOpen = false"
-          class="block py-2 text-slate-700 hover:text-[#1E3A8A]"
+          class="block py-2 text-slate-300 hover:text-teal-400"
         >
           Telemetri &amp; Metrik
         </a>
         <a
           href="#pilar"
           @click="isMobileNavOpen = false"
-          class="block py-2 text-slate-700 hover:text-[#1E3A8A]"
+          class="block py-2 text-slate-300 hover:text-teal-400"
         >
           3 Pilar Ekosistem
         </a>
@@ -298,66 +322,89 @@ onMounted(async () => {
     </header>
 
     <!-- ============================================================== -->
-    <!-- HERO SECTION: THE RESEARCH INSTITUTION GATEWAY                 -->
+    <!-- HERO SECTION: THE CINEMATIC RESEARCH OBSERVATORY (DARK CANVAS) -->
     <!-- ============================================================== -->
-    <section class="relative z-10 pt-12 pb-16 md:pt-20 md:pb-24 border-b border-slate-200 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="max-w-4xl space-y-6">
-          <!-- Institutional Badge Tag -->
-          <div class="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[11px] font-semibold tracking-wider uppercase rounded-sm">
-            <ShieldCheck class="w-3.5 h-3.5 text-[#0D9488]" />
-            <span>Pusat Riset Komputasi &amp; Rekayasa Sistem ITW</span>
-          </div>
+    <section class="relative z-10 pt-12 pb-16 md:pt-20 md:pb-24 border-b border-slate-800 bg-[#0B132B] text-white overflow-hidden">
+      <!-- Ambient Technical Lighting in Hero -->
+      <div
+        class="absolute top-0 right-0 w-[600px] h-[600px] pointer-events-none z-0"
+        style="background: radial-gradient(circle at 60% 40%, rgba(13, 148, 136, 0.18) 0%, rgba(30, 58, 138, 0.14) 40%, transparent 70%); filter: blur(36px);"
+      ></div>
+      <div
+        class="absolute inset-0 pointer-events-none z-0 opacity-40"
+        style="
+          background-image:
+            linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+          background-size: 24px 24px;
+        "
+      ></div>
 
-          <!-- Main Hero Title -->
-          <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight font-jakarta text-[#0F172A] leading-[1.12]">
-            Pusat Rekayasa Pengetahuan &amp; Ekosistem Pembelajaran Terpadu.
-          </h1>
-
-          <!-- Hero Subtitle -->
-          <p class="text-base sm:text-lg text-slate-600 font-inter leading-relaxed max-w-3xl">
-            Gerbang akademik terstandarisasi bagi sivitas akademika Institut Teknologi Wakanda. Memadukan kurikulum 16 sesi terstruktur, telemetri deteksi dini kelulusan (EWS), dan ujian online berkecepatan tinggi dengan integritas akademik tanpa kompromi.
-          </p>
-
-          <!-- Action Button Group -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-            <button
-              type="button"
-              @click="handleNavigateWorkspace"
-              class="h-11 px-6 bg-[#1E3A8A] hover:bg-blue-900 active:bg-blue-950 text-white font-jakarta font-bold text-sm tracking-wide transition-all border border-[#1E3A8A] rounded-sm flex items-center justify-center gap-2 shadow-none cursor-pointer"
-            >
-              <span>{{ authStore.isAuthenticated ? 'Lanjutkan ke Workspace Akademik' : 'Masuk ke Academic Workspace Civitas' }}</span>
-              <ArrowRight class="w-4 h-4" />
-            </button>
-
-            <a
-              href="#kurikulum"
-              class="h-11 px-5 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-jakarta font-semibold text-sm transition-all border border-slate-300 rounded-sm flex items-center justify-center gap-2"
-            >
-              <BookOpen class="w-4 h-4 text-[#0D9488]" />
-              <span>Eksplorasi Silabus 16 Pertemuan</span>
-            </a>
-          </div>
-
-          <!-- Latin Institutional Motto Callout -->
-          <div class="pt-4 max-w-2xl">
-            <div class="border-l-2 border-[#0D9488] pl-3.5 py-1">
-              <p class="text-xs font-serif italic text-slate-700">
-                "Scientia, Virtus, et Excellentia."
-              </p>
-              <p class="text-[11px] text-slate-500 font-inter mt-0.5">
-                Mendedikasikan rekayasa perangkat lunak untuk keunggulan sains masa depan melalui tata kelola akademik berbasis Clean Architecture.
-              </p>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <!-- Left Column (lg:col-span-7): Institutional Statement & Actions -->
+          <div class="lg:col-span-7 space-y-6">
+            <!-- Institutional Badge Tag -->
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-teal-950/70 border border-teal-500/40 text-teal-300 font-mono text-[11px] font-semibold tracking-wider uppercase rounded-sm backdrop-blur-xs">
+              <ShieldCheck class="w-3.5 h-3.5 text-[#2DD4BF]" />
+              <span>Pusat Riset Komputasi &amp; Rekayasa Sistem ITW</span>
             </div>
+
+            <!-- Main Hero Title -->
+            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight font-jakarta text-white leading-[1.12]">
+              Pusat Rekayasa Pengetahuan &amp; Ekosistem Pembelajaran Terpadu.
+            </h1>
+
+            <!-- Hero Subtitle -->
+            <p class="text-base sm:text-lg text-slate-300 font-inter leading-relaxed max-w-2xl">
+              Gerbang akademik terstandarisasi bagi sivitas akademika Institut Teknologi Wakanda. Memadukan kurikulum 16 sesi terstruktur, telemetri deteksi dini kelulusan (EWS), dan ujian online berkecepatan tinggi dengan integritas akademik tanpa kompromi.
+            </p>
+
+            <!-- Action Button Group -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+              <button
+                type="button"
+                @click="handleNavigateWorkspace"
+                class="h-11 px-6 bg-[#0D9488] hover:bg-teal-700 active:bg-teal-800 text-white font-jakarta font-bold text-sm tracking-wide transition-all border border-teal-400/40 rounded-sm flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              >
+                <span>{{ authStore.isAuthenticated ? 'Lanjutkan ke Workspace Akademik' : 'Masuk ke Academic Workspace Civitas' }}</span>
+                <ArrowRight class="w-4 h-4" />
+              </button>
+
+              <a
+                href="#kurikulum"
+                class="h-11 px-5 bg-slate-800/80 hover:bg-slate-800 active:bg-slate-900 text-slate-200 hover:text-white font-jakarta font-semibold text-sm transition-all border border-slate-700 rounded-sm flex items-center justify-center gap-2 backdrop-blur-xs"
+              >
+                <BookOpen class="w-4 h-4 text-teal-400" />
+                <span>Eksplorasi Silabus 16 Pertemuan</span>
+              </a>
+            </div>
+
+            <!-- Latin Institutional Motto Callout -->
+            <div class="pt-2 max-w-xl">
+              <div class="border-l-2 border-[#0D9488] pl-3.5 py-1">
+                <p class="text-xs font-serif italic text-teal-300">
+                  "Scientia, Virtus, et Excellentia."
+                </p>
+                <p class="text-[11px] text-slate-400 font-inter mt-0.5">
+                  Mendedikasikan rekayasa perangkat lunak untuk keunggulan sains masa depan melalui tata kelola akademik berbasis Clean Architecture.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column (lg:col-span-5): Interactive Algorithmic Node-Graph Canvas -->
+          <div class="lg:col-span-5 relative w-full">
+            <InteractiveGraphHero />
           </div>
         </div>
       </div>
     </section>
 
     <!-- ============================================================== -->
-    <!-- TELEMETRY STRIP SECTION: 4 KEY METRICS OF WAS                  -->
+    <!-- TELEMETRY STRIP SECTION: 4 KEY METRICS (TECHNICAL SLATE BODY)   -->
     <!-- ============================================================== -->
-    <section id="telemetri" class="relative z-10 py-12 bg-[#F8FAFC] border-b border-slate-200">
+    <section ref="telemetrySectionRef" id="telemetri" class="relative z-10 py-14 bg-[#F1F5F9] border-b border-slate-300/80">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
@@ -373,13 +420,15 @@ onMounted(async () => {
           </p>
         </div>
 
-        <!-- 4 Grid Metric Cards -->
+        <!-- 4 Grid Metric Cards (Solid White on Technical Slate) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Metric 1 -->
-          <div class="p-5 bg-white border border-slate-200 rounded-sm space-y-2">
+          <div class="p-5 bg-white border border-slate-300/90 hover:border-[#1E3A8A] transition-all rounded-sm space-y-2 shadow-xs group">
             <div class="flex items-center justify-between">
-              <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#1E3A8A]">16</span>
-              <BookOpen class="w-5 h-5 text-slate-400" />
+              <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#1E3A8A]">
+                {{ Math.round(displaySessions) }}
+              </span>
+              <BookOpen class="w-5 h-5 text-slate-400 group-hover:text-[#1E3A8A] transition-colors" />
             </div>
             <div class="font-jakarta font-bold text-sm text-[#0F172A]">
               Sesi Silabus Terstruktur
@@ -390,10 +439,12 @@ onMounted(async () => {
           </div>
 
           <!-- Metric 2 -->
-          <div class="p-5 bg-white border border-slate-200 rounded-sm space-y-2">
+          <div class="p-5 bg-white border border-slate-300/90 hover:border-[#0D9488] transition-all rounded-sm space-y-2 shadow-xs group">
             <div class="flex items-center justify-between">
-              <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#0D9488]">&lt; 200ms</span>
-              <Zap class="w-5 h-5 text-slate-400" />
+              <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#0D9488]">
+                &lt; {{ Math.round(displayLatency) || 200 }}ms
+              </span>
+              <Zap class="w-5 h-5 text-slate-400 group-hover:text-[#0D9488] transition-colors" />
             </div>
             <div class="font-jakarta font-bold text-sm text-[#0F172A]">
               Latensi Respons Engine
@@ -404,10 +455,10 @@ onMounted(async () => {
           </div>
 
           <!-- Metric 3 -->
-          <div class="p-5 bg-white border border-slate-200 rounded-sm space-y-2">
+          <div class="p-5 bg-white border border-slate-300/90 hover:border-[#D97706] transition-all rounded-sm space-y-2 shadow-xs group">
             <div class="flex items-center justify-between">
               <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#D97706]">EWS</span>
-              <AlertTriangle class="w-5 h-5 text-slate-400" />
+              <AlertTriangle class="w-5 h-5 text-slate-400 group-hover:text-[#D97706] transition-colors" />
             </div>
             <div class="font-jakarta font-bold text-sm text-[#0F172A]">
               Early Warning System
@@ -418,10 +469,10 @@ onMounted(async () => {
           </div>
 
           <!-- Metric 4 -->
-          <div class="p-5 bg-white border border-slate-200 rounded-sm space-y-2">
+          <div class="p-5 bg-white border border-slate-300/90 hover:border-slate-800 transition-all rounded-sm space-y-2 shadow-xs group">
             <div class="flex items-center justify-between">
               <span class="text-2xl sm:text-3xl font-extrabold font-mono text-[#0F172A]">3-Role</span>
-              <Shield class="w-5 h-5 text-slate-400" />
+              <Shield class="w-5 h-5 text-slate-400 group-hover:text-slate-800 transition-colors" />
             </div>
             <div class="font-jakarta font-bold text-sm text-[#0F172A]">
               Clean RBAC Integrity
@@ -435,14 +486,14 @@ onMounted(async () => {
     </section>
 
     <!-- ============================================================== -->
-    <!-- CURRICULUM SECTION: OPEN SYLLABUS 16 SESSIONS                  -->
+    <!-- CURRICULUM SECTION: OPEN SYLLABUS 16 SESSIONS (CLEAN STUDIO)   -->
     <!-- ============================================================== -->
-    <section id="kurikulum" class="relative z-10 py-16 bg-white border-b border-slate-200">
+    <section id="kurikulum" class="relative z-10 py-16 bg-[#F8FAFC] border-b border-slate-300/80">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Section Header & Filter Tabs -->
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 border-b border-slate-200 pb-5">
           <div>
-            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 border border-slate-200 text-[10px] font-mono font-bold text-slate-700 uppercase rounded-sm mb-2">
+            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-200/80 border border-slate-300 text-[10px] font-mono font-bold text-slate-700 uppercase rounded-sm mb-2">
               <Calendar class="w-3 h-3 text-[#1E3A8A]" />
               <span>Silabus Terbuka Civitas ITW</span>
             </div>
@@ -455,7 +506,7 @@ onMounted(async () => {
           </div>
 
           <!-- Phase Filter Tabs -->
-          <div class="inline-flex p-0.5 bg-slate-100 border border-slate-200 rounded-sm text-xs font-mono">
+          <div class="inline-flex p-0.5 bg-slate-200/80 border border-slate-300 rounded-sm text-xs font-mono">
             <button
               type="button"
               @click="activeCurriculumPhase = 'all'"
@@ -488,10 +539,10 @@ onMounted(async () => {
           <div
             v-for="session in filteredSessions"
             :key="session.sessionNumber"
-            class="p-4 border rounded-sm flex flex-col justify-between transition hover:shadow-xs group"
+            class="p-4 border rounded-sm flex flex-col justify-between transition-all duration-200 bg-white hover:shadow-md hover:-translate-y-0.5 group"
             :class="{
-              'border-[#1E3A8A] bg-blue-50/20': session.badge === 'UTS' || session.badge === 'UAS',
-              'border-slate-200 bg-white hover:border-slate-300': session.badge !== 'UTS' && session.badge !== 'UAS'
+              'border-[#1E3A8A] bg-blue-50/40 ring-1 ring-[#1E3A8A]/30': session.badge === 'UTS' || session.badge === 'UAS',
+              'border-slate-300/80 hover:border-slate-400': session.badge !== 'UTS' && session.badge !== 'UAS'
             }"
           >
             <!-- Card Header -->
@@ -535,9 +586,9 @@ onMounted(async () => {
     </section>
 
     <!-- ============================================================== -->
-    <!-- 3 PILLARS OF WAS SECTION                                       -->
+    <!-- 3 PILLARS OF WAS SECTION (SOLID WHITE CARDS)                    -->
     <!-- ============================================================== -->
-    <section id="pilar" class="relative z-10 py-16 bg-[#F8FAFC] border-b border-slate-200">
+    <section id="pilar" class="relative z-10 py-16 bg-[#F1F5F9] border-b border-slate-300/80">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto mb-12 space-y-2">
           <span class="text-[11px] font-mono uppercase font-bold tracking-wider text-[#0D9488]">
@@ -553,7 +604,7 @@ onMounted(async () => {
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <!-- Pilar 1 -->
-          <div class="bg-white border border-slate-200 p-6 rounded-sm space-y-4">
+          <div class="bg-white border border-slate-300/80 hover:border-slate-400 transition-all p-6 rounded-sm space-y-4 shadow-xs">
             <div class="w-10 h-10 bg-blue-50 border border-blue-200 text-[#1E3A8A] flex items-center justify-center rounded-sm">
               <Layers class="w-5 h-5" />
             </div>
@@ -576,7 +627,7 @@ onMounted(async () => {
           </div>
 
           <!-- Pilar 2 -->
-          <div class="bg-white border border-slate-200 p-6 rounded-sm space-y-4">
+          <div class="bg-white border border-slate-300/80 hover:border-slate-400 transition-all p-6 rounded-sm space-y-4 shadow-xs">
             <div class="w-10 h-10 bg-teal-50 border border-teal-200 text-[#0D9488] flex items-center justify-center rounded-sm">
               <GraduationCap class="w-5 h-5" />
             </div>
@@ -599,7 +650,7 @@ onMounted(async () => {
           </div>
 
           <!-- Pilar 3 -->
-          <div class="bg-white border border-slate-200 p-6 rounded-sm space-y-4">
+          <div class="bg-white border border-slate-300/80 hover:border-slate-400 transition-all p-6 rounded-sm space-y-4 shadow-xs">
             <div class="w-10 h-10 bg-amber-50 border border-amber-200 text-[#D97706] flex items-center justify-center rounded-sm">
               <Lock class="w-5 h-5" />
             </div>
@@ -625,17 +676,17 @@ onMounted(async () => {
     </section>
 
     <!-- ============================================================== -->
-    <!-- INSTITUTIONAL FOOTER                                           -->
+    <!-- INSTITUTIONAL FOOTER (DARK NAVY ANCHOR)                        -->
     <!-- ============================================================== -->
-    <footer class="relative z-10 bg-white border-t border-slate-200 py-10 font-inter text-xs text-slate-500">
+    <footer class="relative z-10 bg-[#0F172A] border-t border-slate-800 py-12 font-inter text-xs text-slate-400">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 bg-[#0F172A] text-white flex items-center justify-center font-mono font-bold text-xs border border-[#0F172A] rounded-sm">
+            <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center font-mono font-bold text-xs border border-teal-500/40 rounded-sm">
               ITW
             </div>
             <div>
-              <div class="font-jakarta font-extrabold text-[#0F172A] text-sm">
+              <div class="font-jakarta font-extrabold text-white text-sm">
                 Institut Teknologi Wakanda
               </div>
               <div class="text-[11px] text-slate-400">
@@ -645,21 +696,21 @@ onMounted(async () => {
           </div>
 
           <div class="flex items-center space-x-4 text-xs font-inter">
-            <NuxtLink to="/login" class="text-[#0D9488] hover:underline font-medium">
+            <NuxtLink to="/login" class="text-teal-400 hover:underline font-medium">
               Portal Autentikasi Civitas
             </NuxtLink>
-            <span class="text-slate-300">•</span>
-            <a href="#kurikulum" class="text-slate-600 hover:text-slate-900 transition-colors">
+            <span class="text-slate-600">•</span>
+            <a href="#kurikulum" class="text-slate-300 hover:text-white transition-colors">
               Silabus IF2041
             </a>
-            <span class="text-slate-300">•</span>
-            <a href="#telemetri" class="text-slate-600 hover:text-slate-900 transition-colors">
+            <span class="text-slate-600">•</span>
+            <a href="#telemetri" class="text-slate-300 hover:text-white transition-colors">
               Telemetri Sistem
             </a>
           </div>
         </div>
 
-        <div class="text-[11px] text-slate-400 text-center sm:text-left">
+        <div class="text-[11px] text-slate-500 text-center sm:text-left">
           &copy; 2026 Institut Teknologi Wakanda. Hak Cipta Dilindungi Undang-Undang.
         </div>
       </div>

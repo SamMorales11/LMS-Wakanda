@@ -13,6 +13,7 @@ export default {
     extend: {
       colors: {
         // Direct PRD Design System Color Palette
+        'deep-navy': '#0B132B',
         'academic-navy': '#1E3A8A',
         'scholarly-teal': '#0D9488',
         'alabaster-slate': '#F8FAFC',
@@ -23,6 +24,7 @@ export default {
 
         // Semantic & Hierarchical Aliases
         brand: {
+          'deep-navy': '#0B132B',
           navy: '#1E3A8A',
           teal: '#0D9488',
           slate: '#F8FAFC',
