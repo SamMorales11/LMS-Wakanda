@@ -351,13 +351,13 @@ onMounted(async () => {
             </div>
 
             <!-- Main Hero Title -->
-            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight font-jakarta text-white leading-[1.12]">
-              Pusat Rekayasa Pengetahuan &amp; Ekosistem Pembelajaran Terpadu.
+            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight font-jakarta text-white leading-[1.14]">
+              Ekosistem Akademik &amp; Pembelajaran Terpadu.
             </h1>
 
             <!-- Hero Subtitle -->
-            <p class="text-base sm:text-lg text-slate-300 font-inter leading-relaxed max-w-2xl">
-              Gerbang akademik terstandarisasi bagi sivitas akademika Institut Teknologi Wakanda. Memadukan kurikulum 16 sesi terstruktur, telemetri deteksi dini kelulusan (EWS), dan ujian online berkecepatan tinggi dengan integritas akademik tanpa kompromi.
+            <p class="text-sm sm:text-base md:text-lg text-slate-300 font-inter leading-relaxed max-w-2xl">
+              Platform perkuliahan terpusat bagi sivitas akademika Institut Teknologi Wakanda untuk pengelolaan materi 16 pertemuan, presensi real-time, evaluasi ujian, dan pemantauan akademik terintegrasi.
             </p>
 
             <!-- Action Button Group -->
