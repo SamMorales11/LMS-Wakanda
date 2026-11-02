@@ -12,7 +12,7 @@ import {
   AlertCircle,
   ArrowRight,
   Calendar,
-  KeyRound,
+  Activity,
   GraduationCap,
   Users
 } from 'lucide-vue-next'
@@ -37,7 +37,7 @@ const successMessage = ref<string | null>(null)
 const emailError = ref<string | null>(null)
 const passwordError = ref<string | null>(null)
 
-// 7 Akun Dummy Resmi Terverifikasi Database Neon (Fase 4 Seeder)
+// 7 Akun Demo Resmi Terverifikasi
 interface SeededPersona {
   id: string
   role: 'admin' | 'lecturer' | 'student'
@@ -140,7 +140,7 @@ const seededPersonas: SeededPersona[] = [
     identifier: '11241004',
     email: 'riri@student.wakanda.ac.id',
     password: 'Password123!',
-    scenarioDescription: 'Pengujian Aktif • Sesi 10 Token Presensi 481920',
+    scenarioDescription: 'Presensi Real-Time & Auto-Save Ujian',
     ewsStatus: 'SAFE',
     ewsLabel: 'Aman'
   }
@@ -177,7 +177,7 @@ const validateFields = (): boolean => {
   if (!cleanEmail) {
     emailError.value = 'Email civitas atau identitas resmi wajib diisi.'
     isValid = false
-  } else if (!cleanEmail.includes('@') && cleanEmail.length < 5) {
+  } else if (!cleanEmail.includes('@') || cleanEmail.length < 5) {
     emailError.value = 'Format alamat email akademik tidak valid.'
     isValid = false
   }
@@ -236,7 +236,7 @@ onMounted(() => {
     class="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-between selection:bg-[#0D9488]/15 selection:text-[#0D9488] relative overflow-hidden"
     @keydown="handleKeydown"
   >
-    <!-- Architectural Drafting Grid Texture with Radial Focal Vignette -->
+    <!-- Subtle Grid Texture -->
     <div
       class="absolute inset-0 pointer-events-none z-0"
       style="
@@ -249,43 +249,42 @@ onMounted(() => {
       "
     ></div>
 
-    <!-- Top Bar Header: Swiss Minimalist Architectural Bar -->
-    <header class="border-b border-slate-200 bg-white/95 backdrop-blur-xs sticky top-0 z-20">
+    <!-- Top Bar Header -->
+    <header class="border-b border-slate-800 bg-[#0F172A] sticky top-0 z-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <!-- Logo & Brand Header -->
         <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 bg-[#0F172A] text-white flex items-center justify-center font-mono font-bold text-xs tracking-wider border border-[#0F172A] rounded-sm">
+          <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center font-mono font-bold text-xs tracking-wider border border-teal-500/40 rounded-sm">
             ITW
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-sm font-extrabold tracking-tight font-jakarta text-[#0F172A]">
+            <span class="text-sm font-extrabold tracking-tight font-jakarta text-white">
               Institut Teknologi Wakanda
             </span>
-            <span class="text-slate-300 hidden sm:inline">/</span>
-            <span class="text-xs text-slate-500 font-mono hidden sm:inline">
+            <span class="text-slate-600 hidden sm:inline">/</span>
+            <span class="text-xs text-teal-400 font-mono hidden sm:inline">
               Wakanda Academic Space (WAS)
             </span>
           </div>
         </div>
 
-        <!-- Telemetry Pill Header -->
+        <!-- Term Indicator -->
         <div class="flex items-center space-x-2 text-xs font-mono">
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-700 rounded-sm">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 bg-slate-800 border border-slate-700 text-slate-200 rounded-sm">
             <span class="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse"></span>
-            <span class="font-semibold">TA 20261</span>
+            <span class="font-semibold">TA 2026/2027</span>
             <span class="text-slate-400 hidden md:inline">• Ganjil</span>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- Konten Utama: 12-Column Swiss Modular Grid Frame -->
+    <!-- Main Content -->
     <main class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 md:py-12 relative z-10">
       <div class="max-w-6xl w-full bg-white border border-slate-300 shadow-none rounded-sm relative">
         <div class="grid grid-cols-1 lg:grid-cols-12 items-stretch divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
-          <!-- ============================================================== -->
-          <!-- KOLOM KIRI (Col-Span 4): INSTITUTIONAL DOSSIER & CONTEXT       -->
-          <!-- ============================================================== -->
+
+          <!-- Left Column (Col-Span 4): Institutional Context -->
           <div class="lg:col-span-4 p-6 sm:p-8 bg-[#F8FAFC] flex flex-col justify-between gap-6">
             <div class="space-y-6">
               <!-- Institutional Badge -->
@@ -309,7 +308,7 @@ onMounted(() => {
                     <Calendar class="w-3 h-3 text-[#1E3A8A]" />
                     <span>Tahun Akademik</span>
                   </span>
-                  <span class="font-bold text-[#1E3A8A]">20261 (Ganjil)</span>
+                  <span class="font-bold text-[#1E3A8A]">2026/2027 (Ganjil)</span>
                 </div>
                 <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 border-b border-slate-100 pb-1.5">
                   <span class="flex items-center gap-1">
@@ -320,19 +319,19 @@ onMounted(() => {
                 </div>
                 <div class="flex items-center justify-between text-[11px] font-mono text-slate-500">
                   <span class="flex items-center gap-1">
-                    <KeyRound class="w-3 h-3 text-[#D97706]" />
-                    <span>Sesi 10 Token Aktif</span>
+                    <Activity class="w-3 h-3 text-[#0D9488]" />
+                    <span>Kapabilitas Sistem</span>
                   </span>
-                  <span class="px-1.5 py-0.2 bg-amber-50 border border-amber-200 text-[#D97706] font-bold tracking-widest rounded-sm">
-                    481920
+                  <span class="font-semibold text-slate-800 text-[10px]">
+                    Presensi Real-Time &amp; Auto-Save Ujian
                   </span>
                 </div>
               </div>
             </div>
 
-            <!-- Archival Motto in Source Serif 4 -->
+            <!-- Institutional Motto -->
             <div class="p-3 bg-white border border-slate-200 rounded-sm">
-              <p class="text-xs font-serif italic text-slate-700 leading-relaxed">
+              <p class="text-xs font-inter italic text-slate-700 leading-relaxed">
                 "Scientia, Virtus, et Excellentia."
               </p>
               <p class="text-[10px] text-slate-400 font-inter mt-1">
@@ -341,9 +340,7 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- ============================================================== -->
-          <!-- KOLOM KANAN (Col-Span 8): INTERACTIVE AUTHENTICATION TERMINAL  -->
-          <!-- ============================================================== -->
+          <!-- Right Column (Col-Span 8): Authentication Form -->
           <div class="lg:col-span-8 p-6 sm:p-8 bg-white flex flex-col justify-between">
             <div class="space-y-6">
               <!-- Section Title Header -->
@@ -362,9 +359,7 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- ======================================================== -->
-              <!-- 7-PERSONA SPECIMEN SWITCHER TABLE (SWISS GRID MINIMALIST) -->
-              <!-- ======================================================== -->
+              <!-- 7-Persona Specimen Switcher -->
               <div class="border border-slate-200 bg-[#F8FAFC] rounded-sm p-3 space-y-3">
                 <div class="flex items-center justify-between flex-wrap gap-2">
                   <span class="text-[11px] font-mono uppercase font-bold tracking-wider text-slate-600 flex items-center gap-1.5">
@@ -373,63 +368,70 @@ onMounted(() => {
                   </span>
 
                   <!-- Role Category Filter Buttons -->
-                  <div class="inline-flex p-0.5 bg-slate-200/70 rounded-sm text-[10px] font-mono font-medium">
+                  <div class="inline-flex p-0.5 bg-slate-200/70 rounded-sm text-[10px] font-mono font-medium" role="group" aria-label="Filter kategori akun">
                     <button
                       type="button"
                       @click="selectedCategory = 'all'"
-                      class="px-2 py-0.5 rounded-sm transition"
+                      class="px-2 py-0.5 rounded-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-1"
                       :class="selectedCategory === 'all' ? 'bg-white text-[#0F172A] font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      :aria-pressed="selectedCategory === 'all'"
                     >
                       Semua (7)
                     </button>
                     <button
                       type="button"
                       @click="selectedCategory = 'admin'"
-                      class="px-2 py-0.5 rounded-sm transition"
+                      class="px-2 py-0.5 rounded-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-1"
                       :class="selectedCategory === 'admin' ? 'bg-white text-[#0F172A] font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      :aria-pressed="selectedCategory === 'admin'"
                     >
                       Admin (1)
                     </button>
                     <button
                       type="button"
                       @click="selectedCategory = 'lecturer'"
-                      class="px-2 py-0.5 rounded-sm transition"
+                      class="px-2 py-0.5 rounded-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-1"
                       :class="selectedCategory === 'lecturer' ? 'bg-white text-[#0F172A] font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      :aria-pressed="selectedCategory === 'lecturer'"
                     >
                       Dosen (2)
                     </button>
                     <button
                       type="button"
                       @click="selectedCategory = 'student'"
-                      class="px-2 py-0.5 rounded-sm transition"
+                      class="px-2 py-0.5 rounded-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-1"
                       :class="selectedCategory === 'student' ? 'bg-white text-[#0F172A] font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      :aria-pressed="selectedCategory === 'student'"
                     >
                       Mahasiswa (4)
                     </button>
                   </div>
                 </div>
 
-                <!-- Specimen Grid List -->
+                <!-- Persona Grid -->
                 <div v-auto-animate class="grid grid-cols-1 md:grid-cols-2 gap-1.5 max-h-56 overflow-y-auto pr-1">
                   <button
                     v-for="persona in displayedPersonas"
                     :key="persona.id"
                     type="button"
+                    :disabled="authStore.isLoading"
                     @click="applyPersona(persona)"
-                    class="p-2 border text-left transition-all rounded-sm flex flex-col justify-between gap-1 group relative"
+                    class="p-2 border text-left transition-all rounded-sm flex flex-col justify-between gap-1 group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed"
                     :class="activePresetId === persona.id
                       ? 'border-[#1E3A8A] bg-white ring-1 ring-[#1E3A8A]'
                       : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80'"
+                    :aria-label="`Pilih akun ${persona.name} sebagai ${persona.roleBadge}`"
+                    :aria-pressed="activePresetId === persona.id"
                   >
-                    <!-- Row 1: Role badge, Name, and Identifier -->
+                    <!-- Row 1: Role badge, Name, Identifier -->
                     <div class="flex items-center justify-between gap-2">
                       <div class="flex items-center gap-1.5 truncate">
                         <span
-                          class="px-1.5 py-0.2 text-[9px] font-mono font-bold tracking-wider rounded-sm shrink-0"
+                          class="px-1.5 py-0.5 text-[10px] font-mono font-bold tracking-wider rounded-sm shrink-0"
                           :class="{
                             'bg-[#1E3A8A] text-white': persona.role === 'admin',
                             'bg-[#0D9488] text-white': persona.role === 'lecturer',
-                            'bg-slate-800 text-white': persona.role === 'student'
+                            'bg-slate-700 text-white': persona.role === 'student'
                           }"
                         >
                           {{ persona.roleBadge }}
@@ -449,10 +451,10 @@ onMounted(() => {
                         {{ persona.scenarioDescription }}
                       </span>
 
-                      <!-- EWS Status Tag if Student -->
+                      <!-- EWS Status Tag -->
                       <span
                         v-if="persona.ewsStatus"
-                        class="px-1 py-0.2 font-mono text-[9px] font-bold rounded-sm shrink-0"
+                        class="px-1 py-0.5 font-mono text-[10px] font-bold rounded-sm shrink-0"
                         :class="{
                           'bg-emerald-50 text-[#16A34A] border border-emerald-200': persona.ewsStatus === 'SAFE',
                           'bg-amber-50 text-[#D97706] border border-amber-200': persona.ewsStatus === 'WARNING',
@@ -474,13 +476,12 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- ======================================================== -->
-              <!-- INLINE FEEDBACK ALERT (ERRORS & SUCCESS)                 -->
-              <!-- ======================================================== -->
+              <!-- Inline Feedback Alert -->
               <div v-auto-animate>
                 <div
                   v-if="errorMessage"
                   class="p-3 bg-red-50/90 border border-red-200 text-[#DC2626] text-xs font-inter flex items-start gap-2 rounded-sm"
+                  role="alert"
                 >
                   <AlertCircle class="w-4 h-4 shrink-0 mt-0.5" />
                   <div class="flex-1">
@@ -492,6 +493,7 @@ onMounted(() => {
                 <div
                   v-if="successMessage"
                   class="p-3 bg-emerald-50/90 border border-emerald-200 text-[#16A34A] text-xs font-inter flex items-start gap-2 rounded-sm"
+                  role="status"
                 >
                   <CheckCircle2 class="w-4 h-4 shrink-0 mt-0.5" />
                   <div class="flex-1">
@@ -501,20 +503,13 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- ======================================================== -->
-              <!-- FORM INPUTS (HIGH-PRECISION ERGONOMIC CONTROLS)          -->
-              <!-- ======================================================== -->
+              <!-- Form Inputs -->
               <form @submit.prevent="handleSubmit" class="space-y-4" novalidate>
-                <!-- Email / Identitas Field -->
+                <!-- Email Field -->
                 <div class="space-y-1">
-                  <div class="flex items-center justify-between">
-                    <label for="email" class="block text-xs font-bold font-inter tracking-wider text-slate-700 uppercase">
-                      Alamat Email Civitas ITW / Identitas
-                    </label>
-                    <span class="text-[10px] font-mono text-slate-400">
-                      RFC-5322 Format
-                    </span>
-                  </div>
+                  <label for="email" class="block text-xs font-bold font-inter tracking-wider text-slate-700 uppercase">
+                    Email Institusi
+                  </label>
                   <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                       <Mail class="w-4 h-4" />
@@ -525,14 +520,14 @@ onMounted(() => {
                       type="email"
                       autocomplete="username"
                       placeholder="nama@itw.ac.id"
-                      class="w-full pl-9 pr-3 py-2.5 rounded-sm border font-mono text-xs sm:text-sm bg-white transition-colors"
+                      class="w-full pl-9 pr-3 py-2.5 rounded-sm border font-mono text-xs sm:text-sm bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
                       :class="emailError
-                        ? 'border-red-400 focus:ring-1 focus:ring-red-500 focus:border-red-500 focus:outline-none'
-                        : 'border-slate-300 focus:ring-1 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] focus:outline-none'"
+                        ? 'border-red-400 focus:ring-1 focus:ring-red-500 focus:border-red-500'
+                        : 'border-slate-300 focus:ring-1 focus:ring-[#0D9488] focus:border-[#0D9488]'"
                     />
                   </div>
                   <div v-auto-animate>
-                    <p v-if="emailError" class="text-[11px] font-mono text-red-600 flex items-center gap-1 mt-1">
+                    <p v-if="emailError" class="text-[11px] font-mono text-red-600 flex items-center gap-1 mt-1" role="alert">
                       <span>⨉</span>
                       <span>{{ emailError }}</span>
                     </p>
@@ -543,17 +538,14 @@ onMounted(() => {
                 <div class="space-y-1">
                   <div class="flex items-center justify-between">
                     <label for="password" class="block text-xs font-bold font-inter tracking-wider text-slate-700 uppercase">
-                      Kata Sandi Sesi
+                      Kata Sandi
                     </label>
                     <div class="flex items-center gap-2">
                       <span
                         v-if="isCapsLockOn"
-                        class="px-1.5 py-0.2 bg-amber-100 border border-amber-300 text-[#D97706] font-mono font-bold text-[9px] rounded-sm animate-pulse"
+                        class="px-1.5 py-0.5 bg-amber-100 border border-amber-300 text-[#D97706] font-mono font-bold text-[10px] rounded-sm animate-pulse"
                       >
                         [CAPS LOCK AKTIF]
-                      </span>
-                      <span class="text-[10px] font-mono text-slate-400">
-                        Kunci Enkripsi Sesi
                       </span>
                     </div>
                   </div>
@@ -567,15 +559,15 @@ onMounted(() => {
                       :type="showPassword ? 'text' : 'password'"
                       autocomplete="current-password"
                       placeholder="••••••••••••"
-                      class="w-full pl-9 pr-10 py-2.5 rounded-sm border font-mono text-xs sm:text-sm bg-white transition-colors"
+                      class="w-full pl-9 pr-10 py-2.5 rounded-sm border font-mono text-xs sm:text-sm bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
                       :class="passwordError
-                        ? 'border-red-400 focus:ring-1 focus:ring-red-500 focus:border-red-500 focus:outline-none'
-                        : 'border-slate-300 focus:ring-1 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] focus:outline-none'"
+                        ? 'border-red-400 focus:ring-1 focus:ring-red-500 focus:border-red-500'
+                        : 'border-slate-300 focus:ring-1 focus:ring-[#0D9488] focus:border-[#0D9488]'"
                     />
                     <button
                       type="button"
                       @click="showPassword = !showPassword"
-                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 focus:outline-none"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] rounded-sm"
                       :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
                       :aria-pressed="showPassword"
                     >
@@ -584,7 +576,7 @@ onMounted(() => {
                     </button>
                   </div>
                   <div v-auto-animate>
-                    <p v-if="passwordError" class="text-[11px] font-mono text-red-600 flex items-center gap-1 mt-1">
+                    <p v-if="passwordError" class="text-[11px] font-mono text-red-600 flex items-center gap-1 mt-1" role="alert">
                       <span>⨉</span>
                       <span>{{ passwordError }}</span>
                     </p>
@@ -596,7 +588,7 @@ onMounted(() => {
                   <button
                     type="submit"
                     :disabled="authStore.isLoading"
-                    class="w-full h-11 px-4 bg-[#1E3A8A] hover:bg-blue-900 active:bg-blue-950 text-white font-jakarta font-bold text-sm tracking-wide transition-all border border-[#1E3A8A] rounded-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-none"
+                    class="w-full h-11 px-4 bg-[#1E3A8A] hover:bg-blue-900 active:bg-blue-950 text-white font-jakarta font-bold text-sm tracking-wide transition-all border border-[#1E3A8A] rounded-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-2"
                   >
                     <span
                       v-if="authStore.isLoading"
@@ -615,21 +607,22 @@ onMounted(() => {
             <div class="pt-4 flex justify-end text-xs text-slate-500 font-inter">
               <NuxtLink
                 to="/"
-                class="text-[#0D9488] hover:text-teal-800 font-medium inline-flex items-center gap-1 hover:underline"
+                class="text-[#0D9488] hover:text-teal-800 font-medium inline-flex items-center gap-1 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] focus-visible:ring-offset-1 rounded-sm"
               >
                 <span>Buka Beranda Tamu</span>
                 <span class="font-mono">→</span>
               </NuxtLink>
             </div>
           </div>
+
         </div>
       </div>
     </main>
 
-    <!-- Footer Copyright -->
-    <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500 font-inter relative z-10">
-      <div class="max-w-7xl mx-auto px-4 font-inter">
-        &copy; 2026 Institut Teknologi Wakanda. Seluruh Hak Cipta Dilindungi Undang-Undang. Arsitektur Bersih & Sistem Manajemen Pembelajaran Terpadu.
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-[#0F172A] py-4 text-center text-xs text-slate-400 font-inter relative z-10">
+      <div class="max-w-7xl mx-auto px-4">
+        &copy; 2026 Institut Teknologi Wakanda. Seluruh Hak Cipta Dilindungi Undang-Undang.
       </div>
     </footer>
   </div>
