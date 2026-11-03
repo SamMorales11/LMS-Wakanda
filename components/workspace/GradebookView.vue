@@ -99,7 +99,7 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
     <!-- ============================================== -->
     <!-- HEADER BUKU NILAI & KONTROL UTAMA             -->
     <!-- ============================================== -->
-    <section class="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
+    <section class="bg-white rounded-sm p-6 sm:p-7 shadow-none border border-slate-200 border-t-2 border-t-[#1E3A8A] space-y-6">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-scholarly-teal text-xs font-semibold border border-teal-200 font-inter mb-2">
@@ -292,28 +292,28 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
       </div>
 
       <!-- Ringkasan Statistik Kelas & Distribusi Nilai Huruf -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-        <div class="p-4 rounded-2xl bg-alabaster-slate border border-slate-200 text-center">
-          <span class="text-[10px] text-slate-500 font-inter uppercase tracking-wider block">Mahasiswa</span>
-          <span class="text-xl font-black font-mono text-academic-navy mt-1 block">
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        <div class="p-3 rounded-sm bg-[#F8FAFC] border border-slate-200 text-center">
+          <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-bold">Mahasiswa</span>
+          <span class="text-xl font-black font-mono text-[#1E3A8A] mt-0.5 block">
             {{ gradebook?.totalStudents || 0 }}
           </span>
           <span class="text-[10px] text-slate-400 font-inter">Peserta Terdaftar</span>
         </div>
 
-        <div class="p-4 rounded-2xl bg-teal-50/60 border border-teal-200 text-center">
-          <span class="text-[10px] text-scholarly-teal font-inter uppercase tracking-wider block">Rata-rata NA</span>
-          <span class="text-xl font-black font-mono text-scholarly-teal mt-1 block">
+        <div class="p-3 rounded-sm bg-teal-50/70 border border-teal-200 text-center">
+          <span class="text-[10px] font-mono text-[#0D9488] uppercase tracking-wider block font-bold">Rata-rata NA</span>
+          <span class="text-xl font-black font-mono text-[#0D9488] mt-0.5 block">
             {{ gradebook?.averageFinalScore !== null ? gradebook?.averageFinalScore?.toFixed(2) : '0.00' }}
           </span>
-          <span class="text-[10px] text-teal-600 font-inter">Rata-rata Kelas</span>
+          <span class="text-[10px] text-teal-700 font-inter">Rata-rata Kelas</span>
         </div>
 
         <!-- Grade Distribution Cards -->
         <div
           v-for="letter in (['A', 'AB', 'B', 'BC', 'C', 'D', 'E'] as LetterGrade[])"
           :key="letter"
-          class="p-3.5 rounded-2xl border text-center transition"
+          class="p-2.5 rounded-sm border text-center transition"
           :class="getLetterBadgeClass(letter)"
         >
           <span class="text-xs font-mono font-black block">Huruf {{ letter }}</span>
@@ -328,7 +328,7 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
     <!-- ============================================== -->
     <!-- TABEL UTAMA GRADEBOOK                          -->
     <!-- ============================================== -->
-    <section class="bg-white rounded-3xl shadow-xs border border-slate-200/90 overflow-hidden space-y-4">
+    <section class="bg-white rounded-sm shadow-none border border-slate-200 overflow-hidden space-y-4">
       <div class="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 class="text-base font-bold text-academic-navy font-jakarta">

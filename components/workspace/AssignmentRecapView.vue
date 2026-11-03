@@ -114,10 +114,10 @@ const handleOpenOverview = async (a: AssignmentDto) => {
 <template>
   <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
     <!-- Header Banner -->
-    <div class="p-6 rounded-3xl bg-academic-navy text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="p-6 rounded-sm bg-[#1E3A8A] text-white shadow-none border border-blue-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div class="space-y-1">
         <div class="flex items-center gap-2">
-          <span class="px-2.5 py-0.5 rounded-full bg-teal-400/20 text-teal-300 font-mono text-xs font-semibold border border-teal-400/30">
+          <span class="px-2 py-0.5 rounded-sm bg-teal-400/20 text-teal-300 font-mono text-[10px] font-bold border border-teal-400/30">
             {{ currentClass?.courseCode || 'KODE MK' }} • Kelas {{ currentClass?.code || 'A' }}
           </span>
           <span class="text-xs text-slate-300 font-inter">Semester Aktif 2026/2027</span>
@@ -126,52 +126,52 @@ const handleOpenOverview = async (a: AssignmentDto) => {
           {{ authStore.isStudent ? 'Portofolio & Pengumpulan Tugas Mahasiswa' : 'Rekapitulasi Tugas & Penilaian Mahasiswa' }}
         </h2>
         <p class="text-xs text-slate-300 font-inter max-w-xl">
-          Pengunggahan berkas tugas (PDF/ZIP) divalidasi dengan Strict Server-Side Timestamp: status <strong>Tepat Waktu (#16A34A)</strong> dan <strong>Terlambat (#DC2626)</strong>.
+          Pengunggahan berkas tugas divalidasi dengan Strict Server-Side Timestamp: status <strong>Tepat Waktu</strong> dan <strong>Terlambat</strong>.
         </p>
       </div>
 
-      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center shrink-0 min-w-[130px]">
+      <div class="bg-white/10 backdrop-blur-md rounded-sm p-4 border border-white/20 text-center shrink-0 min-w-[130px]">
         <span class="text-[10px] text-teal-300 uppercase font-mono font-bold block">Total Tugas</span>
         <span class="text-2xl font-black font-mono text-white block mt-0.5">{{ classAssignments.length }}</span>
         <span class="text-[10px] text-slate-300 font-inter block">Semester Aktif</span>
       </div>
     </div>
 
-    <!-- Metrik Bar Mahasiswa -->
-    <div v-if="authStore.isStudent" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-        <span class="text-[11px] text-slate-500 font-inter">Tugas Dikumpulkan</span>
-        <p class="text-2xl font-black font-mono text-academic-navy">
+    <!-- Metrik Bar Mahasiswa dengan Micro-Accent Borders -->
+    <div v-if="authStore.isStudent" class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#1E3A8A] space-y-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-500">Tugas Terkumpul</span>
+        <p class="text-2xl font-black font-mono text-[#1E3A8A]">
           {{ studentStats.submitted }} <span class="text-xs text-slate-400 font-mono">/ {{ studentStats.total }}</span>
         </p>
       </div>
 
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-        <span class="text-[11px] text-semantic-success font-inter">Tepat Waktu (#16A34A)</span>
-        <p class="text-2xl font-black font-mono text-semantic-success">{{ studentStats.onTime }}</p>
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#16A34A] space-y-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-emerald-700">Tepat Waktu</span>
+        <p class="text-2xl font-black font-mono text-emerald-600">{{ studentStats.onTime }}</p>
       </div>
 
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-        <span class="text-[11px] text-semantic-danger font-inter">Terlambat (#DC2626)</span>
-        <p class="text-2xl font-black font-mono text-semantic-danger">{{ studentStats.late }}</p>
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#DC2626] space-y-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-red-700">Terlambat</span>
+        <p class="text-2xl font-black font-mono text-red-600">{{ studentStats.late }}</p>
       </div>
 
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-        <span class="text-[11px] text-scholarly-teal font-inter">Rata-rata Nilai</span>
-        <p class="text-2xl font-black font-mono text-scholarly-teal">{{ studentStats.avgScore }}</p>
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#0D9488] space-y-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-500">Rata-rata Nilai</span>
+        <p class="text-2xl font-black font-mono text-[#0D9488]">{{ studentStats.avgScore }}</p>
       </div>
     </div>
 
-    <!-- Metrik Bar Dosen -->
-    <div v-else class="grid grid-cols-2 sm:grid-cols-2 gap-4">
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-        <span class="text-[11px] text-slate-500 font-inter">Total Tugas Perkuliahan</span>
-        <p class="text-2xl font-black font-mono text-academic-navy">{{ lecturerStats.totalAssignments }} Penugasan</p>
+    <!-- Metrik Bar Dosen dengan Micro-Accent Borders -->
+    <div v-else class="grid grid-cols-2 sm:grid-cols-2 gap-3.5">
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#1E3A8A] space-y-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-500">Total Tugas Perkuliahan</span>
+        <p class="text-2xl font-black font-mono text-[#1E3A8A]">{{ lecturerStats.totalAssignments }} Penugasan</p>
       </div>
 
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-        <span class="text-[11px] text-scholarly-teal font-inter">Total Berkas Pengumpulan</span>
-        <p class="text-2xl font-black font-mono text-scholarly-teal">{{ lecturerStats.totalSubmissions }} Berkas Masuk</p>
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#0D9488] space-y-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-500">Total Berkas Pengumpulan</span>
+        <p class="text-2xl font-black font-mono text-[#0D9488]">{{ lecturerStats.totalSubmissions }} Berkas Masuk</p>
       </div>
     </div>
 

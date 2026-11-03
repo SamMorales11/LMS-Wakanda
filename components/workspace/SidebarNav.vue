@@ -33,33 +33,33 @@ const roleLabel = computed(() => {
 </script>
 
 <template>
-  <aside class="w-full lg:w-72 bg-white border-r border-slate-200/80 flex flex-col h-full shrink-0">
+  <aside class="w-full lg:w-72 bg-[#0F172A] border-r border-slate-800 flex flex-col h-full shrink-0 text-slate-200 select-none">
     <!-- Identitas Institusi -->
-    <div class="p-5 border-b border-slate-100">
+    <div class="p-4 sm:p-5 border-b border-slate-800">
       <div class="flex items-center gap-3">
         <div
-          class="w-9 h-9 rounded-lg bg-academic-navy text-white flex items-center justify-center font-bold text-xs tracking-wider shrink-0 font-jakarta"
+          class="w-9 h-9 rounded-sm bg-[#1E3A8A] text-white flex items-center justify-center font-bold text-xs tracking-wider shrink-0 font-mono border border-teal-500/40"
         >
           ITW
         </div>
         <div class="min-w-0">
-          <h1 class="text-xs font-bold text-academic-navy tracking-tight font-jakarta truncate">
+          <h1 class="text-xs font-bold text-white tracking-tight font-jakarta truncate">
             Institut Teknologi Wakanda
           </h1>
-          <p class="text-[11px] text-slate-500 font-inter truncate">Wakanda Academic Space</p>
+          <p class="text-[11px] text-teal-400 font-mono truncate">Wakanda Academic Space</p>
         </div>
       </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+    <div class="flex-1 overflow-y-auto px-3.5 py-4 space-y-5">
       <!-- KONTEKS: Semester Aktif -->
-      <div class="space-y-2">
-        <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase px-2">Konteks</span>
-        <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-alabaster-slate border border-slate-200">
-          <span class="text-xs text-slate-700 font-semibold truncate">
+      <div class="space-y-1.5">
+        <span class="text-[10px] font-mono font-bold text-slate-400 tracking-wider uppercase px-2">Konteks</span>
+        <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-sm bg-slate-900 border border-slate-800">
+          <span class="text-xs text-slate-300 font-semibold truncate">
             {{ academicStore.activeTerm?.name || 'Semester Aktif' }}
           </span>
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white text-slate-600 border border-slate-200 shrink-0">
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-slate-800 text-teal-400 border border-slate-700 shrink-0 font-bold">
             {{ academicStore.activeTerm?.code || '—' }}
           </span>
         </div>
@@ -67,16 +67,16 @@ const roleLabel = computed(() => {
 
       <!-- NAVIGASI: Section Milik Role Tersebut -->
       <div class="space-y-1">
-        <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase px-2">Navigasi</span>
+        <span class="text-[10px] font-mono font-bold text-slate-400 tracking-wider uppercase px-2">Navigasi</span>
         <button
           v-for="item in props.sections"
           :key="item.id"
           type="button"
           @click="emit('update:activeSection', item.id)"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium font-inter transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
+          class="w-full flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-medium font-inter transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
           :class="props.activeSection === item.id
-            ? 'bg-academic-navy text-white'
-            : 'text-slate-700 hover:bg-slate-100'"
+            ? 'bg-[#1E3A8A] text-white border-l-2 border-[#0D9488] font-semibold'
+            : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
         >
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon" />
@@ -88,20 +88,20 @@ const roleLabel = computed(() => {
       <!-- DAFTAR KELAS PERKULIAHAN -->
       <div class="space-y-2">
         <div class="flex items-center justify-between px-2">
-          <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Kelas Perkuliahan</span>
-          <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+          <span class="text-[10px] font-mono font-bold text-slate-400 tracking-wider uppercase">Kelas Perkuliahan</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-slate-800 text-slate-300 border border-slate-700">
             {{ academicStore.classes.length }}
           </span>
         </div>
 
         <div v-if="academicStore.isLoading" class="p-4 text-center space-y-2">
-          <div class="w-5 h-5 border-2 border-scholarly-teal border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div class="w-5 h-5 border-2 border-[#0D9488] border-t-transparent rounded-full animate-spin mx-auto"></div>
           <span class="text-xs text-slate-400 font-inter">Memuat kelas...</span>
         </div>
 
         <div
           v-else-if="academicStore.classes.length === 0"
-          class="p-4 text-center text-xs text-slate-400 font-inter bg-slate-50 rounded-xl"
+          class="p-4 text-center text-xs text-slate-400 font-inter bg-slate-900 rounded-sm border border-slate-800"
         >
           Belum ada kelas paralel terdaftar.
         </div>
@@ -112,28 +112,36 @@ const roleLabel = computed(() => {
             :key="item.id"
             type="button"
             @click="academicStore.selectClass(item.id)"
-            class="w-full text-left p-3 rounded-xl border transition flex flex-col gap-1 font-inter focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
+            class="w-full text-left p-2.5 rounded-sm border transition flex flex-col gap-1 font-inter focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
             :class="activeClassId === item.id
-              ? 'bg-alabaster-slate border-scholarly-teal text-deep-ink'
-              : 'bg-white border-slate-200/90 hover:bg-slate-50 text-slate-700'"
+              ? 'bg-slate-900 border-l-2 border-l-[#0D9488] border-y border-r border-slate-700 text-white'
+              : 'bg-slate-900/40 border border-slate-800/80 hover:border-slate-700 hover:bg-slate-800/50 text-slate-300'"
           >
             <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-bold font-jakarta text-academic-navy truncate">
+              <span
+                class="text-xs font-bold font-jakarta truncate"
+                :class="activeClassId === item.id ? 'text-teal-300' : 'text-slate-200'"
+              >
                 {{ item.courseCode || 'MATA KULIAH' }}
               </span>
               <span
-                class="text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0"
-                :class="activeClassId === item.id ? 'bg-scholarly-teal text-white' : 'bg-slate-100 text-slate-700'"
+                class="text-[10px] font-mono px-1.5 py-0.5 rounded-sm shrink-0"
+                :class="activeClassId === item.id
+                  ? 'bg-[#0D9488] text-white font-bold'
+                  : 'bg-slate-800 text-slate-400 border border-slate-700'"
               >
                 {{ item.code }}
               </span>
             </div>
 
-            <p class="text-xs font-medium text-slate-800 line-clamp-1 leading-snug">
+            <p
+              class="text-xs font-medium line-clamp-1 leading-snug"
+              :class="activeClassId === item.id ? 'text-slate-100' : 'text-slate-400'"
+            >
               {{ item.courseName || item.code }}
             </p>
 
-            <div class="flex items-center gap-2 text-[10px] text-slate-500 pt-1 border-t border-slate-100/80">
+            <div class="flex items-center gap-2 text-[10px] text-slate-500 pt-1 border-t border-slate-800/70">
               <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
@@ -148,24 +156,24 @@ const roleLabel = computed(() => {
     </div>
 
     <!-- Profil Sesi Pengguna -->
-    <div class="p-4 border-t border-slate-200/80 bg-slate-50/70">
+    <div class="p-3.5 border-t border-slate-800 bg-slate-950/70">
       <div v-if="authStore.isAuthenticated && authStore.user" class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
           <div
-            class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs font-jakarta shrink-0"
+            class="w-8 h-8 rounded-sm flex items-center justify-center font-bold text-white text-xs font-jakarta shrink-0"
             :class="{
-              'bg-academic-navy': authStore.isAdmin,
-              'bg-scholarly-teal': authStore.isLecturer,
+              'bg-[#1E3A8A] border border-teal-500/40': authStore.isAdmin,
+              'bg-[#0D9488]': authStore.isLecturer,
               'bg-slate-700': authStore.isStudent
             }"
           >
             {{ authStore.user.name.charAt(0) }}
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-bold text-deep-ink font-jakarta truncate">
+            <p class="text-xs font-bold text-white font-jakarta truncate">
               {{ authStore.user.name }}
             </p>
-            <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-500">
+            <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-400">
               <span class="truncate">{{ roleLabel }}</span>
               <span aria-hidden="true">·</span>
               <span class="truncate">{{ authStore.user.nimNidn || '-' }}</span>
@@ -177,7 +185,7 @@ const roleLabel = computed(() => {
           type="button"
           @click="handleLogout"
           title="Keluar dari Akun"
-          class="p-2 rounded-lg text-slate-400 hover:text-semantic-danger hover:bg-red-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
+          class="p-2 rounded-sm text-slate-400 hover:text-red-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -186,13 +194,13 @@ const roleLabel = computed(() => {
       </div>
 
       <div v-else class="flex items-center justify-between">
-        <div class="text-xs text-slate-500 font-inter">
-          <span class="block font-semibold text-slate-700">Sesi Tamu</span>
+        <div class="text-xs text-slate-400 font-inter">
+          <span class="block font-semibold text-slate-200">Sesi Tamu</span>
           <span class="text-[10px]">Akses Terbatas</span>
         </div>
         <NuxtLink
           to="/login"
-          class="px-3 py-1.5 rounded-lg bg-academic-navy text-white text-xs font-semibold hover:bg-blue-900 transition font-inter"
+          class="px-3 py-1.5 rounded-sm bg-[#1E3A8A] text-white text-xs font-semibold hover:bg-blue-900 transition font-inter"
         >
           Login
         </NuxtLink>

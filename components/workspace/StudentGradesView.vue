@@ -123,13 +123,13 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
     <!-- ============================================== -->
     <!-- HEADER EVALUASI AKADEMIK MAHASISWA            -->
     <!-- ============================================== -->
-    <section class="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
+    <section class="bg-white rounded-sm p-6 sm:p-7 shadow-none border border-slate-200 border-t-2 border-t-[#1E3A8A] space-y-6">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-scholarly-teal text-xs font-semibold border border-teal-200 font-inter mb-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-teal-50 text-[#0D9488] text-xs font-semibold border border-teal-200 font-inter mb-2">
             <span>Transparansi Penilaian Akademik</span>
           </div>
-          <h2 class="text-2xl font-bold text-academic-navy font-jakarta">
+          <h2 class="text-2xl font-extrabold text-[#0F172A] font-jakarta">
             Capaian Akademik & Rapor Berjalan
           </h2>
           <p class="text-xs text-slate-500 font-inter mt-1 max-w-xl">
@@ -138,7 +138,7 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
         </div>
 
         <!-- Kartu Standing Nilai Saat Ini -->
-        <div class="flex items-center gap-3 p-4 sm:p-5 rounded-2xl bg-alabaster-slate border border-slate-200 shrink-0">
+        <div class="flex items-center gap-3 p-4 sm:p-5 rounded-sm bg-[#F8FAFC] border border-slate-200 shrink-0">
           <div class="text-center px-3 border-r border-slate-200">
             <span class="text-[10px] text-slate-500 font-inter uppercase tracking-wider block">Nilai Akhir (NA)</span>
             <span class="text-3xl font-black font-mono text-academic-navy block mt-0.5">
@@ -168,9 +168,9 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
       <!-- Warning Banner Jika Presensi < 75% (Diskualifikasi Otomatis E) -->
       <div
         v-if="myGrade && !myGrade.attendance.isEligible"
-        class="p-4 sm:p-5 rounded-2xl bg-red-50 border border-red-200 flex items-start gap-3.5 text-semantic-danger"
+        class="p-4 sm:p-5 rounded-sm bg-red-50 border border-red-200 border-l-3 border-l-[#DC2626] flex items-start gap-3.5 text-semantic-danger"
       >
-        <div class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center shrink-0 font-bold">
+        <div class="w-7 h-7 rounded-sm bg-red-100 flex items-center justify-center shrink-0 font-bold">
           !
         </div>
         <div>
@@ -186,9 +186,9 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
       <!-- Success Badge Jika Presensi >= 75% -->
       <div
         v-else-if="myGrade && myGrade.attendance.isEligible"
-        class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-900"
+        class="p-3.5 rounded-sm bg-emerald-50 border border-emerald-200 border-l-3 border-l-emerald-600 flex items-center gap-3 text-emerald-900"
       >
-        <span class="w-2 h-2 rounded-full bg-semantic-success"></span>
+        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
         <span class="text-xs font-inter">
           Syarat kelayakan presensi terpenuhi: <strong class="font-mono">{{ myGrade.attendance.attendancePercentage }}%</strong> (Hadir {{ myGrade.attendance.attendedSessions }} dari {{ myGrade.attendance.totalSessions }} sesi). Anda berhak mengikuti UAS.
         </span>
@@ -198,16 +198,13 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
     <!-- ============================================== -->
     <!-- FITUR UNGGULAN: SIMULASI TARGET NILAI UAS      -->
     <!-- ============================================== -->
-    <section class="bg-gradient-to-br from-white to-teal-50/40 rounded-3xl p-6 sm:p-8 shadow-xs border border-teal-200/90 space-y-6">
+    <section class="bg-white rounded-sm p-6 sm:p-7 shadow-none border border-slate-200 border-t-2 border-t-[#0D9488] space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-academic-navy text-white text-[11px] font-bold font-jakarta mb-2">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 104 0 4 4 0 00-4 0zm0 0l3.5-3.5M12 12l-3.5 3.5M4 12H2m20 0h-2m-9 8l3.5-3.5M12 12l3.5 3.5" />
-            </svg>
-            <span>Inverted PRD Formula Calculator</span>
+          <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-sm bg-[#1E3A8A] text-white text-[10px] font-mono font-bold uppercase tracking-wider mb-2">
+            <span>Kalkulator Target Nilai UAS</span>
           </div>
-          <h3 class="text-xl font-bold text-academic-navy font-jakarta">
+          <h3 class="text-xl font-extrabold text-[#0F172A] font-jakarta">
             Simulasi Target Nilai Ujian Akhir Semester (UAS)
           </h3>
           <p class="text-xs text-slate-600 font-inter mt-1 max-w-2xl">
@@ -215,7 +212,7 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
           </p>
         </div>
 
-        <div class="p-3.5 rounded-2xl bg-white border border-slate-200 text-right shrink-0">
+        <div class="p-3.5 rounded-sm bg-[#F8FAFC] border border-slate-200 text-right shrink-0">
           <span class="text-[10px] text-slate-400 font-inter block">Poin Berjalan Saat Ini</span>
           <span class="text-xl font-black font-mono text-scholarly-teal block">
             {{ currentPartialWeightedPoints.toFixed(2) }}

@@ -222,45 +222,45 @@ const formatFileSize = (bytes?: number | null) => {
 <template>
   <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
     <!-- State Loading Kelas -->
-    <div v-if="academicStore.isDetailLoading" class="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-xs space-y-3">
-      <div class="w-8 h-8 border-3 border-scholarly-teal border-t-transparent rounded-full animate-spin mx-auto"></div>
+    <div v-if="academicStore.isDetailLoading" class="bg-white rounded-sm p-12 text-center border border-slate-200 shadow-none space-y-3">
+      <div class="w-8 h-8 border-2 border-[#0D9488] border-t-transparent rounded-full animate-spin mx-auto"></div>
       <p class="text-sm text-slate-500 font-inter">Memuat detail struktur 16 pertemuan kelas...</p>
     </div>
 
     <!-- State Kosong / Belum ada kelas dipilih -->
-    <div v-else-if="!currentClass" class="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-xs space-y-4">
-      <div class="w-16 h-16 rounded-2xl bg-alabaster-slate text-scholarly-teal flex items-center justify-center mx-auto">
+    <div v-else-if="!currentClass" class="bg-white rounded-sm p-12 text-center border border-slate-200 shadow-none space-y-4">
+      <div class="w-14 h-14 rounded-sm bg-[#F8FAFC] border border-slate-200 text-[#0D9488] flex items-center justify-center mx-auto">
         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
       </div>
-      <h3 class="text-lg font-bold text-academic-navy font-jakarta">Pilih Kelas Perkuliahan</h3>
+      <h3 class="text-base font-extrabold text-[#0F172A] font-jakarta">Pilih Kelas Perkuliahan</h3>
       <p class="text-xs text-slate-500 font-inter max-w-md mx-auto">
         Silakan pilih salah satu kelas paralel dari daftar sidebar di sebelah kiri untuk melihat struktur 16 pertemuan perkuliahan.
       </p>
     </div>
 
-    <div v-else class="space-y-6">
+    <div v-else class="space-y-5">
       <!-- Banner Peringatan Dini EWS Otomatis Mahasiswa -->
       <EwsAlertBanner />
 
       <!-- Header Banner Kelas Aktif -->
-      <section class="bg-white rounded-2xl p-6 border border-slate-200/90">
+      <section class="bg-white rounded-sm p-5 sm:p-6 border border-slate-200 border-t-2 border-t-[#1E3A8A]">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
           <div class="min-w-0 space-y-2">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2.5 py-0.5 rounded-full bg-alabaster-slate text-slate-600 border border-slate-200 font-mono text-[11px] font-semibold">
+              <span class="px-2 py-0.5 rounded-sm bg-slate-100 text-[#1E3A8A] border border-slate-200 font-mono text-[10px] font-bold">
                 {{ currentClass.courseCode || 'KODE MK' }}
               </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-alabaster-slate text-slate-600 border border-slate-200 font-mono text-[11px]">
+              <span class="px-2 py-0.5 rounded-sm bg-slate-100 text-slate-700 border border-slate-200 font-mono text-[10px] font-semibold">
                 Kelas {{ currentClass.code }}
               </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-alabaster-slate text-slate-600 border border-slate-200 font-mono text-[11px]">
+              <span class="px-2 py-0.5 rounded-sm bg-slate-100 text-slate-600 border border-slate-200 font-mono text-[10px]">
                 Kapasitas {{ currentClass.capacity || 0 }} Mahasiswa
               </span>
             </div>
 
-            <h2 class="text-xl sm:text-2xl font-bold tracking-tight font-jakarta text-academic-navy">
+            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight font-jakarta text-[#0F172A]">
               {{ currentClass.courseName || currentClass.code }}
             </h2>
 
@@ -282,29 +282,34 @@ const formatFileSize = (bytes?: number | null) => {
                 <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
-                <span>{{ currentClass.scheduleDay || 'Senin' }}, {{ currentClass.scheduleStart || '08:00' }} - {{ currentClass.scheduleEnd || '10:30' }} WIB</span>
+                <span class="font-mono text-slate-600">{{ currentClass.scheduleDay || 'Senin' }}, {{ currentClass.scheduleStart || '08:00' }} - {{ currentClass.scheduleEnd || '10:30' }} WIB</span>
               </span>
             </div>
           </div>
 
           <!-- Ringkasan Kurikulum -->
           <div class="shrink-0 md:text-right">
-            <span class="text-[11px] text-slate-500 font-inter block">Kurikulum Semester</span>
-            <span class="text-xl font-bold font-mono text-academic-navy block">16 Pertemuan</span>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 block">Kurikulum Semester</span>
+            <span class="text-xl font-bold font-mono text-[#1E3A8A] block">16 Pertemuan</span>
             <span class="text-[11px] text-slate-400 font-inter block">UTS pada sesi 8 · UAS pada sesi 16</span>
           </div>
         </div>
       </section>
 
       <!-- Navigator 16 Pertemuan Perkuliahan -->
-      <section class="bg-white rounded-2xl p-5 border border-slate-200/90 space-y-4">
-        <div>
-          <h3 class="text-sm font-bold text-academic-navy font-jakarta">
-            Struktur Sesi Kurikulum
-          </h3>
-          <p class="text-[11px] text-slate-500 font-inter mt-0.5">
-            Pilih pertemuan untuk melihat silabus, materi ajar, dan status kehadiran.
-          </p>
+      <section class="bg-white rounded-sm p-4 sm:p-5 border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
+              Struktur 16 Pertemuan Kurikulum
+            </h3>
+            <p class="text-[11px] text-slate-500 font-inter mt-0.5">
+              Pilih pertemuan untuk melihat silabus, materi ajar, dan status kehadiran.
+            </p>
+          </div>
+          <span class="hidden sm:inline-flex text-[10px] font-mono text-slate-400">
+            P-8: UTS · P-16: UAS
+          </span>
         </div>
 
         <!-- Grid 16 Pertemuan -->
@@ -314,16 +319,20 @@ const formatFileSize = (bytes?: number | null) => {
             :key="s.id"
             type="button"
             @click="academicStore.selectSession(s.sessionNumber)"
-            class="flex flex-col items-center justify-center py-2 px-1 rounded-lg border transition text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
+            class="flex flex-col items-center justify-center py-2 px-1 rounded-sm border transition text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
             :class="selectedSessionNum === s.sessionNumber
-              ? 'bg-academic-navy text-white border-academic-navy'
-              : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'"
+              ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] font-bold shadow-xs'
+              : (s.sessionType === 'MIDTERM_EXAM'
+                  ? 'bg-amber-50/50 border-amber-300 text-amber-900 hover:bg-amber-100/60'
+                  : (s.sessionType === 'FINAL_EXAM'
+                      ? 'bg-blue-50/50 border-blue-300 text-[#1E3A8A] hover:bg-blue-100/60'
+                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'))"
           >
             <span class="text-[10px] font-mono font-bold leading-none">P-{{ s.sessionNumber }}</span>
             <span
               v-if="s.sessionType === 'MIDTERM_EXAM' || s.sessionType === 'FINAL_EXAM'"
-              class="text-[9px] font-mono mt-1 leading-none"
-              :class="selectedSessionNum === s.sessionNumber ? 'text-white/70' : 'text-slate-400'"
+              class="text-[8px] font-mono mt-1 font-bold leading-none uppercase"
+              :class="selectedSessionNum === s.sessionNumber ? 'text-teal-200' : (s.sessionType === 'MIDTERM_EXAM' ? 'text-[#D97706]' : 'text-[#1E3A8A]')"
             >
               {{ s.sessionType === 'MIDTERM_EXAM' ? 'UTS' : 'UAS' }}
             </span>
@@ -332,7 +341,7 @@ const formatFileSize = (bytes?: number | null) => {
       </section>
 
       <!-- Detail Pertemuan Terpilih (Active Session View) -->
-      <section v-if="selectedSession" class="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
+      <section v-if="selectedSession" class="bg-white rounded-sm p-5 sm:p-7 shadow-none border border-slate-200 border-t-2 border-t-[#0D9488] space-y-6">
         <!-- Top Session Meta Bar -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-4">
           <div class="space-y-1">
@@ -368,10 +377,10 @@ const formatFileSize = (bytes?: number | null) => {
 
         <!-- Silabus & Topik Perkuliahan -->
         <div class="space-y-3">
-          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
+          <h4 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
             Topik Bahasan & Rencana Pembelajaran Semester
           </h4>
-          <div class="p-4 rounded-2xl bg-alabaster-slate border border-slate-200 text-slate-700 text-sm font-inter leading-relaxed">
+          <div class="p-4 rounded-sm bg-[#F8FAFC] border border-slate-200 text-slate-700 text-sm font-inter leading-relaxed">
             <p v-if="selectedSession.topicDescription">
               {{ selectedSession.topicDescription }}
             </p>
@@ -432,14 +441,14 @@ const formatFileSize = (bytes?: number | null) => {
           </div>
 
           <!-- Empty State Materi -->
-          <div v-else-if="materials.length === 0" class="p-8 text-center rounded-2xl bg-alabaster-slate border border-slate-200 space-y-3">
-            <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
+          <div v-else-if="materials.length === 0" class="p-8 text-center rounded-sm bg-[#F8FAFC] border border-slate-200 space-y-3">
+            <div class="w-12 h-12 rounded-sm bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z" />
               </svg>
             </div>
             <div class="space-y-1">
-              <h5 class="text-xs font-bold text-academic-navy font-jakarta">Belum Ada Materi Pembelajaran</h5>
+              <h5 class="text-xs font-bold text-[#0F172A] font-jakarta">Belum Ada Materi Pembelajaran</h5>
               <p class="text-[11px] text-slate-500 font-inter max-w-sm mx-auto">
                 {{ authStore.isLecturer || authStore.isAdmin ? 'Klik tombol "+ Tambah Materi" di atas untuk mengunggah slide PDF, kode sumber, atau tautan video.' : 'Dosen pengampu belum mengunggah materi untuk sesi perkuliahan ini.' }}
               </p>
@@ -447,12 +456,12 @@ const formatFileSize = (bytes?: number | null) => {
           </div>
 
           <!-- Grid Materi Perkuliahan -->
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             <div
               v-for="m in materials"
               :key="m.id"
-              class="p-4 rounded-2xl border transition space-y-3 font-inter flex flex-col justify-between"
-              :class="m.isCompleted ? 'bg-emerald-50/30 border-emerald-200' : 'bg-white border-slate-200/90 hover:border-scholarly-teal'"
+              class="p-4 rounded-sm border transition space-y-3 font-inter flex flex-col justify-between"
+              :class="m.isCompleted ? 'bg-emerald-50/40 border-emerald-300' : 'bg-white border-slate-200 hover:border-[#0D9488]'"
             >
               <div class="space-y-2">
                 <!-- Top Badge Row -->
@@ -569,14 +578,14 @@ const formatFileSize = (bytes?: number | null) => {
           </div>
 
           <!-- Empty State Tugas -->
-          <div v-else-if="assignmentStore.assignments.length === 0" class="p-8 text-center rounded-2xl bg-alabaster-slate border border-slate-200 space-y-3">
-            <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
+          <div v-else-if="assignmentStore.assignments.length === 0" class="p-8 text-center rounded-sm bg-[#F8FAFC] border border-slate-200 space-y-3">
+            <div class="w-12 h-12 rounded-sm bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h3m-3 4h6M7.5 4.5h9A2.25 2.25 0 0118.75 6.75v12a.75.75 0 01-.75.75h-12a.75.75 0 01-.75-.75v-12A2.25 2.25 0 017.5 4.5z" />
               </svg>
             </div>
             <div class="space-y-1">
-              <h5 class="text-xs font-bold text-academic-navy font-jakarta">Belum Ada Tugas Pada Sesi Ini</h5>
+              <h5 class="text-xs font-bold text-[#0F172A] font-jakarta">Belum Ada Tugas Pada Sesi Ini</h5>
               <p class="text-[11px] text-slate-500 font-inter max-w-sm mx-auto">
                 {{ authStore.isLecturer || authStore.isAdmin ? 'Klik tombol "+ Buat Tugas Baru" untuk menambahkan penugasan dengan parameter due_date dan cutoff_date.' : 'Tidak ada tugas yang dijadwalkan untuk pertemuan ini.' }}
               </p>
@@ -588,8 +597,8 @@ const formatFileSize = (bytes?: number | null) => {
             <div
               v-for="a in assignmentStore.assignments"
               :key="a.id"
-              class="p-5 rounded-2xl border transition space-y-4 font-inter flex flex-col justify-between"
-              :class="a.isClosed ? 'bg-slate-50 border-slate-200' : 'bg-white border-slate-200/90 hover:border-academic-navy shadow-xs'"
+              class="p-4 rounded-sm border transition space-y-4 font-inter flex flex-col justify-between"
+              :class="a.isClosed ? 'bg-slate-50 border-slate-200' : 'bg-white border-slate-200 hover:border-[#1E3A8A] shadow-none'"
             >
               <div class="space-y-3">
                 <!-- Top Row: Badge & Max Score -->
@@ -772,15 +781,15 @@ const formatFileSize = (bytes?: number | null) => {
           <!-- Empty State Ujian -->
           <div
             v-if="quizStore.sessionQuizzes.length === 0"
-            class="p-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 text-center space-y-2"
+            class="p-8 rounded-sm border border-dashed border-slate-300 bg-slate-50/50 text-center space-y-2"
           >
             <svg class="w-6 h-6 mx-auto text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h3m-3 4h6M7.5 4.5h9A2.25 2.25 0 0118.75 6.75v12a.75.75 0 01-.75.75h-12a.75.75 0 01-.75-.75v-12A2.25 2.25 0 017.5 4.5z" />
             </svg>
-            <p class="text-xs font-semibold text-slate-600 font-jakarta">
+            <p class="text-xs font-bold text-slate-700 font-jakarta">
               Tidak Ada Ujian Aktif pada Sesi Ini
             </p>
-            <p class="text-[11px] text-slate-400 font-inter max-w-md mx-auto">
+            <p class="text-[11px] text-slate-500 font-inter max-w-md mx-auto">
               {{ selectedSession?.sessionType === 'MIDTERM_EXAM' ? 'Sesi ini dijadwalkan untuk Evaluasi Ujian Tengah Semester (UTS).' : (selectedSession?.sessionType === 'FINAL_EXAM' ? 'Sesi ini dijadwalkan untuk Evaluasi Ujian Akhir Semester (UAS).' : 'Kuis mingguan dapat diselenggarakan pada pertemuan reguler sesuai silabus.') }}
             </p>
           </div>
@@ -790,7 +799,7 @@ const formatFileSize = (bytes?: number | null) => {
             <div
               v-for="q in quizStore.sessionQuizzes"
               :key="q.id"
-              class="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-academic-navy transition space-y-4 font-inter shadow-xs flex flex-col justify-between"
+              class="p-4 rounded-sm border border-slate-200 bg-white hover:border-[#1E3A8A] transition space-y-4 font-inter shadow-none flex flex-col justify-between"
             >
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
@@ -892,9 +901,9 @@ const formatFileSize = (bytes?: number | null) => {
         </div>
 
         <!-- Bobot Komponen Penilaian Sesi Terkait -->
-        <div class="p-4 rounded-2xl bg-alabaster-slate border border-slate-200 flex items-center justify-between flex-wrap gap-3">
+        <div class="p-4 rounded-sm bg-[#F8FAFC] border border-slate-200 flex items-center justify-between flex-wrap gap-3">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-white text-scholarly-teal border border-slate-200 flex items-center justify-center shrink-0">
+            <div class="w-9 h-9 rounded-sm bg-white text-[#0D9488] border border-slate-200 flex items-center justify-center shrink-0">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>

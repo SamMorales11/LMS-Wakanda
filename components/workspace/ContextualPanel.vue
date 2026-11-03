@@ -203,48 +203,48 @@ const dynamicDeadlines = computed(() => {
 </script>
 
 <template>
-  <aside class="w-full lg:w-80 xl:w-96 bg-white border-l border-slate-200/80 flex flex-col h-full shrink-0 shadow-xs overflow-y-auto p-5 space-y-6">
+  <aside class="w-full lg:w-80 xl:w-96 bg-white border-l border-slate-200/90 flex flex-col h-full shrink-0 shadow-none overflow-y-auto p-4 sm:p-5 space-y-6">
     <!-- PANEL 1: PRESENSI CEPAT SESI (Attendance Engine) -->
-    <section class="space-y-4">
+    <section class="space-y-3.5">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span
             class="w-2.5 h-2.5 rounded-full"
-            :class="attendanceStore.hasActiveToken ? 'bg-semantic-success' : 'bg-slate-300'"
+            :class="attendanceStore.hasActiveToken ? 'bg-emerald-500' : 'bg-slate-300'"
           ></span>
-          <h3 class="text-sm font-bold text-academic-navy font-jakarta">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-[#0F172A] font-jakarta">
             Presensi Sesi {{ selectedSessionNum }}
           </h3>
         </div>
-        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-teal-50 text-scholarly-teal border border-teal-200">
-          {{ selectedSession?.sessionType === 'MIDTERM_EXAM' ? 'UTS' : (selectedSession?.sessionType === 'FINAL_EXAM' ? 'UAS' : 'REGULAR') }}
+        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-sm bg-teal-50 text-[#0D9488] border border-teal-200">
+          {{ selectedSession?.sessionType === 'MIDTERM_EXAM' ? 'UTS' : (selectedSession?.sessionType === 'FINAL_EXAM' ? 'UAS' : 'REGULER') }}
         </span>
       </div>
 
       <!-- Presensi Card Container -->
-      <div class="p-4 rounded-2xl bg-alabaster-slate border border-slate-200 space-y-3.5">
+      <div class="p-3.5 rounded-sm bg-[#F8FAFC] border border-slate-200 space-y-3">
         <div class="text-xs font-inter text-slate-600 flex items-center justify-between">
           <span>Status Sesi:</span>
           <span
             class="font-bold flex items-center gap-1 font-mono text-[11px]"
-            :class="attendanceStore.hasActiveToken ? 'text-semantic-success' : 'text-slate-500'"
+            :class="attendanceStore.hasActiveToken ? 'text-emerald-600' : 'text-slate-500'"
           >
             ● {{ attendanceStore.hasActiveToken ? 'Presensi Terbuka' : 'Presensi Ditutup' }}
           </span>
         </div>
 
-        <!-- Role: Dosen (Generator PIN 6-Digit & QR Code Dinamis) -->
-        <div v-if="authStore.isLecturer || authStore.isAdmin" class="space-y-3">
+        <!-- Role 1: DOSEN (Generator PIN 6-Digit & QR Code Dinamis) -->
+        <div v-if="authStore.isLecturer" class="space-y-3">
           <!-- State 1: Belum Ada Token Aktif -->
           <div v-if="!attendanceStore.hasActiveToken" class="space-y-2.5">
-            <p class="text-[11px] text-slate-500 font-inter">
-              Sebagai Dosen Pengampu, buka presensi untuk sesi ini dengan token PIN 6-digit & QR Code dinamis:
+            <p class="text-[11px] text-slate-600 font-inter">
+              Buka presensi sesi perkuliahan dengan token PIN 6-digit & QR Code dinamis:
             </p>
             <button
               type="button"
               @click="handleOpenSession(15)"
               :disabled="attendanceStore.isOpeningSession"
-              class="w-full py-2.5 px-3 rounded-xl bg-scholarly-teal hover:bg-teal-700 text-white font-semibold text-xs transition shadow-xs flex items-center justify-center gap-2 font-jakarta disabled:opacity-50"
+              class="w-full py-2.5 px-3 rounded-sm bg-[#0D9488] hover:bg-teal-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 font-jakarta disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
             >
               <svg v-if="attendanceStore.isOpeningSession" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -255,18 +255,18 @@ const dynamicDeadlines = computed(() => {
           </div>
 
           <!-- State 2: Token Sedang Aktif -->
-          <div v-else class="space-y-3 text-center">
+          <div v-else class="space-y-2.5 text-center">
             <span class="text-[11px] text-slate-500 font-inter block">Bagikan Token Ini ke Mahasiswa:</span>
 
-            <!-- 6-digit PIN in JetBrains Mono -->
-            <div class="p-3 bg-white rounded-xl border border-teal-300 font-mono text-2xl font-black text-academic-navy tracking-widest shadow-inner">
+            <!-- 6-digit PIN in Monospace -->
+            <div class="p-2.5 bg-white rounded-sm border border-teal-300 font-mono text-2xl font-black text-[#1E3A8A] tracking-widest">
               {{ attendanceStore.activeToken?.formattedToken }}
             </div>
 
             <!-- Batas Waktu Countdown -->
             <div class="flex items-center justify-between text-[11px] font-mono px-1">
               <span class="text-slate-500">Sisa Berlaku:</span>
-              <span class="text-amber-alert font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+              <span class="text-[#D97706] font-bold bg-amber-50 px-2 py-0.5 rounded-sm border border-amber-200">
                 {{ attendanceStore.formattedRemainingTime }}
               </span>
             </div>
@@ -276,14 +276,14 @@ const dynamicDeadlines = computed(() => {
               <button
                 type="button"
                 @click="isQrModalOpen = true"
-                class="py-2 px-2.5 rounded-xl bg-academic-navy hover:bg-blue-900 text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5 font-jakarta"
+                class="py-2 px-2.5 rounded-sm bg-[#1E3A8A] hover:bg-blue-900 text-white text-[11px] font-bold transition flex items-center justify-center gap-1.5 font-jakarta focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
               >
-                <span>QR Code</span>
+                <span>Tampilkan QR</span>
               </button>
               <button
                 type="button"
                 @click="handleCloseSession"
-                class="py-2 px-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-semibold transition font-jakarta"
+                class="py-2 px-2.5 rounded-sm bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold transition font-jakarta focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
               >
                 Tutup Presensi
               </button>
@@ -291,16 +291,16 @@ const dynamicDeadlines = computed(() => {
           </div>
 
           <!-- Summary Kehadiran Cepat Dosen -->
-          <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs font-inter">
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-xs font-inter">
             <span class="text-slate-600">Mahasiswa Hadir:</span>
             <div class="flex items-center gap-2">
-              <span class="font-bold text-academic-navy font-mono">
+              <span class="font-bold text-[#1E3A8A] font-mono">
                 {{ attendanceStore.sessionOverview?.presentCount ?? 0 }} / {{ attendanceStore.sessionOverview?.totalEnrolled ?? 0 }}
               </span>
               <button
                 type="button"
                 @click="isManualModalOpen = true"
-                class="text-[10px] text-scholarly-teal hover:underline font-semibold font-jakarta"
+                class="text-[10px] text-[#0D9488] hover:underline font-bold font-jakarta"
               >
                 Kelola
               </button>
@@ -308,11 +308,60 @@ const dynamicDeadlines = computed(() => {
           </div>
         </div>
 
-        <!-- Role: Mahasiswa (Check-In Presensi PIN / QR) -->
+        <!-- Role 2: ADMINISTRATOR (Monitoring & Audit Kehadiran Sesi) -->
+        <div v-else-if="authStore.isAdmin" class="space-y-3">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-[11px] font-mono pb-1 border-b border-slate-200">
+              <span class="text-slate-500">Status Token:</span>
+              <span
+                class="font-bold px-1.5 py-0.5 rounded-sm text-[10px]"
+                :class="attendanceStore.hasActiveToken
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-slate-100 text-slate-600 border border-slate-200'"
+              >
+                {{ attendanceStore.hasActiveToken ? 'Token Aktif' : 'Tidak Ada Token' }}
+              </span>
+            </div>
+
+            <!-- Token Display jika aktif -->
+            <div v-if="attendanceStore.hasActiveToken" class="p-2 bg-white rounded-sm border border-slate-200 text-center space-y-1">
+              <span class="text-[10px] text-slate-500 font-mono block">Token Sesi Saat Ini:</span>
+              <p class="font-mono text-xl font-black text-[#1E3A8A] tracking-wider">
+                {{ attendanceStore.activeToken?.formattedToken }}
+              </p>
+              <p class="text-[10px] font-mono text-[#D97706]">
+                Sisa waktu: {{ attendanceStore.formattedRemainingTime }}
+              </p>
+            </div>
+
+            <p v-else class="text-[11px] text-slate-500 font-inter">
+              Token presensi diinisiasi oleh Dosen Pengampu saat kelas berlangsung.
+            </p>
+          </div>
+
+          <!-- Summary Audit Kehadiran untuk Admin -->
+          <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-xs font-inter">
+            <span class="text-slate-600">Total Hadir:</span>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-[#1E3A8A] font-mono">
+                {{ attendanceStore.sessionOverview?.presentCount ?? 0 }} / {{ attendanceStore.sessionOverview?.totalEnrolled ?? 0 }}
+              </span>
+              <button
+                type="button"
+                @click="isManualModalOpen = true"
+                class="text-[10px] text-[#0D9488] hover:underline font-bold font-jakarta"
+              >
+                Audit Manual
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role 3: MAHASISWA (Check-In Presensi PIN / QR) -->
         <div v-else class="space-y-3">
           <!-- State: Mahasiswa Belum Hadir -->
           <div v-if="!attendanceStore.isStudentAttended" class="space-y-2.5">
-            <label class="block text-xs font-semibold text-slate-700 font-jakarta">
+            <label class="block text-xs font-bold text-slate-700 font-jakarta">
               Masukkan 6-Digit Token Perkuliahan:
             </label>
             <div class="flex gap-2">
@@ -321,14 +370,14 @@ const dynamicDeadlines = computed(() => {
                 @input="handlePinInput"
                 type="text"
                 maxlength="7"
-                placeholder="mis. 849-216"
-                class="flex-1 px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-scholarly-teal text-center font-mono font-bold text-sm tracking-wider"
+                placeholder="849-216"
+                class="flex-1 px-3 py-2 rounded-sm border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0D9488] text-center font-mono font-bold text-sm tracking-wider bg-white"
               />
               <button
                 type="button"
                 @click="handleStudentCheckIn"
                 :disabled="attendanceStore.isCheckingIn"
-                class="px-4 py-2 rounded-xl bg-academic-navy hover:bg-blue-900 text-white text-xs font-semibold transition shrink-0 font-jakarta disabled:opacity-50 flex items-center justify-center min-w-[70px]"
+                class="px-4 py-2 rounded-sm bg-[#1E3A8A] hover:bg-blue-900 text-white text-xs font-bold transition shrink-0 font-jakarta disabled:opacity-50 flex items-center justify-center min-w-[70px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
               >
                 <svg v-if="attendanceStore.isCheckingIn" class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -337,48 +386,48 @@ const dynamicDeadlines = computed(() => {
                 <span v-else>Kirim</span>
               </button>
             </div>
-            <p class="text-[10px] text-slate-400 font-inter">
+            <p class="text-[10px] text-slate-500 font-inter">
               PIN 6-digit diberikan Dosen Pengampu saat sesi tatap muka berlangsung.
             </p>
           </div>
 
           <!-- State: Mahasiswa Sudah Hadir -->
-          <div v-else class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
-            <div class="w-7 h-7 rounded-full bg-semantic-success text-white flex items-center justify-center mx-auto">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div v-else class="p-3 rounded-sm bg-emerald-50 border border-emerald-200 text-center space-y-1">
+            <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
             </div>
-            <p class="text-xs font-bold text-semantic-success font-jakarta">Presensi Terverifikasi</p>
+            <p class="text-xs font-bold text-emerald-700 font-jakarta">Presensi Terverifikasi</p>
             <p class="text-[10px] text-slate-600 font-inter">
-              Status: <strong class="font-mono">{{ attendanceStore.currentStudentSessionLog?.status }}</strong>
-              (Tercatat otomatis via Strict Server Timestamp)
+              Status: <strong class="font-mono text-[#0F172A]">{{ attendanceStore.currentStudentSessionLog?.status }}</strong>
+              (Strict Server Timestamp)
             </p>
           </div>
         </div>
 
         <!-- Feedback Alert -->
-        <div v-if="actionSuccess || attendanceStore.feedback" class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-semantic-success text-[11px] font-medium font-inter">
+        <div v-if="actionSuccess || attendanceStore.feedback" class="p-2.5 rounded-sm bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-medium font-inter">
           {{ actionSuccess || attendanceStore.feedback }}
         </div>
-        <div v-if="actionError || attendanceStore.error" class="p-2.5 rounded-xl bg-red-50 border border-red-200 text-semantic-danger text-[11px] font-medium font-inter">
+        <div v-if="actionError || attendanceStore.error" class="p-2.5 rounded-sm bg-red-50 border border-red-200 text-red-600 text-[11px] font-medium font-inter">
           {{ actionError || attendanceStore.error }}
         </div>
 
         <!-- Rekap Persentase Kehadiran Semester — hanya relevan bagi mahasiswa -->
-        <div v-if="authStore.isStudent" class="pt-2 border-t border-slate-200/80 space-y-2">
+        <div v-if="authStore.isStudent" class="pt-2.5 border-t border-slate-200 space-y-2">
           <div class="flex items-center justify-between text-xs font-inter">
             <span class="text-slate-600 font-medium">Rekap Kehadiran:</span>
-            <span class="font-bold text-academic-navy font-mono">
+            <span class="font-bold text-[#1E3A8A] font-mono">
               {{ attendedSessionsCount }} / {{ totalSessionsCount }} Sesi ({{ attendancePercentage.toFixed(1) }}%)
             </span>
           </div>
 
           <!-- Progress Bar Otomatis -->
-          <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+          <div class="w-full h-2 bg-slate-200 rounded-sm overflow-hidden">
             <div
-              class="h-full rounded-full transition-all duration-500"
-              :class="isEligibleForUAS ? 'bg-semantic-success' : 'bg-amber-alert'"
+              class="h-full rounded-sm transition-all duration-500"
+              :class="isEligibleForUAS ? 'bg-emerald-600' : 'bg-[#D97706]'"
               :style="{ width: `${Math.min(100, Math.max(0, attendancePercentage))}%` }"
             ></div>
           </div>
@@ -387,10 +436,10 @@ const dynamicDeadlines = computed(() => {
           <div class="flex items-center justify-between text-[10px] text-slate-500 font-inter">
             <span>Syarat Min. UAS: 75%</span>
             <span
-              class="font-semibold px-2 py-0.5 rounded-md font-mono text-[9px] uppercase"
+              class="font-semibold px-2 py-0.5 rounded-sm font-mono text-[9px] uppercase"
               :class="isEligibleForUAS
-                ? 'bg-emerald-100 text-semantic-success border border-emerald-200'
-                : 'bg-amber-100 text-amber-800 border border-amber-200'"
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-amber-50 text-amber-800 border border-amber-200'"
             >
               {{ isEligibleForUAS ? 'Memenuhi Syarat UAS' : 'Belum Memenuhi Syarat' }}
             </span>
@@ -400,50 +449,50 @@ const dynamicDeadlines = computed(() => {
     </section>
 
     <!-- PANEL 2: TENGGAT TERDEKAT (Amber Alert #D97706) -->
-    <section class="space-y-3.5">
+    <section class="space-y-3">
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-bold text-academic-navy font-jakarta flex items-center gap-2">
-          <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <h3 class="text-xs font-extrabold uppercase tracking-wider text-[#0F172A] font-jakarta flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>Tenggat Terdekat</span>
         </h3>
-        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 font-bold">
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded-sm bg-amber-50 text-amber-900 border border-amber-300 font-bold">
           {{ dynamicDeadlines.length }} Agenda
         </span>
       </div>
 
-      <div class="space-y-2.5">
+      <div class="space-y-2">
         <div
           v-for="item in dynamicDeadlines"
           :key="item.id"
-          class="p-3.5 rounded-2xl border transition space-y-1.5 font-inter"
+          class="p-3 rounded-sm border transition space-y-1.5 font-inter"
           :class="item.urgent
-            ? 'bg-amber-50/80 border-amber-300 hover:border-amber-400 text-amber-950 shadow-xs'
-            : 'bg-alabaster-slate border-slate-200 hover:border-slate-300'"
+            ? 'bg-amber-50/70 border-amber-300 border-l-3 border-l-[#D97706] text-amber-950'
+            : 'bg-[#F8FAFC] border-slate-200 border-l-3 border-l-[#1E3A8A] hover:border-slate-300'"
         >
           <div class="flex items-center justify-between">
             <span
-              class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase"
+              class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-sm uppercase"
               :class="item.urgent ? 'bg-amber-200/90 text-amber-900 border border-amber-300' : 'bg-slate-200 text-slate-700'"
             >
               {{ item.badge }}
             </span>
             <span
               class="text-[10px] font-mono font-bold flex items-center gap-1"
-              :class="item.urgent ? 'text-amber-alert font-black' : 'text-slate-500'"
+              :class="item.urgent ? 'text-[#D97706] font-black' : 'text-slate-500'"
             >
-              <span v-if="item.urgent" class="w-1.5 h-1.5 rounded-full bg-amber-alert"></span>
+              <span v-if="item.urgent" class="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span>
               {{ item.daysLeft }} hari lagi
             </span>
           </div>
 
-          <h4 class="text-xs font-bold font-jakarta leading-snug line-clamp-2" :class="item.urgent ? 'text-amber-950' : 'text-deep-ink'">
+          <h4 class="text-xs font-bold font-jakarta leading-snug line-clamp-2" :class="item.urgent ? 'text-amber-950' : 'text-[#0F172A]'">
             {{ item.title }}
           </h4>
 
-          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-100">
-            <span>{{ item.course }}</span>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-200/70">
+            <span class="font-mono">{{ item.course }}</span>
             <span class="font-mono text-slate-600 font-medium">{{ item.due }}</span>
           </div>
         </div>
@@ -453,10 +502,10 @@ const dynamicDeadlines = computed(() => {
     <!-- PANEL 3: DOSEN PENGAMPU KELAS -->
     <section
       v-if="!authStore.isAdmin"
-      class="p-4 rounded-2xl bg-alabaster-slate border border-slate-200 space-y-3"
+      class="p-3.5 rounded-sm bg-[#F8FAFC] border border-slate-200 space-y-2.5"
     >
-      <div class="flex items-center gap-2 text-xs font-bold text-academic-navy font-jakarta">
-        <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="flex items-center gap-2 text-xs font-bold text-[#0F172A] font-jakarta">
+        <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
         </svg>
         <span>Dosen Pengampu Kelas</span>
@@ -477,7 +526,7 @@ const dynamicDeadlines = computed(() => {
       @close="isQrModalOpen = false"
     />
 
-    <!-- Modal Manajemen Presensi Manual (Dosen) -->
+    <!-- Modal Manajemen Presensi Manual (Dosen & Admin) -->
     <ManualAttendanceModal
       :is-open="isManualModalOpen"
       :overview="attendanceStore.sessionOverview"

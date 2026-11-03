@@ -106,19 +106,19 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
 <template>
   <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
     <!-- Header Banner -->
-    <div class="p-6 rounded-3xl bg-academic-navy text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="p-6 rounded-sm bg-[#1E3A8A] text-white shadow-none border border-blue-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div class="space-y-1">
         <div class="flex items-center gap-2">
-          <span class="px-2.5 py-0.5 rounded-full bg-teal-400/20 text-teal-300 font-mono text-xs font-semibold border border-teal-400/30">
+          <span class="px-2 py-0.5 rounded-sm bg-teal-400/20 text-teal-300 font-mono text-[10px] font-bold border border-teal-400/30">
             {{ currentClass?.courseCode || 'KODE MK' }} • Kelas {{ currentClass?.code || 'A' }}
           </span>
-          <span class="text-xs text-slate-300 font-inter">Semester Aktif 2026/2027</span>
+          <span class="text-xs text-slate-300 font-inter font-medium">Semester Aktif 2026/2027</span>
         </div>
         <h2 class="text-xl sm:text-2xl font-extrabold font-jakarta">
           {{ authStore.isAdmin ? 'Rekapitulasi Presensi Semester' : 'Rekapitulasi Presensi Semester & Kelayakan UAS' }}
         </h2>
         <p v-if="authStore.isAdmin" class="text-xs text-slate-300 font-inter max-w-xl">
-          RekapKehadiran mahasiswa kelas terhadap 16 sesi perkuliahan semester berjalan.
+          Rekapitulasi kehadiran mahasiswa kelas terhadap 16 sesi perkuliahan semester berjalan.
         </p>
         <p v-else class="text-xs text-slate-300 font-inter max-w-xl">
           Standar kelayakan mengikuti Ujian Akhir Semester (UAS) di Institut Teknologi Wakanda minimal <strong>75.0% kehadiran</strong> (minimal 12 dari 16 pertemuan).
@@ -127,7 +127,7 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
 
       <div
         v-if="!authStore.isAdmin"
-        class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center shrink-0 min-w-[130px]"
+        class="bg-white/10 backdrop-blur-md rounded-sm p-4 border border-white/20 text-center shrink-0 min-w-[130px]"
       >
         <span class="text-[10px] text-teal-300 uppercase font-mono font-bold block">Syarat Minimal</span>
         <span class="text-2xl font-black font-mono text-white block mt-0.5">75.0%</span>
@@ -140,32 +140,32 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
       <!-- Kartu Status Kehadiran Personal -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Metric 1: Persentase Kehadiran -->
-        <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+        <div class="p-5 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#0D9488] space-y-2">
           <span class="text-xs font-semibold text-slate-500 font-jakarta block">Persentase Kehadiran Anda</span>
           <div class="flex items-baseline gap-2">
             <span
               class="text-3xl font-black font-mono"
-              :class="attendanceStore.studentSummary?.isEligibleForFinalExam ? 'text-semantic-success' : 'text-amber-alert'"
+              :class="attendanceStore.studentSummary?.isEligibleForFinalExam ? 'text-semantic-success' : 'text-[#D97706]'"
             >
               {{ attendanceStore.studentSummary?.attendancePercentage?.toFixed(1) || '0.0' }}%
             </span>
             <span class="text-xs text-slate-400 font-mono">/ 100%</span>
           </div>
           <!-- Progress Bar -->
-          <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mt-2">
+          <div class="w-full h-2 bg-slate-100 rounded-sm overflow-hidden mt-2">
             <div
-              class="h-full rounded-full transition-all duration-500"
-              :class="attendanceStore.studentSummary?.isEligibleForFinalExam ? 'bg-semantic-success' : 'bg-amber-alert'"
+              class="h-full rounded-sm transition-all duration-500"
+              :class="attendanceStore.studentSummary?.isEligibleForFinalExam ? 'bg-semantic-success' : 'bg-[#D97706]'"
               :style="{ width: `${attendanceStore.studentSummary?.attendancePercentage || 0}%` }"
             ></div>
           </div>
         </div>
 
         <!-- Metric 2: Rasio Pertemuan -->
-        <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+        <div class="p-5 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#1E3A8A] space-y-2">
           <span class="text-xs font-semibold text-slate-500 font-jakarta block">Kehadiran Sesi Kuliah</span>
           <div class="flex items-baseline gap-2">
-            <span class="text-3xl font-black font-mono text-academic-navy">
+            <span class="text-3xl font-black font-mono text-[#1E3A8A]">
               {{ attendanceStore.studentSummary?.attendedSessions || 0 }}
             </span>
             <span class="text-xs text-slate-400 font-mono">/ 16 Pertemuan</span>
@@ -176,12 +176,12 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
         </div>
 
         <!-- Metric 3: Kelayakan Ikut UAS -->
-        <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+        <div class="p-5 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#0D9488] space-y-2">
           <span class="text-xs font-semibold text-slate-500 font-jakarta block">Status Kelayakan UAS</span>
           <div>
             <span
               v-if="attendanceStore.studentSummary?.isEligibleForFinalExam"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 text-semantic-success font-bold font-mono text-xs border border-emerald-200"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-emerald-50 text-emerald-700 font-bold font-mono text-xs border border-emerald-200"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5" />
@@ -190,7 +190,7 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
             </span>
             <span
               v-else
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 text-amber-800 font-bold font-mono text-xs border border-amber-200"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-amber-50 text-amber-800 font-bold font-mono text-xs border border-amber-200"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
@@ -205,7 +205,7 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
       </div>
 
       <!-- Tabel Detail 16 Sesi Mahasiswa -->
-      <div class="bg-white rounded-3xl p-6 shadow-xs border border-slate-200/90 space-y-4">
+      <div class="bg-white rounded-sm p-6 shadow-none border border-slate-200 space-y-4">
         <h3 class="text-sm font-bold text-academic-navy font-jakarta">
           Riwayat Kehadiran 16 Sesi Pertemuan
         </h3>
@@ -273,32 +273,31 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
 
     <!-- TAMPILAN KHUSUS DOSEN / ADMIN (MATRIKS KELAS 16 PERTEMUAN) -->
     <div v-else class="space-y-6">
-      <!-- Metrik Bar Kelas -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-          <span class="text-[11px] text-slate-500 font-inter">Total Mahasiswa</span>
-          <p class="text-2xl font-black font-mono text-academic-navy">{{ classMetrics.total }}</p>
+      <!-- Metrik Bar Kelas dengan Micro-Accent Borders -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#1E3A8A] space-y-1">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">Total Mahasiswa</span>
+          <p class="text-2xl font-black font-mono text-[#1E3A8A]">{{ classMetrics.total }}</p>
         </div>
 
-        <!-- Indikator kelayakan UAS hanya relevan bagi dosen pengampu kelas -->
-        <div v-if="authStore.isLecturer" class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-          <span class="text-[11px] text-semantic-success font-inter">Memenuhi Syarat UAS (≥ 75%)</span>
-          <p class="text-2xl font-black font-mono text-semantic-success">{{ classMetrics.eligible }}</p>
+        <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#16A34A] space-y-1">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700">Memenuhi Syarat (≥ 75%)</span>
+          <p class="text-2xl font-black font-mono text-emerald-600">{{ classMetrics.eligible }}</p>
         </div>
 
-        <div v-if="authStore.isLecturer" class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-          <span class="text-[11px] text-semantic-danger font-inter">Belum Memenuhi (&lt; 75%)</span>
-          <p class="text-2xl font-black font-mono text-semantic-danger">{{ classMetrics.notEligible }}</p>
+        <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#DC2626] space-y-1">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-red-700">Belum Memenuhi (&lt; 75%)</span>
+          <p class="text-2xl font-black font-mono text-red-600">{{ classMetrics.notEligible }}</p>
         </div>
 
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-          <span class="text-[11px] text-slate-500 font-inter">Rata-rata Kehadiran</span>
-          <p class="text-2xl font-black font-mono text-scholarly-teal">{{ classMetrics.avgPct }}%</p>
+        <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#0D9488] space-y-1">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">Rata-rata Kehadiran</span>
+          <p class="text-2xl font-black font-mono text-[#0D9488]">{{ classMetrics.avgPct }}%</p>
         </div>
       </div>
 
       <!-- Matriks Presensi Tabel -->
-      <div class="bg-white rounded-3xl p-6 shadow-xs border border-slate-200/90 space-y-4">
+      <div class="bg-white rounded-sm p-5 sm:p-6 shadow-none border border-slate-200 space-y-4">
         <div class="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h3 class="text-sm font-bold text-academic-navy font-jakarta">
@@ -350,7 +349,7 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
         </div>
 
         <!-- Tabel Matriks -->
-        <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+        <div class="overflow-x-auto border border-slate-200 rounded-sm">
           <table class="w-full text-xs text-left font-inter">
             <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 text-[10px]">
               <tr>

@@ -46,38 +46,42 @@ const atRiskTotal = computed(() => {
 
 <template>
   <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
-    <!-- Ringkasan Metrik Lintas Kelas -->
-    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 space-y-1">
-        <span class="text-[11px] text-slate-500 font-inter">Rombel Aktif</span>
-        <p class="text-2xl font-black font-mono text-academic-navy">{{ academicStore.classes.length }}</p>
+    <!-- Ringkasan Metrik Lintas Kelas dengan Micro-Accent Borders -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <!-- KPI 1: Rombel Aktif (Academic Navy) -->
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#1E3A8A] space-y-1">
+        <span class="text-[11px] font-mono uppercase font-bold text-slate-500 tracking-wider">Rombel Aktif</span>
+        <p class="text-2xl font-black font-mono text-[#1E3A8A]">{{ academicStore.classes.length }}</p>
       </div>
 
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 space-y-1">
-        <span class="text-[11px] text-slate-500 font-inter">Kapasitas Mahasiswa</span>
-        <p class="text-2xl font-black font-mono text-academic-navy">{{ totalCapacity }}</p>
+      <!-- KPI 2: Kapasitas Mahasiswa (Scholarly Teal) -->
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#0D9488] space-y-1">
+        <span class="text-[11px] font-mono uppercase font-bold text-slate-500 tracking-wider">Kapasitas Total</span>
+        <p class="text-2xl font-black font-mono text-[#0D9488]">{{ totalCapacity }}</p>
       </div>
 
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 space-y-1">
-        <span class="text-[11px] text-slate-500 font-inter">Mahasiswa Berisiko</span>
-        <p class="text-2xl font-black font-mono text-semantic-danger">{{ atRiskTotal }}</p>
+      <!-- KPI 3: Mahasiswa Berisiko (Danger Red) -->
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#DC2626] space-y-1">
+        <span class="text-[11px] font-mono uppercase font-bold text-slate-500 tracking-wider">Mahasiswa Berisiko</span>
+        <p class="text-2xl font-black font-mono text-[#DC2626]">{{ atRiskTotal }}</p>
       </div>
 
-      <div class="p-4 rounded-2xl bg-white border border-slate-200/90 space-y-1">
-        <span class="text-[11px] text-slate-500 font-inter">Rata-rata Risiko</span>
-        <p class="text-2xl font-black font-mono text-scholarly-teal">
+      <!-- KPI 4: Rata-rata Risiko (Amber Alert) -->
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#D97706] space-y-1">
+        <span class="text-[11px] font-mono uppercase font-bold text-slate-500 tracking-wider">Rata-rata Risiko</span>
+        <p class="text-2xl font-black font-mono text-[#D97706]">
           {{ department?.averageDepartmentRisk ?? 0 }}
         </p>
       </div>
     </section>
 
     <!-- Tabel Status Per Kelas -->
-    <section class="bg-white rounded-2xl border border-slate-200/90 space-y-4">
-      <div class="px-5 pt-5 flex items-center justify-between gap-3 flex-wrap">
+    <section class="bg-white rounded-sm border border-slate-200 space-y-4 overflow-hidden">
+      <div class="px-5 pt-5 pb-1 flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h3 class="text-sm font-bold text-academic-navy font-jakarta">Status Akademik per Kelas</h3>
+          <h3 class="text-sm font-extrabold text-[#0F172A] font-jakarta">Status Akademik per Kelas</h3>
           <p class="text-[11px] text-slate-500 font-inter mt-0.5">
-            {{ department?.termName || academicStore.activeTerm?.name || 'Semester aktif' }} · Ringkasan risiko agregat, bukan data individual mahasiswa.
+            {{ department?.termName || academicStore.activeTerm?.name || 'Semester Aktif' }} · Agregat risiko kelas berbasis telemetri perkuliahan.
           </p>
         </div>
         <span
@@ -86,9 +90,9 @@ const atRiskTotal = computed(() => {
         >Memuat...</span>
       </div>
 
-      <div class="overflow-x-auto border-t border-slate-100">
+      <div class="overflow-x-auto border-t border-slate-200">
         <table class="w-full text-xs text-left font-inter">
-          <thead class="bg-slate-50 text-slate-600 font-semibold text-[11px]">
+          <thead class="bg-slate-50 text-slate-700 font-mono font-bold text-[10px] uppercase tracking-wider border-b border-slate-200">
             <tr>
               <th class="py-2.5 px-5">Mata Kuliah</th>
               <th class="py-2.5 px-3">Kelas</th>
@@ -96,21 +100,21 @@ const atRiskTotal = computed(() => {
               <th class="py-2.5 px-3 text-center">Aman</th>
               <th class="py-2.5 px-3 text-center">Waspada</th>
               <th class="py-2.5 px-3 text-center">Kritis</th>
-              <th class="py-2.5 px-5 text-right">Risiko Rata-rata</th>
+              <th class="py-2.5 px-5 text-right">Skor Rata-rata</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr v-for="row in classRows" :key="row.classId" class="hover:bg-slate-50/60 transition">
+          <tbody class="divide-y divide-slate-100 font-sans">
+            <tr v-for="row in classRows" :key="row.classId" class="hover:bg-slate-50/70 transition">
               <td class="py-2.5 px-5">
-                <p class="font-semibold text-academic-navy truncate max-w-[220px]">{{ row.courseName || row.courseCode }}</p>
+                <p class="font-bold text-[#0F172A] font-jakarta truncate max-w-[220px]">{{ row.courseName || row.courseCode }}</p>
                 <p class="text-[10px] text-slate-400 font-mono">{{ row.courseCode }}</p>
               </td>
-              <td class="py-2.5 px-3 font-mono text-slate-600">{{ row.classCode }}</td>
-              <td class="py-2.5 px-3 text-center font-mono text-slate-700">{{ row.totalStudents }}</td>
-              <td class="py-2.5 px-3 text-center font-mono text-slate-600">{{ row.safeCount }}</td>
-              <td class="py-2.5 px-3 text-center font-mono text-amber-alert">{{ row.warningCount }}</td>
-              <td class="py-2.5 px-3 text-center font-mono text-semantic-danger font-bold">{{ row.criticalCount }}</td>
-              <td class="py-2.5 px-5 text-right font-mono text-slate-600">{{ row.averageRiskScore }}</td>
+              <td class="py-2.5 px-3 font-mono text-slate-600 font-semibold">{{ row.classCode }}</td>
+              <td class="py-2.5 px-3 text-center font-mono text-slate-800 font-bold">{{ row.totalStudents }}</td>
+              <td class="py-2.5 px-3 text-center font-mono text-emerald-600 font-bold">{{ row.safeCount }}</td>
+              <td class="py-2.5 px-3 text-center font-mono text-[#D97706] font-bold">{{ row.warningCount }}</td>
+              <td class="py-2.5 px-3 text-center font-mono text-[#DC2626] font-black">{{ row.criticalCount }}</td>
+              <td class="py-2.5 px-5 text-right font-mono text-slate-700 font-semibold">{{ row.averageRiskScore }}</td>
             </tr>
 
             <tr v-if="classRows.length === 0">

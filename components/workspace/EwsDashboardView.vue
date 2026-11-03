@@ -99,7 +99,7 @@ const maxGradeCount = computed(() => {
     <!-- ============================================== -->
     <!-- 1. HEADER BANNER UTAMA EWS                     -->
     <!-- ============================================== -->
-    <section class="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-4">
+    <section class="bg-white rounded-sm p-6 sm:p-7 shadow-none border border-slate-200 border-t-2 border-t-[#DC2626] space-y-4">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-semantic-danger text-xs font-semibold border border-rose-200 font-inter mb-2">
@@ -161,62 +161,68 @@ const maxGradeCount = computed(() => {
     <!-- ============================================== -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
       <!-- Total Mahasiswa -->
-      <div class="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-1">
-        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 block font-bold">
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#1E3A8A] space-y-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 block font-bold">
           Total Mahasiswa
         </span>
-        <p class="text-3xl font-black font-mono text-academic-navy">
+        <p class="text-3xl font-black font-mono text-[#1E3A8A]">
           {{ ewsStore.totalStudents }}
         </p>
         <p class="text-[11px] text-slate-500 font-inter">Kelas {{ currentClass?.code || 'Aktif' }}</p>
       </div>
 
       <!-- Kategori Kritis -->
-      <div class="p-5 rounded-3xl bg-rose-50/70 border border-rose-200 shadow-xs space-y-1">
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#DC2626] space-y-1">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] font-mono uppercase tracking-wider text-rose-700 block font-bold">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-[#DC2626] block font-bold">
             Kritis
           </span>
-          <span class="w-2 h-2 rounded-full bg-semantic-danger"></span>
+          <span class="w-2 h-2 rounded-full bg-[#DC2626]"></span>
         </div>
-        <p class="text-3xl font-black font-mono text-semantic-danger">
+        <p class="text-3xl font-black font-mono text-[#DC2626]">
           {{ ewsStore.criticalCount }}
         </p>
-        <p class="text-[11px] text-rose-700/80 font-inter font-medium">Intervensi Segera</p>
+        <p class="text-[11px] text-[#DC2626] font-inter font-medium">Intervensi Segera</p>
       </div>
 
       <!-- Kategori Waspada -->
-      <div class="p-5 rounded-3xl bg-amber-50/70 border border-amber-200 shadow-xs space-y-1">
-        <span class="text-[10px] font-mono uppercase tracking-wider text-amber-800 block font-bold">
-          Waspada
-        </span>
-        <p class="text-3xl font-black font-mono text-amber-alert">
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#D97706] space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-[#D97706] block font-bold">
+            Waspada
+          </span>
+          <span class="w-2 h-2 rounded-full bg-[#D97706]"></span>
+        </div>
+        <p class="text-3xl font-black font-mono text-[#D97706]">
           {{ ewsStore.warningCount }}
         </p>
-        <p class="text-[11px] text-amber-800/80 font-inter font-medium">Pantau Ketat</p>
+        <p class="text-[11px] text-[#D97706] font-inter font-medium">Pantau Ketat</p>
       </div>
 
       <!-- Kategori Aman -->
-      <div class="p-5 rounded-3xl bg-emerald-50/70 border border-emerald-200 shadow-xs space-y-1">
-        <span class="text-[10px] font-mono uppercase tracking-wider text-emerald-800 block font-bold">
-          Aman
-        </span>
-        <p class="text-3xl font-black font-mono text-semantic-success">
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#16A34A] space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-emerald-700 block font-bold">
+            Aman
+          </span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        </div>
+        <p class="text-3xl font-black font-mono text-emerald-600">
           {{ ewsStore.safeCount }}
         </p>
-        <p class="text-[11px] text-emerald-800/80 font-inter font-medium">Sesuai Target</p>
+        <p class="text-[11px] text-emerald-700 font-inter font-medium">Sesuai Target</p>
       </div>
 
       <!-- Tingkat Risiko Kelas -->
-      <div class="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-1 col-span-2 sm:col-span-1">
-        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 block font-bold">
-          Rasio Mahasiswa Berisiko
+      <div class="p-4 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#0D9488] space-y-1 col-span-2 sm:col-span-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 block font-bold">
+          Rasio Risiko
         </span>
-        <p class="text-3xl font-black font-mono text-academic-navy">
+        <p class="text-3xl font-black font-mono text-[#0D9488]">
           {{ ewsStore.atRiskPercentage.toFixed(1) }}%
         </p>
         <p class="text-[11px] text-slate-500 font-inter">
-          Rata-rata Skor: {{ ewsStore.averageCompositeRisk.toFixed(0) }}/100
+          Rata-rata: {{ ewsStore.averageCompositeRisk.toFixed(0) }}/100
         </p>
       </div>
     </div>

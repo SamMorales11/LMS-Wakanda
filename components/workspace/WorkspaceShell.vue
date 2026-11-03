@@ -54,14 +54,14 @@ const togglePanelCollapsed = () => {
 </script>
 
 <template>
-  <div class="h-screen w-screen overflow-hidden bg-alabaster-slate text-deep-ink flex flex-col font-sans antialiased">
+  <div class="h-screen w-screen overflow-hidden bg-[#F8FAFC] text-[#0F172A] flex flex-col font-sans antialiased">
     <!-- Top Bar Minimal: Konteks Akademik + Section Aktif + Kendali Panel -->
-    <header class="h-14 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0 z-30">
+    <header class="h-14 bg-white border-b border-slate-200/90 px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0 z-30">
       <div class="flex items-center gap-3 min-w-0">
         <button
           type="button"
           @click="isMobileSidebarOpen = true"
-          class="lg:hidden p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
+          class="lg:hidden p-2 -ml-2 rounded-sm text-slate-600 hover:bg-slate-100 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
           title="Buka Navigasi"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,36 +69,45 @@ const togglePanelCollapsed = () => {
           </svg>
         </button>
 
-        <div class="min-w-0">
-          <p class="truncate text-xs font-semibold text-academic-navy font-jakarta">
-            {{ currentClass?.courseName || 'Pilih Kelas Perkuliahan' }}
-          </p>
-          <p class="truncate text-[11px] text-slate-500 font-mono">
-            {{ academicStore.activeTerm?.code || '—' }}
-            <span v-if="currentClass?.code"> · Kelas {{ currentClass.code }}</span>
-          </p>
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span
+            v-if="currentClass?.courseCode"
+            class="hidden sm:inline-flex px-2 py-0.5 rounded-sm bg-[#1E3A8A] text-white font-mono text-[10px] font-bold tracking-wider shrink-0"
+          >
+            {{ currentClass.courseCode }}
+          </span>
+          <div class="min-w-0">
+            <p class="truncate text-xs font-bold text-[#0F172A] font-jakarta">
+              {{ currentClass?.courseName || 'Pilih Kelas Perkuliahan' }}
+            </p>
+            <p class="truncate text-[10px] text-slate-500 font-mono">
+              {{ academicStore.activeTerm?.code || '—' }}
+              <span v-if="currentClass?.code"> · Kelas {{ currentClass.code }}</span>
+            </p>
+          </div>
         </div>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
         <span
           v-if="activeNavItem"
-          class="hidden sm:block text-[11px] font-semibold uppercase tracking-wider text-slate-400"
+          class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700 rounded-sm"
         >
-          {{ activeNavItem.label }}
+          <span class="w-1.5 h-1.5 rounded-full bg-[#0D9488]"></span>
+          <span>{{ activeNavItem.label }}</span>
         </span>
 
         <!-- Kendali Panel Kanan (Desktop) -->
         <button
           type="button"
           @click="togglePanelCollapsed"
-          class="hidden lg:flex p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-academic-navy transition focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
+          class="hidden lg:flex p-1.5 rounded-sm border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#1E3A8A] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
           :title="isPanelCollapsed ? 'Tampilkan Panel Kontekstual' : 'Sembunyikan Panel Kontekstual'"
         >
-          <svg v-if="!isPanelCollapsed" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-if="!isPanelCollapsed" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
-          <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
@@ -107,10 +116,10 @@ const togglePanelCollapsed = () => {
         <button
           type="button"
           @click="isMobilePanelOpen = true"
-          class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
+          class="lg:hidden p-1.5 rounded-sm border border-slate-200 text-slate-500 hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
           title="Buka Presensi & Tenggat"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -122,7 +131,7 @@ const togglePanelCollapsed = () => {
       <!-- ZONA 1 (KIRI): SIDEBAR NAVIGASI -->
       <div
         v-if="isMobileSidebarOpen"
-        class="fixed inset-0 bg-deep-ink/50 backdrop-blur-xs z-40 lg:hidden"
+        class="fixed inset-0 bg-[#0F172A]/70 backdrop-blur-xs z-40 lg:hidden"
         @click="isMobileSidebarOpen = false"
       ></div>
 
@@ -137,15 +146,29 @@ const togglePanelCollapsed = () => {
         />
       </div>
 
-      <!-- ZONA 2 (TENGAH): RUANG KERJA UTAMA -->
-      <main class="flex-1 flex flex-col min-w-0 bg-slate-50/60 overflow-hidden relative">
-        <slot :section="activeSection"></slot>
+      <!-- ZONA 2 (TENGAH): RUANG KERJA UTAMA DENGAN ARCHITECTURAL GRID TEXTURE -->
+      <main class="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-hidden relative">
+        <!-- Subtle Architectural Grid Pattern -->
+        <div
+          class="absolute inset-0 pointer-events-none z-0"
+          style="
+            background-image:
+              linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+            background-size: 24px 24px;
+          "
+        ></div>
+
+        <!-- Scrollable Slot Container -->
+        <div class="relative z-10 flex-1 flex flex-col min-w-0 overflow-hidden">
+          <slot :section="activeSection"></slot>
+        </div>
       </main>
 
       <!-- ZONA 3 (KANAN): PANEL KONTEKSTUAL PRESENSI -->
       <div
         v-if="isMobilePanelOpen"
-        class="fixed inset-0 bg-deep-ink/50 backdrop-blur-xs z-40 lg:hidden"
+        class="fixed inset-0 bg-[#0F172A]/70 backdrop-blur-xs z-40 lg:hidden"
         @click="isMobilePanelOpen = false"
       ></div>
 
