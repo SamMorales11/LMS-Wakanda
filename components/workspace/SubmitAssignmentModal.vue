@@ -156,7 +156,9 @@ const handleUploadAndSubmit = async () => {
           v-if="isCutoffPassed"
           class="p-3 rounded-xl bg-red-50 border border-red-200 text-semantic-danger flex items-center gap-2 font-medium"
         >
-          <span>⛔</span>
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
           <span>Batas akhir penutupan (cutoff date) telah lewat. Pengunggahan berkas ditolak oleh server!</span>
         </div>
 
@@ -164,7 +166,9 @@ const handleUploadAndSubmit = async () => {
           v-else-if="isPastDueDate"
           class="p-3 rounded-xl bg-red-50 border border-red-200 text-semantic-danger flex items-center gap-2 font-medium"
         >
-          <span>⚠️</span>
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
           <span>Batas waktu normal telah lewat. Pengumpulan Anda akan ditandai berstatus <strong>Terlambat (#DC2626)</strong>.</span>
         </div>
 
@@ -172,7 +176,9 @@ const handleUploadAndSubmit = async () => {
           v-else
           class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-semantic-success flex items-center gap-2 font-medium"
         >
-          <span>✓</span>
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           <span>Pengumpulan dalam batas waktu normal akan ditandai berstatus <strong>Tepat Waktu (#16A34A)</strong>.</span>
         </div>
       </div>
@@ -211,8 +217,13 @@ const handleUploadAndSubmit = async () => {
               id="fileInput"
             />
             <label for="fileInput" class="cursor-pointer space-y-2 block">
-              <div class="w-12 h-12 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center mx-auto text-2xl">
-                {{ selectedFile ? '📄' : '☁️' }}
+              <div class="w-12 h-12 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
+                <svg v-if="selectedFile" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+                <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 011.83-10.274 5.25 5.25 0 0110.66 0 5.25 5.25 0 011.83 10.274A4.5 4.5 0 0118.75 19.5H6.75z" />
+                </svg>
               </div>
               <div v-if="selectedFile">
                 <p class="font-bold text-academic-navy text-xs font-mono truncate max-w-xs mx-auto">

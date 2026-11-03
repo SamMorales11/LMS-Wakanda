@@ -171,7 +171,9 @@ const handleSubmit = async () => {
         <!-- Batas Waktu Grid (Due Date & Cutoff Date) -->
         <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/70 space-y-3">
           <div class="flex items-center gap-1.5 text-amber-800 font-bold font-jakarta">
-            <span>⏰</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             <span>Konfigurasi Batas Waktu & Penutupan Pengumpulan</span>
           </div>
 

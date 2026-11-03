@@ -183,8 +183,10 @@ const handleOpenOverview = async (a: AssignmentDto) => {
 
     <!-- Empty State -->
     <div v-else-if="classAssignments.length === 0" class="p-12 text-center rounded-3xl bg-white border border-slate-200/90 space-y-3">
-      <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-2xl">
-        📝
+      <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h3m-3 4h6M7.5 4.5h9A2.25 2.25 0 0118.75 6.75v12a.75.75 0 01-.75.75h-12a.75.75 0 01-.75-.75v-12A2.25 2.25 0 017.5 4.5z" />
+        </svg>
       </div>
       <div class="space-y-1">
         <h4 class="text-sm font-bold text-academic-navy font-jakarta">Belum Ada Tugas Perkuliahan</h4>
@@ -304,7 +306,7 @@ const handleOpenOverview = async (a: AssignmentDto) => {
             @click="handleOpenOverview(a)"
             class="px-4 py-2 rounded-xl bg-academic-navy hover:bg-blue-900 text-white font-semibold text-xs font-jakarta transition shadow-xs flex items-center gap-1.5"
           >
-            <span>📊 Lihat Pengumpulan & Beri Nilai</span>
+            <span>Lihat Pengumpulan & Beri Nilai</span>
           </button>
         </div>
       </div>

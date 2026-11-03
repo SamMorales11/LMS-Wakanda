@@ -3,12 +3,14 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useAcademicStore } from '~/stores/useAcademicStore'
 import { useEwsStore } from '~/stores/useEwsStore'
 import { useGradebookStore } from '~/stores/useGradebookStore'
+import { useAuthStore } from '~/stores/useAuthStore'
 import type { StudentEwsProfileDto, LetterGrade } from '~/types'
 import EwsInterventionModal from './EwsInterventionModal.vue'
 
 const academicStore = useAcademicStore()
 const ewsStore = useEwsStore()
 const gradebookStore = useGradebookStore()
+const authStore = useAuthStore()
 
 const currentClassId = computed(() => academicStore.selectedClassId)
 const currentClass = computed(() => academicStore.selectedClassDetail || academicStore.selectedClass)
@@ -101,7 +103,7 @@ const maxGradeCount = computed(() => {
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-semantic-danger text-xs font-semibold border border-rose-200 font-inter mb-2">
-            <span class="w-2 h-2 rounded-full bg-semantic-danger animate-ping"></span>
+            <span class="w-2 h-2 rounded-full bg-semantic-danger"></span>
             <span>Academic Early Warning System (EWS) Telemetry</span>
           </div>
           <h2 class="text-2xl font-bold text-academic-navy font-jakarta">
@@ -173,9 +175,9 @@ const maxGradeCount = computed(() => {
       <div class="p-5 rounded-3xl bg-rose-50/70 border border-rose-200 shadow-xs space-y-1">
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-mono uppercase tracking-wider text-rose-700 block font-bold">
-            🔴 Kritis
+            Kritis
           </span>
-          <span class="w-2 h-2 rounded-full bg-semantic-danger animate-pulse"></span>
+          <span class="w-2 h-2 rounded-full bg-semantic-danger"></span>
         </div>
         <p class="text-3xl font-black font-mono text-semantic-danger">
           {{ ewsStore.criticalCount }}
@@ -186,7 +188,7 @@ const maxGradeCount = computed(() => {
       <!-- Kategori Waspada -->
       <div class="p-5 rounded-3xl bg-amber-50/70 border border-amber-200 shadow-xs space-y-1">
         <span class="text-[10px] font-mono uppercase tracking-wider text-amber-800 block font-bold">
-          🟡 Waspada
+          Waspada
         </span>
         <p class="text-3xl font-black font-mono text-amber-alert">
           {{ ewsStore.warningCount }}
@@ -197,7 +199,7 @@ const maxGradeCount = computed(() => {
       <!-- Kategori Aman -->
       <div class="p-5 rounded-3xl bg-emerald-50/70 border border-emerald-200 shadow-xs space-y-1">
         <span class="text-[10px] font-mono uppercase tracking-wider text-emerald-800 block font-bold">
-          🟢 Aman
+          Aman
         </span>
         <p class="text-3xl font-black font-mono text-semantic-success">
           {{ ewsStore.safeCount }}
@@ -327,7 +329,7 @@ const maxGradeCount = computed(() => {
               v-if="ewsStore.classInterventions.length === 0"
               class="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-xs font-inter text-center"
             >
-              ✓ Seluruh indikator kelas berada pada kategori aman. Tidak diperlukan intervensi khusus saat ini.
+              Seluruh indikator kelas berada pada kategori aman. Tidak diperlukan intervensi khusus saat ini.
             </div>
           </div>
         </div>
@@ -352,7 +354,10 @@ const maxGradeCount = computed(() => {
     <!-- ============================================== -->
     <!-- 4. TABEL & DAFTAR MAHASISWA BERISIKO TINGGI    -->
     <!-- ============================================== -->
-    <section class="bg-white rounded-3xl p-6 shadow-xs border border-slate-200/90 space-y-4">
+    <section
+      v-if="authStore.isAdmin"
+      class="bg-white rounded-3xl p-6 shadow-xs border border-slate-200/90 space-y-4"
+    >
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 class="text-base font-bold text-academic-navy font-jakarta">
@@ -381,7 +386,7 @@ const maxGradeCount = computed(() => {
               class="px-3 py-1 rounded-lg text-xs font-bold font-jakarta transition flex items-center gap-1"
               :class="ewsStore.activeRiskFilter === 'CRITICAL' ? 'bg-semantic-danger text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
             >
-              <span>🔴 Kritis</span>
+              <span>Kritis</span>
               <span class="font-mono text-[10px]">({{ ewsStore.criticalCount }})</span>
             </button>
             <button
@@ -390,7 +395,7 @@ const maxGradeCount = computed(() => {
               class="px-3 py-1 rounded-lg text-xs font-bold font-jakarta transition flex items-center gap-1"
               :class="ewsStore.activeRiskFilter === 'WARNING' ? 'bg-amber-alert text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
             >
-              <span>🟡 Waspada</span>
+              <span>Waspada</span>
               <span class="font-mono text-[10px]">({{ ewsStore.warningCount }})</span>
             </button>
             <button
@@ -399,7 +404,7 @@ const maxGradeCount = computed(() => {
               class="px-3 py-1 rounded-lg text-xs font-bold font-jakarta transition flex items-center gap-1"
               :class="ewsStore.activeRiskFilter === 'SAFE' ? 'bg-semantic-success text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
             >
-              <span>🟢 Aman</span>
+              <span>Aman</span>
               <span class="font-mono text-[10px]">({{ ewsStore.safeCount }})</span>
             </button>
           </div>
@@ -525,7 +530,7 @@ const maxGradeCount = computed(() => {
                     v-if="[...st.attendance.issues, ...st.assignments.issues, ...st.exams.issues].length === 0"
                     class="text-[10px] text-emerald-600 font-medium"
                   >
-                    ✓ Tidak ada anomali
+                    Tidak ada anomali
                   </span>
                 </div>
               </td>
@@ -550,6 +555,23 @@ const maxGradeCount = computed(() => {
             </tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- Catatan Pembatasan Akses Telemetri Individual -->
+    <section
+      v-else
+      class="bg-white rounded-2xl p-6 border border-slate-200/90 flex items-start gap-3"
+    >
+      <svg class="w-5 h-5 shrink-0 text-slate-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+      </svg>
+      <div>
+        <h3 class="text-sm font-bold text-academic-navy font-jakarta">Telemetri Risiko Individual Terbatas</h3>
+        <p class="text-xs text-slate-500 font-inter mt-1">
+          Ringkasan risiko kelas di atas tersedia untuk Anda. Rincian telemetri risiko per mahasiswa
+          hanya dapat diakses oleh Administrator untuk keperluan bimbingan akademik.
+        </p>
       </div>
     </section>
 

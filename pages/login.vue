@@ -291,7 +291,7 @@ onMounted(() => {
                   Gerbang Akses Terpadu Civitas ITW.
                 </h1>
                 <p class="text-xs text-slate-400 font-inter leading-relaxed">
-                  Platform perkuliahan terpusat untuk sivitas akademika ITW — dari presensi hingga pemantauan kelulusan.
+                  Platform perkuliahan terpusat untuk sivitas akademika ITW dari presensi hingga pemantauan kelulusan.
                 </p>
               </div>
 

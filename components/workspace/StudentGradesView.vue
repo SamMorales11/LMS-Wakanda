@@ -202,7 +202,10 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-academic-navy text-white text-[11px] font-bold font-jakarta mb-2">
-            <span>🎯 Inverted PRD Formula Calculator</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 104 0 4 4 0 00-4 0zm0 0l3.5-3.5M12 12l-3.5 3.5M4 12H2m20 0h-2m-9 8l3.5-3.5M12 12l3.5 3.5" />
+            </svg>
+            <span>Inverted PRD Formula Calculator</span>
           </div>
           <h3 class="text-xl font-bold text-academic-navy font-jakarta">
             Simulasi Target Nilai Ujian Akhir Semester (UAS)
@@ -310,7 +313,10 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
         <!-- Kasus 1: Kehadiran < 75% -->
         <div v-if="myGrade && !myGrade.attendance.isEligible" class="text-semantic-danger space-y-1">
           <div class="flex items-center gap-2">
-            <span class="font-bold text-sm font-jakarta">❌ Simulasi Dinonaktifkan:</span>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="font-bold text-sm font-jakarta">Simulasi Dinonaktifkan:</span>
           </div>
           <p class="text-xs font-inter leading-relaxed text-slate-600">
             Karena kehadiran Anda di bawah 75%, Anda belum memenuhi syarat mengikuti UAS dan nilai akhir Anda otomatis E. Konsultasikan dengan dosen wali atau bagian akademik.
@@ -320,7 +326,9 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
         <!-- Kasus 2: Target Sudah Tercapai (Skor UAS <= 0) -->
         <div v-else-if="requiredFinalExamScore <= 0" class="text-semantic-success space-y-2">
           <div class="flex items-center gap-2">
-            <span class="text-2xl">🎉</span>
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11.48 3.5a.56.56 0 011.04 0l2.12 5.11a.56.56 0 00.95.24l5.02-1.8a.56.56 0 01.79.7l-1.63 5.42a.56.56 0 00.27.62l5.11 2.12a.56.56 0 010 1.04l-5.11 2.12a.56.56 0 00-.27.62l1.63 5.42a.56.56 0 01-.79.7l-5.02-1.8a.56.56 0 00-.95.24l-2.12 5.11a.56.56 0 01-1.04 0L8.36 14.6a.56.56 0 00-.95-.24l-5.02 1.8a.56.56 0 01-.79-.7l1.63-5.42a.56.56 0 00-.27-.62L1.8 10.29a.56.56 0 010-1.04l5.11-2.12a.56.56 0 00.27-.62L5.55 4.9a.56.56 0 01.79-.7l5.02 1.8a.56.56 0 00.95-.24l2.12-5.11z" />
+            </svg>
             <h4 class="text-base font-bold font-jakarta text-semantic-success">
               Target Nilai {{ selectedTargetGrade }} Sudah Aman Tercapai!
             </h4>
@@ -334,7 +342,9 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
         <div v-else-if="requiredFinalExamScore > 0 && requiredFinalExamScore <= 100" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="space-y-1.5">
             <div class="flex items-center gap-2">
-              <span class="text-xl">🎯</span>
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               <h4 class="text-base font-bold font-jakarta text-academic-navy">
                 Skor UAS Minimal yang Dibutuhkan:
               </h4>
@@ -356,7 +366,9 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
         <!-- Kasus 4: Target Tidak Mungkin Secara Matematis (Skor UAS > 100) -->
         <div v-else class="text-amber-alert space-y-2">
           <div class="flex items-center gap-2">
-            <span class="text-xl">⚠️</span>
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
             <h4 class="text-base font-bold font-jakarta text-amber-900">
               Target {{ selectedTargetGrade }} Tidak Dapat Dicapai Secara Matematis
             </h4>

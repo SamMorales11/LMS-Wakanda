@@ -118,8 +118,10 @@ const handleSave = async () => {
             class="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 font-bold"
             :class="isValidTotal ? 'bg-semantic-success' : 'bg-amber-alert'"
           >
-            <span v-if="isValidTotal">✓</span>
-            <span v-else>!</span>
+            <svg v-if="isValidTotal" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            <span v-else class="text-base font-bold">!</span>
           </div>
           <div>
             <span class="text-xs font-bold font-jakarta block">

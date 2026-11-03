@@ -115,14 +115,20 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
           <span class="text-xs text-slate-300 font-inter">Semester Aktif 2026/2027</span>
         </div>
         <h2 class="text-xl sm:text-2xl font-extrabold font-jakarta">
-          Rekapitulasi Presensi Semester & Kelayakan UAS
+          {{ authStore.isAdmin ? 'Rekapitulasi Presensi Semester' : 'Rekapitulasi Presensi Semester & Kelayakan UAS' }}
         </h2>
-        <p class="text-xs text-slate-300 font-inter max-w-xl">
+        <p v-if="authStore.isAdmin" class="text-xs text-slate-300 font-inter max-w-xl">
+          RekapKehadiran mahasiswa kelas terhadap 16 sesi perkuliahan semester berjalan.
+        </p>
+        <p v-else class="text-xs text-slate-300 font-inter max-w-xl">
           Standar kelayakan mengikuti Ujian Akhir Semester (UAS) di Institut Teknologi Wakanda minimal <strong>75.0% kehadiran</strong> (minimal 12 dari 16 pertemuan).
         </p>
       </div>
 
-      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center shrink-0 min-w-[130px]">
+      <div
+        v-if="!authStore.isAdmin"
+        class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center shrink-0 min-w-[130px]"
+      >
         <span class="text-[10px] text-teal-300 uppercase font-mono font-bold block">Syarat Minimal</span>
         <span class="text-2xl font-black font-mono text-white block mt-0.5">75.0%</span>
         <span class="text-[10px] text-slate-300 font-inter block">Kurikulum 16 Sesi</span>
@@ -177,13 +183,19 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
               v-if="attendanceStore.studentSummary?.isEligibleForFinalExam"
               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 text-semantic-success font-bold font-mono text-xs border border-emerald-200"
             >
-              ✓ MEMENUHI SYARAT UAS
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              MEMENUHI SYARAT UAS
             </span>
             <span
               v-else
               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 text-amber-800 font-bold font-mono text-xs border border-amber-200"
             >
-              ⚠️ BELUM MEMENUHI SYARAT (&lt; 75%)
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+              BELUM MEMENUHI SYARAT (&lt; 75%)
             </span>
           </div>
           <p class="text-[11px] text-slate-500 font-inter">
@@ -262,18 +274,19 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
     <!-- TAMPILAN KHUSUS DOSEN / ADMIN (MATRIKS KELAS 16 PERTEMUAN) -->
     <div v-else class="space-y-6">
       <!-- Metrik Bar Kelas -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
           <span class="text-[11px] text-slate-500 font-inter">Total Mahasiswa</span>
           <p class="text-2xl font-black font-mono text-academic-navy">{{ classMetrics.total }}</p>
         </div>
 
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+        <!-- Indikator kelayakan UAS hanya relevan bagi dosen pengampu kelas -->
+        <div v-if="authStore.isLecturer" class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
           <span class="text-[11px] text-semantic-success font-inter">Memenuhi Syarat UAS (≥ 75%)</span>
           <p class="text-2xl font-black font-mono text-semantic-success">{{ classMetrics.eligible }}</p>
         </div>
 
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+        <div v-if="authStore.isLecturer" class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
           <span class="text-[11px] text-semantic-danger font-inter">Belum Memenuhi (&lt; 75%)</span>
           <p class="text-2xl font-black font-mono text-semantic-danger">{{ classMetrics.notEligible }}</p>
         </div>
@@ -352,7 +365,7 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
                 </th>
                 <th class="py-3 px-3 text-center">Hadir</th>
                 <th class="py-3 px-3 text-center">Persen</th>
-                <th class="py-3 px-3 text-center">Status UAS</th>
+                <th v-if="authStore.isLecturer" class="py-3 px-3 text-center">Status UAS</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -382,14 +395,14 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
                     title="Terlambat"
                     class="text-amber-alert font-bold"
                   >
-                    ⏱
+                    L
                   </span>
                   <span
                     v-else-if="getStudentSessionStatus(st, i) === 'PERMIT' || getStudentSessionStatus(st, i) === 'SICK'"
                     title="Izin / Sakit"
                     class="text-blue-600 font-bold"
                   >
-                    📋
+                    I
                   </span>
                   <span
                     v-else-if="getStudentSessionStatus(st, i) === 'ABSENT'"
@@ -407,14 +420,12 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
                 </td>
 
                 <!-- Percentage -->
-                <td class="py-2.5 px-3 text-center font-mono font-bold">
-                  <span :class="st.isEligibleForFinalExam ? 'text-semantic-success' : 'text-semantic-danger'">
-                    {{ st.attendancePercentage.toFixed(1) }}%
-                  </span>
+                <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-700">
+                  {{ st.attendancePercentage.toFixed(1) }}%
                 </td>
 
-                <!-- UAS Status Badge -->
-                <td class="py-2.5 px-3 text-center">
+                <!-- UAS Status Badge — hanya untuk dosen pengampu kelas -->
+                <td v-if="authStore.isLecturer" class="py-2.5 px-3 text-center">
                   <span
                     class="px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase tracking-wider inline-block min-w-[70px]"
                     :class="st.isEligibleForFinalExam

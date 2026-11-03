@@ -177,7 +177,10 @@ const handleSubmit = async () => {
               class="py-2 px-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1"
               :class="materialType === 'SLIDE' ? 'bg-teal-50 border-scholarly-teal text-scholarly-teal font-bold' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'"
             >
-              <span>📑 Slide PDF</span>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+              <span>Slide PDF</span>
             </button>
 
             <button
@@ -186,7 +189,10 @@ const handleSubmit = async () => {
               class="py-2 px-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1"
               :class="materialType === 'CODE' ? 'bg-teal-50 border-scholarly-teal text-scholarly-teal font-bold' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'"
             >
-              <span>💻 Kode Sumber</span>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.25 6.75L21.75 11.25 13.5 19.5H9v-4.5l8.25-8.25zM15 9l3.75 3.75" />
+              </svg>
+              <span>Kode Sumber</span>
             </button>
 
             <button
@@ -195,7 +201,10 @@ const handleSubmit = async () => {
               class="py-2 px-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1"
               :class="materialType === 'VIDEO' ? 'bg-teal-50 border-scholarly-teal text-scholarly-teal font-bold' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'"
             >
-              <span>🎥 Video Kuliah</span>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+              </svg>
+              <span>Video Kuliah</span>
             </button>
 
             <button
@@ -204,7 +213,10 @@ const handleSubmit = async () => {
               class="py-2 px-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1"
               :class="materialType === 'DOCUMENT' ? 'bg-teal-50 border-scholarly-teal text-scholarly-teal font-bold' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'"
             >
-              <span>📖 Handout / Doc</span>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+              </svg>
+              <span>Handout / Doc</span>
             </button>
           </div>
         </div>

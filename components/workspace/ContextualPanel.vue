@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAcademicStore } from '~/stores/useAcademicStore'
 import { useAttendanceStore } from '~/stores/useAttendanceStore'
 import { useAssignmentStore } from '~/stores/useAssignmentStore'
 import QrCodeModal from './QrCodeModal.vue'
 import ManualAttendanceModal from './ManualAttendanceModal.vue'
+import LecturerName from './shared/LecturerName.vue'
 
 const authStore = useAuthStore()
 const academicStore = useAcademicStore()
@@ -209,7 +210,7 @@ const dynamicDeadlines = computed(() => {
         <div class="flex items-center gap-2">
           <span
             class="w-2.5 h-2.5 rounded-full"
-            :class="attendanceStore.hasActiveToken ? 'bg-semantic-success animate-pulse' : 'bg-slate-300'"
+            :class="attendanceStore.hasActiveToken ? 'bg-semantic-success' : 'bg-slate-300'"
           ></span>
           <h3 class="text-sm font-bold text-academic-navy font-jakarta">
             Presensi Sesi {{ selectedSessionNum }}
@@ -249,14 +250,14 @@ const dynamicDeadlines = computed(() => {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
               </svg>
-              <span v-else>🔑 Buka Presensi Sesi (15 Menit)</span>
+              <span v-else>Buka Presensi Sesi (15 Menit)</span>
             </button>
           </div>
 
           <!-- State 2: Token Sedang Aktif -->
           <div v-else class="space-y-3 text-center">
             <span class="text-[11px] text-slate-500 font-inter block">Bagikan Token Ini ke Mahasiswa:</span>
-            
+
             <!-- 6-digit PIN in JetBrains Mono -->
             <div class="p-3 bg-white rounded-xl border border-teal-300 font-mono text-2xl font-black text-academic-navy tracking-widest shadow-inner">
               {{ attendanceStore.activeToken?.formattedToken }}
@@ -266,7 +267,7 @@ const dynamicDeadlines = computed(() => {
             <div class="flex items-center justify-between text-[11px] font-mono px-1">
               <span class="text-slate-500">Sisa Berlaku:</span>
               <span class="text-amber-alert font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                ⏳ {{ attendanceStore.formattedRemainingTime }}
+                {{ attendanceStore.formattedRemainingTime }}
               </span>
             </div>
 
@@ -277,7 +278,7 @@ const dynamicDeadlines = computed(() => {
                 @click="isQrModalOpen = true"
                 class="py-2 px-2.5 rounded-xl bg-academic-navy hover:bg-blue-900 text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5 font-jakarta"
               >
-                <span>📱 QR Code</span>
+                <span>QR Code</span>
               </button>
               <button
                 type="button"
@@ -301,7 +302,7 @@ const dynamicDeadlines = computed(() => {
                 @click="isManualModalOpen = true"
                 class="text-[10px] text-scholarly-teal hover:underline font-semibold font-jakarta"
               >
-                Kelola ⚙️
+                Kelola
               </button>
             </div>
           </div>
@@ -343,8 +344,10 @@ const dynamicDeadlines = computed(() => {
 
           <!-- State: Mahasiswa Sudah Hadir -->
           <div v-else class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
-            <div class="w-7 h-7 rounded-full bg-semantic-success text-white flex items-center justify-center font-bold text-xs mx-auto">
-              ✓
+            <div class="w-7 h-7 rounded-full bg-semantic-success text-white flex items-center justify-center mx-auto">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
             </div>
             <p class="text-xs font-bold text-semantic-success font-jakarta">Presensi Terverifikasi</p>
             <p class="text-[10px] text-slate-600 font-inter">
@@ -362,8 +365,8 @@ const dynamicDeadlines = computed(() => {
           {{ actionError || attendanceStore.error }}
         </div>
 
-        <!-- Rekap Persentase Kehadiran Semester (16 Sesi & Syarat UAS >= 75%) -->
-        <div class="pt-2 border-t border-slate-200/80 space-y-2">
+        <!-- Rekap Persentase Kehadiran Semester — hanya relevan bagi mahasiswa -->
+        <div v-if="authStore.isStudent" class="pt-2 border-t border-slate-200/80 space-y-2">
           <div class="flex items-center justify-between text-xs font-inter">
             <span class="text-slate-600 font-medium">Rekap Kehadiran:</span>
             <span class="font-bold text-academic-navy font-mono">
@@ -389,7 +392,7 @@ const dynamicDeadlines = computed(() => {
                 ? 'bg-emerald-100 text-semantic-success border border-emerald-200'
                 : 'bg-amber-100 text-amber-800 border border-amber-200'"
             >
-              {{ isEligibleForUAS ? '✓ Memenuhi Syarat UAS' : '⚠️ Belum Memenuhi Syarat' }}
+              {{ isEligibleForUAS ? 'Memenuhi Syarat UAS' : 'Belum Memenuhi Syarat' }}
             </span>
           </div>
         </div>
@@ -400,7 +403,9 @@ const dynamicDeadlines = computed(() => {
     <section class="space-y-3.5">
       <div class="flex items-center justify-between">
         <h3 class="text-sm font-bold text-academic-navy font-jakarta flex items-center gap-2">
-          <span>⏰</span>
+          <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           <span>Tenggat Terdekat</span>
         </h3>
         <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 font-bold">
@@ -428,7 +433,7 @@ const dynamicDeadlines = computed(() => {
               class="text-[10px] font-mono font-bold flex items-center gap-1"
               :class="item.urgent ? 'text-amber-alert font-black' : 'text-slate-500'"
             >
-              <span v-if="item.urgent" class="w-1.5 h-1.5 rounded-full bg-amber-alert animate-ping"></span>
+              <span v-if="item.urgent" class="w-1.5 h-1.5 rounded-full bg-amber-alert"></span>
               {{ item.daysLeft }} hari lagi
             </span>
           </div>
@@ -445,22 +450,20 @@ const dynamicDeadlines = computed(() => {
       </div>
     </section>
 
-    <!-- PANEL 3: DOSEN PENGAMPU & KONSULTASI AKADEMIK -->
-    <section class="p-4 rounded-2xl bg-teal-50/40 border border-teal-200/60 space-y-3">
-      <div class="flex items-center gap-2 text-xs font-bold text-scholarly-teal font-jakarta">
-        <span>👨‍🏫</span>
-        <span>Jam Konsultasi Pengampu</span>
+    <!-- PANEL 3: DOSEN PENGAMPU KELAS -->
+    <section
+      v-if="!authStore.isAdmin"
+      class="p-4 rounded-2xl bg-alabaster-slate border border-slate-200 space-y-3"
+    >
+      <div class="flex items-center gap-2 text-xs font-bold text-academic-navy font-jakarta">
+        <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+        <span>Dosen Pengampu Kelas</span>
       </div>
 
       <div class="text-xs font-inter space-y-1 text-slate-700">
-        <p class="font-bold text-academic-navy">Dr. T'Challa, M.T.</p>
-        <p class="text-[11px] text-slate-500 font-mono">tchalla.dosen@itw.ac.id</p>
-        <p class="text-[11px] text-slate-600 pt-1">
-          🗓️ <strong>Senin & Rabu:</strong> 13.00 - 15.00 WIB
-        </p>
-        <p class="text-[11px] text-slate-600">
-          📍 Gedung Sains & Teknologi Ruang 402
-        </p>
+        <LecturerName show-nidn show-email />
       </div>
     </section>
 

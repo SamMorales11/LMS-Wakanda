@@ -187,7 +187,7 @@ const getQuestionStatusClass = (questionId: string, idx: number) => {
         <div class="hidden md:flex items-center gap-2 text-[11px] font-inter text-slate-300">
           <span
             class="w-2.5 h-2.5 rounded-full transition-colors duration-300"
-            :class="quizStore.isAutoSaving ? 'bg-amber-400 animate-ping' : 'bg-semantic-success'"
+            :class="quizStore.isAutoSaving ? 'bg-amber-400 animate-pulse' : 'bg-semantic-success'"
           ></span>
           <span>{{ quizStore.isAutoSaving ? 'Menyimpan...' : (quizStore.lastSavedAt ? `Tersimpan: ${quizStore.lastSavedAt}` : 'Auto-save aktif') }}</span>
         </div>
@@ -195,7 +195,7 @@ const getQuestionStatusClass = (questionId: string, idx: number) => {
         <!-- Timer Card -->
         <div
           class="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-2xl border transition-colors shadow-inner"
-          :class="quizStore.isTimeUrgent ? 'bg-semantic-danger/20 border-semantic-danger text-red-200 animate-pulse' : 'bg-white/10 border-white/20 text-white'"
+          :class="quizStore.isTimeUrgent ? 'bg-semantic-danger/20 border-semantic-danger text-red-200' : 'bg-white/10 border-white/20 text-white'"
         >
           <svg class="w-4 h-4 text-teal-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

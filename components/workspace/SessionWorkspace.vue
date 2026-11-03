@@ -4,7 +4,7 @@ import { useAcademicStore } from '~/stores/useAcademicStore'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAssignmentStore } from '~/stores/useAssignmentStore'
 import { useQuizStore } from '~/stores/useQuizStore'
-import type { ClassSessionDto, SessionMaterialDto, AssignmentDto, SubmissionDto, QuizDto, ApiResponse } from '~/types'
+import type { SessionMaterialDto, AssignmentDto, SubmissionDto, QuizDto, ApiResponse } from '~/types'
 import PdfViewerModal from './PdfViewerModal.vue'
 import AddMaterialModal from './AddMaterialModal.vue'
 import AddAssignmentModal from './AddAssignmentModal.vue'
@@ -13,6 +13,7 @@ import AssignmentSubmissionsModal from './AssignmentSubmissionsModal.vue'
 import GradingSubmissionsModal from './GradingSubmissionsModal.vue'
 import GradingQuizAttemptsModal from './GradingQuizAttemptsModal.vue'
 import EwsAlertBanner from './EwsAlertBanner.vue'
+import LecturerName from './shared/LecturerName.vue'
 
 const academicStore = useAcademicStore()
 const authStore = useAuthStore()
@@ -23,18 +24,6 @@ const currentClass = computed(() => academicStore.selectedClassDetail || academi
 const sessions = computed(() => academicStore.sessions)
 const selectedSession = computed(() => academicStore.selectedSession)
 const selectedSessionNum = computed(() => academicStore.selectedSessionNumber)
-
-// Dosen Pengampu
-const primaryLecturer = computed(() => {
-  if (academicStore.selectedClassDetail?.lecturers && academicStore.selectedClassDetail.lecturers.length > 0) {
-    return academicStore.selectedClassDetail.lecturers[0]
-  }
-  return {
-    name: "Dr. T'Challa, M.T.",
-    nimNidn: '0010048801',
-    email: 'tchalla.dosen@itw.ac.id'
-  }
-})
 
 // State Materi Perkuliahan
 const materials = ref<SessionMaterialDto[]>([])
@@ -169,23 +158,6 @@ const formatSessionDate = (dateStr?: string) => {
   }
 }
 
-// Styling badge per tipe sesi
-const getSessionBadgeClass = (session: ClassSessionDto, isSelected: boolean) => {
-  if (session.sessionType === 'MIDTERM_EXAM') {
-    return isSelected
-      ? 'bg-amber-alert text-white ring-2 ring-amber-500 shadow-md'
-      : 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100'
-  }
-  if (session.sessionType === 'FINAL_EXAM') {
-    return isSelected
-      ? 'bg-academic-navy text-white ring-2 ring-blue-900 shadow-md'
-      : 'bg-blue-50 text-academic-navy border border-blue-300 hover:bg-blue-100'
-  }
-  return isSelected
-    ? 'bg-scholarly-teal text-white ring-2 ring-teal-600 shadow-md'
-    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-}
-
 // Handler Pratinjau Dokumen PDF In-App
 const handleOpenPdfPreview = (m: SessionMaterialDto) => {
   previewPdfTitle.value = m.title
@@ -257,8 +229,10 @@ const formatFileSize = (bytes?: number | null) => {
 
     <!-- State Kosong / Belum ada kelas dipilih -->
     <div v-else-if="!currentClass" class="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-xs space-y-4">
-      <div class="w-16 h-16 rounded-2xl bg-teal-50 text-scholarly-teal flex items-center justify-center mx-auto text-2xl font-bold">
-        📚
+      <div class="w-16 h-16 rounded-2xl bg-alabaster-slate text-scholarly-teal flex items-center justify-center mx-auto">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
       </div>
       <h3 class="text-lg font-bold text-academic-navy font-jakarta">Pilih Kelas Perkuliahan</h3>
       <p class="text-xs text-slate-500 font-inter max-w-md mx-auto">
@@ -271,96 +245,87 @@ const formatFileSize = (bytes?: number | null) => {
       <EwsAlertBanner />
 
       <!-- Header Banner Kelas Aktif -->
-      <section class="bg-gradient-to-r from-academic-navy via-blue-900 to-academic-navy rounded-3xl p-6 sm:p-8 text-white shadow-sm relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-scholarly-teal/20 rounded-full blur-2xl pointer-events-none"></div>
-
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div class="space-y-2">
+      <section class="bg-white rounded-2xl p-6 border border-slate-200/90">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <div class="min-w-0 space-y-2">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2.5 py-0.5 rounded-full bg-teal-400/20 text-teal-300 border border-teal-400/30 font-mono text-xs font-semibold">
+              <span class="px-2.5 py-0.5 rounded-full bg-alabaster-slate text-slate-600 border border-slate-200 font-mono text-[11px] font-semibold">
                 {{ currentClass.courseCode || 'KODE MK' }}
               </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-white font-mono text-xs font-bold">
-                Kelas {{ currentClass.code }} (Rombel)
+              <span class="px-2.5 py-0.5 rounded-full bg-alabaster-slate text-slate-600 border border-slate-200 font-mono text-[11px]">
+                Kelas {{ currentClass.code }}
               </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-mono text-xs">
-                Kapasitas: {{ currentClass.capacity || 40 }} Mahasiswa
+              <span class="px-2.5 py-0.5 rounded-full bg-alabaster-slate text-slate-600 border border-slate-200 font-mono text-[11px]">
+                Kapasitas {{ currentClass.capacity || 0 }} Mahasiswa
               </span>
             </div>
 
-            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight font-jakarta">
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight font-jakarta text-academic-navy">
               {{ currentClass.courseName || currentClass.code }}
             </h2>
 
-            <div class="flex flex-wrap items-center gap-4 text-xs text-slate-200 font-inter pt-1">
-              <div class="flex items-center gap-1.5">
-                <span class="text-teal-300">👤</span>
-                <span>Dosen: <strong class="text-white">{{ primaryLecturer.name }}</strong> (NIDN: {{ primaryLecturer.nimNidn || '-' }})</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="text-teal-300">📍</span>
-                <span>{{ currentClass.room || 'Lab Komputasi' }}</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="text-teal-300">🗓️</span>
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-slate-600 font-inter">
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                <span>Dosen: <LecturerName /></span>
+              </span>
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                </svg>
+                <span>{{ currentClass.room || 'Ruang Belum Ditentukan' }}</span>
+              </span>
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
                 <span>{{ currentClass.scheduleDay || 'Senin' }}, {{ currentClass.scheduleStart || '08:00' }} - {{ currentClass.scheduleEnd || '10:30' }} WIB</span>
-              </div>
+              </span>
             </div>
           </div>
 
-          <!-- Quick Class Metric -->
-          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shrink-0 text-center min-w-[140px]">
-            <span class="text-[11px] text-slate-300 font-inter block">Total Kurikulum</span>
-            <span class="text-2xl font-black font-mono text-white mt-0.5 block">16 Pertemuan</span>
-            <span class="text-[10px] text-teal-300 font-inter block mt-1">UTS (Sesi 8) • UAS (Sesi 16)</span>
+          <!-- Ringkasan Kurikulum -->
+          <div class="shrink-0 md:text-right">
+            <span class="text-[11px] text-slate-500 font-inter block">Kurikulum Semester</span>
+            <span class="text-xl font-bold font-mono text-academic-navy block">16 Pertemuan</span>
+            <span class="text-[11px] text-slate-400 font-inter block">UTS pada sesi 8 · UAS pada sesi 16</span>
           </div>
         </div>
       </section>
 
-      <!-- Navigator Tab 16 Pertemuan Perkuliahan -->
-      <section class="bg-white rounded-3xl p-5 shadow-xs border border-slate-200/90 space-y-4">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h3 class="text-base font-bold text-academic-navy font-jakarta">
-              Struktur Sesi Kurikulum (16 Pertemuan)
-            </h3>
-            <p class="text-xs text-slate-500 font-inter">
-              Pilih pertemuan di bawah ini untuk melihat silabus, materi ajar, dan status kehadiran:
-            </p>
-          </div>
-
-          <!-- Legend -->
-          <div class="flex items-center gap-3 text-[11px] font-inter">
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded bg-scholarly-teal"></span>
-              <span class="text-slate-600">Tatap Muka (1-7 & 9-15)</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded bg-amber-alert"></span>
-              <span class="text-slate-600 font-medium">Sesi 8 (UTS)</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded bg-academic-navy"></span>
-              <span class="text-slate-600 font-medium">Sesi 16 (UAS)</span>
-            </div>
-          </div>
+      <!-- Navigator 16 Pertemuan Perkuliahan -->
+      <section class="bg-white rounded-2xl p-5 border border-slate-200/90 space-y-4">
+        <div>
+          <h3 class="text-sm font-bold text-academic-navy font-jakarta">
+            Struktur Sesi Kurikulum
+          </h3>
+          <p class="text-[11px] text-slate-500 font-inter mt-0.5">
+            Pilih pertemuan untuk melihat silabus, materi ajar, dan status kehadiran.
+          </p>
         </div>
 
-        <!-- 16 Pertemuan Grid / Ribbon Selector -->
-        <div class="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-16 gap-1.5 sm:gap-2">
+        <!-- Grid 16 Pertemuan -->
+        <div class="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-16 gap-1.5">
           <button
             v-for="s in sessions"
             :key="s.id"
             type="button"
             @click="academicStore.selectSession(s.sessionNumber)"
-            class="flex flex-col items-center justify-center p-2 rounded-xl transition text-center relative group"
-            :class="getSessionBadgeClass(s, selectedSessionNum === s.sessionNumber)"
+            class="flex flex-col items-center justify-center py-2 px-1 rounded-lg border transition text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
+            :class="selectedSessionNum === s.sessionNumber
+              ? 'bg-academic-navy text-white border-academic-navy'
+              : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'"
           >
-            <span class="text-[10px] uppercase font-mono font-bold leading-none">
-              P-{{ s.sessionNumber }}
-            </span>
-            <span class="text-[9px] font-mono mt-1 opacity-90 truncate max-w-full">
-              {{ s.sessionType === 'MIDTERM_EXAM' ? 'UTS' : (s.sessionType === 'FINAL_EXAM' ? 'UAS' : 'KULIAH') }}
+            <span class="text-[10px] font-mono font-bold leading-none">P-{{ s.sessionNumber }}</span>
+            <span
+              v-if="s.sessionType === 'MIDTERM_EXAM' || s.sessionType === 'FINAL_EXAM'"
+              class="text-[9px] font-mono mt-1 leading-none"
+              :class="selectedSessionNum === s.sessionNumber ? 'text-white/70' : 'text-slate-400'"
+            >
+              {{ s.sessionType === 'MIDTERM_EXAM' ? 'UTS' : 'UAS' }}
             </span>
           </button>
         </div>
@@ -396,7 +361,7 @@ const formatFileSize = (bytes?: number | null) => {
               {{ formatSessionDate(selectedSession.sessionDate) }}
             </span>
             <span class="font-mono text-scholarly-teal block">
-              ⏰ {{ selectedSession.startTime || '08:00' }} - {{ selectedSession.endTime || '10:30' }} WIB
+              {{ selectedSession.startTime || '08:00' }} - {{ selectedSession.endTime || '10:30' }} WIB
             </span>
           </div>
         </div>
@@ -468,8 +433,10 @@ const formatFileSize = (bytes?: number | null) => {
 
           <!-- Empty State Materi -->
           <div v-else-if="materials.length === 0" class="p-8 text-center rounded-2xl bg-alabaster-slate border border-slate-200 space-y-3">
-            <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-xl">
-              📂
+            <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z" />
+              </svg>
             </div>
             <div class="space-y-1">
               <h5 class="text-xs font-bold text-academic-navy font-jakarta">Belum Ada Materi Pembelajaran</h5>
@@ -490,22 +457,9 @@ const formatFileSize = (bytes?: number | null) => {
               <div class="space-y-2">
                 <!-- Top Badge Row -->
                 <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-base">
-                      {{ m.materialType === 'SLIDE' ? '📑' : (m.materialType === 'CODE' ? '💻' : (m.materialType === 'VIDEO' ? '🎥' : '📖')) }}
-                    </span>
-                    <span
-                      class="text-[10px] font-mono font-bold px-2 py-0.5 rounded uppercase"
-                      :class="{
-                        'bg-teal-50 text-scholarly-teal border border-teal-200': m.materialType === 'SLIDE',
-                        'bg-blue-50 text-academic-navy border border-blue-200': m.materialType === 'CODE',
-                        'bg-amber-50 text-amber-800 border border-amber-200': m.materialType === 'VIDEO',
-                        'bg-purple-50 text-purple-800 border border-purple-200': m.materialType === 'DOCUMENT'
-                      }"
-                    >
-                      {{ m.materialType === 'SLIDE' ? 'Slide PDF' : (m.materialType === 'CODE' ? 'Kode Sumber' : (m.materialType === 'VIDEO' ? 'Video' : 'Dokumen')) }}
-                    </span>
-                  </div>
+                  <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded uppercase bg-alabaster-slate text-slate-600 border border-slate-200">
+                    {{ m.materialType === 'SLIDE' ? 'Slide PDF' : (m.materialType === 'CODE' ? 'Kode Sumber' : (m.materialType === 'VIDEO' ? 'Video' : 'Dokumen')) }}
+                  </span>
 
                   <span v-if="m.fileSize" class="text-[10px] font-mono text-slate-400">
                     {{ formatFileSize(m.fileSize) }}
@@ -533,7 +487,11 @@ const formatFileSize = (bytes?: number | null) => {
                     @click="handleOpenPdfPreview(m)"
                     class="flex-1 py-1.5 px-2.5 rounded-xl bg-scholarly-teal/10 hover:bg-scholarly-teal/20 text-scholarly-teal font-bold text-[11px] transition text-center flex items-center justify-center gap-1.5 font-jakarta"
                   >
-                    <span>👁️ Pratinjau PDF</span>
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>Pratinjau PDF</span>
                   </button>
 
                   <!-- Tombol Akses Kode / Video -->
@@ -544,7 +502,7 @@ const formatFileSize = (bytes?: number | null) => {
                     rel="noopener noreferrer"
                     class="flex-1 py-1.5 px-2.5 rounded-xl bg-academic-navy/10 hover:bg-academic-navy/20 text-academic-navy font-bold text-[11px] transition text-center flex items-center justify-center gap-1.5 font-jakarta"
                   >
-                    <span>{{ m.materialType === 'VIDEO' ? '▶️ Tonton Video' : '📥 Akses Kode' }}</span>
+                    <span>{{ m.materialType === 'VIDEO' ? 'Tonton Video' : 'Akses Kode' }}</span>
                   </a>
 
                   <!-- Tombol Hapus untuk Dosen / Admin -->
@@ -568,8 +526,8 @@ const formatFileSize = (bytes?: number | null) => {
                   class="w-full py-1.5 px-2 rounded-xl text-[11px] font-medium transition flex items-center justify-center gap-1.5"
                   :class="m.isCompleted ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'"
                 >
-                  <span v-if="m.isCompleted">✓ Selesai Dipelajari</span>
-                  <span v-else>○ Tandai Selesai Dibaca</span>
+                  <span v-if="m.isCompleted">Selesai Dipelajari</span>
+                  <span v-else>Tandai Selesai Dibaca</span>
                 </button>
               </div>
             </div>
@@ -612,8 +570,10 @@ const formatFileSize = (bytes?: number | null) => {
 
           <!-- Empty State Tugas -->
           <div v-else-if="assignmentStore.assignments.length === 0" class="p-8 text-center rounded-2xl bg-alabaster-slate border border-slate-200 space-y-3">
-            <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-xl">
-              📝
+            <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h3m-3 4h6M7.5 4.5h9A2.25 2.25 0 0118.75 6.75v12a.75.75 0 01-.75.75h-12a.75.75 0 01-.75-.75v-12A2.25 2.25 0 017.5 4.5z" />
+              </svg>
             </div>
             <div class="space-y-1">
               <h5 class="text-xs font-bold text-academic-navy font-jakarta">Belum Ada Tugas Pada Sesi Ini</h5>
@@ -741,7 +701,7 @@ const formatFileSize = (bytes?: number | null) => {
                     @click="handleOpenGradingSubmissions(a.id)"
                     class="flex-1 py-2 px-3 rounded-xl bg-scholarly-teal hover:bg-teal-700 text-white font-semibold text-xs font-jakarta transition flex items-center justify-center gap-1.5 shadow-2xs"
                   >
-                    <span>📋 Nilai Berkas ({{ a.submissionCount || 0 }})</span>
+                    <span>Nilai Berkas ({{ a.submissionCount || 0 }})</span>
                   </button>
 
                   <button
@@ -750,7 +710,7 @@ const formatFileSize = (bytes?: number | null) => {
                     class="py-2 px-3 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold text-xs font-jakarta transition flex items-center justify-center gap-1.5"
                     title="Ikhtisar Pengumpulan"
                   >
-                    <span>📊 Ikhtisar</span>
+                    <span>Ikhtisar</span>
                   </button>
 
                   <button
@@ -773,7 +733,7 @@ const formatFileSize = (bytes?: number | null) => {
                     disabled
                     class="w-full py-2 px-3 rounded-xl bg-slate-100 text-slate-400 font-semibold text-xs font-jakarta cursor-not-allowed"
                   >
-                    ⛔ Pengumpulan Ditutup (Melewati Batas Cutoff)
+                    Pengumpulan Ditutup (Melewati Batas Cutoff)
                   </button>
 
                   <button
@@ -783,9 +743,9 @@ const formatFileSize = (bytes?: number | null) => {
                     class="w-full py-2 px-3 rounded-xl text-white font-semibold text-xs font-jakarta transition shadow-xs flex items-center justify-center gap-1.5"
                     :class="a.isExpired ? 'bg-semantic-danger hover:bg-red-700' : 'bg-scholarly-teal hover:bg-teal-700'"
                   >
-                    <span v-if="a.mySubmission">🔄 Unggah Ulang Berkas Tugas</span>
-                    <span v-else-if="a.isExpired">📤 Kumpulkan Tugas (Terlambat)</span>
-                    <span v-else>📤 Kumpulkan Tugas (Tepat Waktu)</span>
+                    <span v-if="a.mySubmission">Unggah Ulang Berkas Tugas</span>
+                    <span v-else-if="a.isExpired">Kumpulkan Tugas (Terlambat)</span>
+                    <span v-else>Kumpulkan Tugas</span>
                   </button>
                 </template>
               </div>
@@ -814,7 +774,9 @@ const formatFileSize = (bytes?: number | null) => {
             v-if="quizStore.sessionQuizzes.length === 0"
             class="p-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 text-center space-y-2"
           >
-            <span class="text-2xl">📝</span>
+            <svg class="w-6 h-6 mx-auto text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h3m-3 4h6M7.5 4.5h9A2.25 2.25 0 0118.75 6.75v12a.75.75 0 01-.75.75h-12a.75.75 0 01-.75-.75v-12A2.25 2.25 0 017.5 4.5z" />
+            </svg>
             <p class="text-xs font-semibold text-slate-600 font-jakarta">
               Tidak Ada Ujian Aktif pada Sesi Ini
             </p>
@@ -834,8 +796,7 @@ const formatFileSize = (bytes?: number | null) => {
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <span
-                      class="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wider text-white"
-                      :class="q.quizType === 'FINAL_EXAM' ? 'bg-red-600' : (q.quizType === 'MIDTERM_EXAM' ? 'bg-amber-600' : 'bg-scholarly-teal')"
+                      class="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wider bg-alabaster-slate text-slate-600 border border-slate-200"
                     >
                       {{ q.quizType }}
                     </span>
@@ -907,7 +868,7 @@ const formatFileSize = (bytes?: number | null) => {
                     @click="handleOpenGradingQuizAttempts(q.id)"
                     class="w-full py-2 px-3 rounded-xl bg-academic-navy hover:bg-blue-900 text-white font-semibold text-xs font-jakarta transition flex items-center justify-center gap-1.5 shadow-xs"
                   >
-                    <span>📋 Koreksi Lembar Jawaban & Esai</span>
+                    <span>Koreksi Lembar Jawaban & Esai</span>
                   </button>
                 </template>
 
@@ -918,10 +879,10 @@ const formatFileSize = (bytes?: number | null) => {
                     @click="handleStartExam(q.id)"
                     :disabled="q.accessStatus !== 'ACTIVE'"
                     class="w-full py-2.5 px-3 rounded-xl text-white font-bold text-xs font-jakarta transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
-                    :class="q.accessStatus === 'ACTIVE' ? 'bg-scholarly-teal hover:bg-teal-700 active:scale-95' : 'bg-slate-300 text-slate-500'"
+                    :class="q.accessStatus === 'ACTIVE' ? 'bg-scholarly-teal hover:bg-teal-700' : 'bg-slate-300 text-slate-500'"
                   >
-                    <span v-if="q.myLatestAttempt && q.myLatestAttempt.status === 'IN_PROGRESS'">⚡ Lanjutkan Ujian Daring</span>
-                    <span v-else-if="q.accessStatus === 'ACTIVE'">🚀 Mulai Kerjakan Ujian Daring</span>
+                    <span v-if="q.myLatestAttempt && q.myLatestAttempt.status === 'IN_PROGRESS'">Lanjutkan Ujian Daring</span>
+                    <span v-else-if="q.accessStatus === 'ACTIVE'">Mulai Kerjakan Ujian Daring</span>
                     <span v-else>Ujian Belum Dibuka / Selesai</span>
                   </button>
                 </template>
@@ -931,28 +892,30 @@ const formatFileSize = (bytes?: number | null) => {
         </div>
 
         <!-- Bobot Komponen Penilaian Sesi Terkait -->
-        <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200/60 flex items-center justify-between flex-wrap gap-3">
+        <div class="p-4 rounded-2xl bg-alabaster-slate border border-slate-200 flex items-center justify-between flex-wrap gap-3">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-scholarly-teal text-white flex items-center justify-center font-bold text-lg shrink-0">
-              ⚖️
+            <div class="w-9 h-9 rounded-xl bg-white text-scholarly-teal border border-slate-200 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
             </div>
             <div>
               <h5 class="text-xs font-bold text-academic-navy font-jakarta">
-                Bobot Evaluasi Kelas Terintegrasi (Total 100%)
+                Bobot Evaluasi Kelas (Total 100%)
               </h5>
               <p class="text-[11px] text-slate-600 font-inter">
-                Setiap sesi terhubung langsung ke skema bobot penilaian otomatis database Neon.
+                Komponen penilaian yang berlaku seragam untuk seluruh sesi kelas ini.
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-xs font-mono font-bold px-2 py-1 rounded-lg bg-white text-scholarly-teal border border-teal-200">
+            <span class="text-xs font-mono font-bold px-2 py-1 rounded-lg bg-white text-slate-700 border border-slate-200">
               Kehadiran: 10%
             </span>
-            <span class="text-xs font-mono font-bold px-2 py-1 rounded-lg bg-white text-scholarly-teal border border-teal-200">
+            <span class="text-xs font-mono font-bold px-2 py-1 rounded-lg bg-white text-slate-700 border border-slate-200">
               UTS: 25%
             </span>
-            <span class="text-xs font-mono font-bold px-2 py-1 rounded-lg bg-white text-scholarly-teal border border-teal-200">
+            <span class="text-xs font-mono font-bold px-2 py-1 rounded-lg bg-white text-slate-700 border border-slate-200">
               UAS: 30%
             </span>
           </div>

@@ -3,13 +3,15 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAcademicStore } from '~/stores/useAcademicStore'
+import type { WorkspaceNavItem, WorkspaceSectionId } from '~/utils/workspaceNav'
 
-defineProps<{
-  activeMainTab: 'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'ews' | 'architecture'
+const props = defineProps<{
+  sections: WorkspaceNavItem[]
+  activeSection: WorkspaceSectionId
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:activeMainTab', tab: 'workspace' | 'recap-attendance' | 'recap-assignments' | 'grades' | 'ews' | 'architecture'): void
+  (e: 'update:activeSection', section: WorkspaceSectionId): void
 }>()
 
 const router = useRouter()
@@ -22,132 +24,73 @@ const handleLogout = async () => {
 }
 
 const activeClassId = computed(() => academicStore.selectedClassId)
+
+const roleLabel = computed(() => {
+  if (authStore.isAdmin) return 'Administrator'
+  if (authStore.isLecturer) return 'Dosen'
+  return 'Mahasiswa'
+})
 </script>
 
 <template>
-  <aside class="w-full lg:w-72 xl:w-80 bg-white border-r border-slate-200/80 flex flex-col justify-between h-full shrink-0 shadow-sm">
-    <!-- Bagian Atas: Identitas & Semester -->
-    <div class="p-5 border-b border-slate-100 space-y-4">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-academic-navy text-white flex items-center justify-center font-extrabold text-base shadow-sm font-mono tracking-wider shrink-0">
+  <aside class="w-full lg:w-72 bg-white border-r border-slate-200/80 flex flex-col h-full shrink-0">
+    <!-- Identitas Institusi -->
+    <div class="p-5 border-b border-slate-100">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-9 h-9 rounded-lg bg-academic-navy text-white flex items-center justify-center font-bold text-xs tracking-wider shrink-0 font-jakarta"
+        >
           ITW
         </div>
         <div class="min-w-0">
-          <h1 class="text-sm font-bold text-academic-navy tracking-tight font-jakarta truncate">
+          <h1 class="text-xs font-bold text-academic-navy tracking-tight font-jakarta truncate">
             Institut Teknologi Wakanda
           </h1>
-          <p class="text-[11px] text-slate-500 font-inter truncate">
-            Wakanda Academic Space (WAS)
-          </p>
+          <p class="text-[11px] text-slate-500 font-inter truncate">Wakanda Academic Space</p>
         </div>
-      </div>
-
-      <!-- Badge Semester Aktif -->
-      <div class="p-2.5 rounded-xl bg-alabaster-slate border border-slate-200 flex items-center justify-between text-xs font-inter">
-        <div class="flex items-center space-x-2 truncate">
-          <span class="w-2 h-2 rounded-full bg-scholarly-teal shrink-0"></span>
-          <span class="text-slate-700 font-semibold truncate">
-            {{ academicStore.activeTerm?.name || 'T.A. 2026/2027 Ganjil' }}
-          </span>
-        </div>
-        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-teal-50 text-scholarly-teal font-bold border border-teal-200/60">
-          {{ academicStore.activeTerm?.code || '20261' }}
-        </span>
       </div>
     </div>
 
-    <!-- Bagian Tengah: Menu Navigasi & Daftar Kelas Paralel -->
-    <div class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-      <!-- Menu Utama -->
+    <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+      <!-- KONTEKS: Semester Aktif -->
+      <div class="space-y-2">
+        <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase px-2">Konteks</span>
+        <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-alabaster-slate border border-slate-200">
+          <span class="text-xs text-slate-700 font-semibold truncate">
+            {{ academicStore.activeTerm?.name || 'Semester Aktif' }}
+          </span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white text-slate-600 border border-slate-200 shrink-0">
+            {{ academicStore.activeTerm?.code || '—' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- NAVIGASI: Section Milik Role Tersebut -->
       <div class="space-y-1">
-        <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider uppercase px-2">
-          Menu Navigasi
-        </span>
-
+        <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase px-2">Navigasi</span>
         <button
+          v-for="item in props.sections"
+          :key="item.id"
           type="button"
-          @click="emit('update:activeMainTab', 'workspace')"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium font-inter transition text-left"
-          :class="activeMainTab === 'workspace' ? 'bg-academic-navy text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'"
+          @click="emit('update:activeSection', item.id)"
+          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium font-inter transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
+          :class="props.activeSection === item.id
+            ? 'bg-academic-navy text-white'
+            : 'text-slate-700 hover:bg-slate-100'"
         >
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon" />
           </svg>
-          <span class="truncate">Workspace 16 Pertemuan</span>
-        </button>
-
-        <button
-          type="button"
-          @click="emit('update:activeMainTab', 'recap-attendance')"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium font-inter transition text-left"
-          :class="activeMainTab === 'recap-attendance' ? 'bg-academic-navy text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'"
-        >
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span class="truncate">Rekap Presensi Semester</span>
-        </button>
-
-        <button
-          type="button"
-          @click="emit('update:activeMainTab', 'recap-assignments')"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium font-inter transition text-left"
-          :class="activeMainTab === 'recap-assignments' ? 'bg-academic-navy text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'"
-        >
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <span class="truncate">Rekap Tugas & Pengumpulan</span>
-        </button>
-
-        <button
-          type="button"
-          @click="emit('update:activeMainTab', 'grades')"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium font-inter transition text-left"
-          :class="activeMainTab === 'grades' ? 'bg-academic-navy text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'"
-        >
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <span v-if="authStore.isLecturer || authStore.isAdmin" class="truncate">Gradebook & Penilaian</span>
-          <span v-else class="truncate">Transparansi Nilai & Simulasi</span>
-        </button>
-
-        <!-- Tab Navigasi EWS untuk Dosen & Admin -->
-        <button
-          v-if="authStore.isLecturer || authStore.isAdmin"
-          type="button"
-          @click="emit('update:activeMainTab', 'ews')"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium font-inter transition text-left"
-          :class="activeMainTab === 'ews' ? 'bg-academic-navy text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'"
-        >
-          <svg class="w-4 h-4 shrink-0 text-semantic-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <span class="truncate">Early Warning System (EWS)</span>
-        </button>
-
-        <button
-          type="button"
-          @click="emit('update:activeMainTab', 'architecture')"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium font-inter transition text-left"
-          :class="activeMainTab === 'architecture' ? 'bg-academic-navy text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'"
-        >
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-          <span class="truncate">Arsitektur & RBAC Tester</span>
+          <span class="truncate">{{ item.label }}</span>
         </button>
       </div>
 
-      <!-- Daftar Kelas Semester Aktif (Rombongan Belajar) -->
+      <!-- DAFTAR KELAS PERKULIAHAN -->
       <div class="space-y-2">
         <div class="flex items-center justify-between px-2">
-          <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider uppercase">
-            Kelas Perkuliahan Aktif
-          </span>
+          <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Kelas Perkuliahan</span>
           <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
-            {{ academicStore.classes.length }} Rombel
+            {{ academicStore.classes.length }}
           </span>
         </div>
 
@@ -156,7 +99,10 @@ const activeClassId = computed(() => academicStore.selectedClassId)
           <span class="text-xs text-slate-400 font-inter">Memuat kelas...</span>
         </div>
 
-        <div v-else-if="academicStore.classes.length === 0" class="p-4 text-center text-xs text-slate-400 font-inter bg-slate-50 rounded-xl">
+        <div
+          v-else-if="academicStore.classes.length === 0"
+          class="p-4 text-center text-xs text-slate-400 font-inter bg-slate-50 rounded-xl"
+        >
           Belum ada kelas paralel terdaftar.
         </div>
 
@@ -166,20 +112,20 @@ const activeClassId = computed(() => academicStore.selectedClassId)
             :key="item.id"
             type="button"
             @click="academicStore.selectClass(item.id)"
-            class="w-full text-left p-3 rounded-xl border transition flex flex-col gap-1 font-inter"
+            class="w-full text-left p-3 rounded-xl border transition flex flex-col gap-1 font-inter focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
             :class="activeClassId === item.id
-              ? 'bg-teal-50/70 border-scholarly-teal text-deep-ink shadow-xs'
+              ? 'bg-alabaster-slate border-scholarly-teal text-deep-ink'
               : 'bg-white border-slate-200/90 hover:bg-slate-50 text-slate-700'"
           >
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold font-jakarta text-academic-navy">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold font-jakarta text-academic-navy truncate">
                 {{ item.courseCode || 'MATA KULIAH' }}
               </span>
               <span
-                class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded"
+                class="text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0"
                 :class="activeClassId === item.id ? 'bg-scholarly-teal text-white' : 'bg-slate-100 text-slate-700'"
               >
-                Kelas {{ item.code }}
+                {{ item.code }}
               </span>
             </div>
 
@@ -188,8 +134,12 @@ const activeClassId = computed(() => academicStore.selectedClassId)
             </p>
 
             <div class="flex items-center gap-2 text-[10px] text-slate-500 pt-1 border-t border-slate-100/80">
-              <span class="truncate">📍 {{ item.room || 'Lab Utama' }}</span>
-              <span>•</span>
+              <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              <span class="truncate">{{ item.room || 'Lab Utama' }}</span>
+              <span aria-hidden="true">·</span>
               <span class="truncate font-mono">{{ item.scheduleDay || 'Senin' }}</span>
             </div>
           </button>
@@ -197,12 +147,12 @@ const activeClassId = computed(() => academicStore.selectedClassId)
       </div>
     </div>
 
-    <!-- Bagian Bawah: Profil Sesi Pengguna & Tombol Keluar -->
-    <div class="p-4 border-t border-slate-200/80 bg-slate-50/70 space-y-3">
-      <div v-if="authStore.isAuthenticated && authStore.user" class="flex items-center justify-between">
-        <div class="flex items-center space-x-2.5 min-w-0">
+    <!-- Profil Sesi Pengguna -->
+    <div class="p-4 border-t border-slate-200/80 bg-slate-50/70">
+      <div v-if="authStore.isAuthenticated && authStore.user" class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
           <div
-            class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs font-mono shrink-0 shadow-xs"
+            class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs font-jakarta shrink-0"
             :class="{
               'bg-academic-navy': authStore.isAdmin,
               'bg-scholarly-teal': authStore.isLecturer,
@@ -216,16 +166,8 @@ const activeClassId = computed(() => academicStore.selectedClassId)
               {{ authStore.user.name }}
             </p>
             <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-500">
-              <span
-                class="px-1.5 py-0.2 rounded font-semibold uppercase text-[9px]"
-                :class="{
-                  'bg-blue-100 text-blue-800': authStore.isAdmin,
-                  'bg-teal-100 text-teal-800': authStore.isLecturer,
-                  'bg-slate-200 text-slate-700': authStore.isStudent
-                }"
-              >
-                {{ authStore.user.role }}
-              </span>
+              <span class="truncate">{{ roleLabel }}</span>
+              <span aria-hidden="true">·</span>
               <span class="truncate">{{ authStore.user.nimNidn || '-' }}</span>
             </div>
           </div>
@@ -235,7 +177,7 @@ const activeClassId = computed(() => academicStore.selectedClassId)
           type="button"
           @click="handleLogout"
           title="Keluar dari Akun"
-          class="p-2 rounded-lg text-slate-400 hover:text-semantic-danger hover:bg-red-50 transition"
+          class="p-2 rounded-lg text-slate-400 hover:text-semantic-danger hover:bg-red-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-scholarly-teal/40"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
