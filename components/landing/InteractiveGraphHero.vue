@@ -407,16 +407,14 @@ const activeNodeInfo = computed(() => {
   return nodes.value.find(n => n.id === activeNodeId.value) || nodes.value[0] || null
 })
 
-// Toggle lock state via button or canvas click
-const toggleLock = () => {
-  if (isLocked.value) {
-    isLocked.value = false
-    lockedNodeId.value = null
-  } else {
-    isLocked.value = true
-    lockedNodeId.value = activeNodeId.value
-  }
-}
+// Metrik ringkas untuk sisi kanan Inspector Bar (bobot evaluasi utama, kompleksitas algoritma, dll.)
+const metricLabel = computed(() => {
+  const node = activeNodeInfo.value
+  if (!node) return ''
+  if (node.badge === 'UTS') return 'Bobot 25%'
+  if (node.badge === 'UAS') return 'Bobot 30%'
+  return node.complexity
+})
 
 // Current edges depending on mode
 const currentEdges = computed(() => {
@@ -860,15 +858,22 @@ const render = () => {
   animationFrameId = requestAnimationFrame(render)
 }
 
-// Canvas Resizing directly measuring canvasWrapperRef
+// Canvas Resizing directly measuring canvasWrapperRef (content box, dikurangi padding)
 const resizeCanvas = () => {
   const wrapper = canvasWrapperRef.value
   const canvas = canvasRef.value
   if (!wrapper || !canvas) return
 
   const rect = wrapper.getBoundingClientRect()
-  const width = Math.max(rect.width, 320)
-  const height = Math.max(rect.height, 260)
+  const styles = window.getComputedStyle(wrapper)
+  const padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0)
+  const padY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0)
+
+  // Kanvas diposisikan absolut di dalam padding box, jadi ukuran kanvas = content box wrapper.
+  // Padding bawah ini menyisakan band kosong agar simpul terbawah tidak pernah menduduki area footer.
+  // Lantai ukuran dibatasi agar kanvas tidak pernah melebihi content box (menyebabkan bleed ke footer).
+  const width = Math.max(rect.width - padX, 240)
+  const height = Math.max(rect.height - padY, 200)
 
   const dpr = window.devicePixelRatio || 1
   canvas.width = width * dpr
@@ -888,14 +893,22 @@ const resizeCanvas = () => {
   }
 }
 
+let resizeObserver: ResizeObserver | null = null
+
 onMounted(() => {
   resizeCanvas()
   window.addEventListener('resize', resizeCanvas)
+  // Jaga ukuran kanvas sinkron saat tinggi bar (mis. Inspector) berubah setelah mount
+  if (canvasWrapperRef.value) {
+    resizeObserver = new ResizeObserver(() => resizeCanvas())
+    resizeObserver.observe(canvasWrapperRef.value)
+  }
   animationFrameId = requestAnimationFrame(render)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', resizeCanvas)
+  resizeObserver?.disconnect()
   if (animationFrameId !== null) {
     cancelAnimationFrame(animationFrameId)
   }
@@ -949,106 +962,65 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- (1) Dedicated Docked Inspector Bar (Horizontal 4-Column Grid di luar kanvas, 100% kanvas bebas halangan) -->
+    <!-- (1) Inspector Bar: Satu Baris Horizontal (Kiri: titik + badge | Tengah: topik | Kanan: metrik) -->
     <div
       v-if="activeNodeInfo"
       class="px-3.5 py-2.5 bg-[#090F1E] border-b border-slate-800/90 text-white font-mono text-[10px] relative z-10"
     >
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 items-center">
-        <!-- Kolom 1: Pertemuan & Badge -->
-        <div class="flex items-center gap-2 border-r border-slate-800/80 pr-2">
-          <div
+      <div class="flex items-center gap-3 flex-nowrap">
+        <!-- Kiri: Indikator titik warna + badge pertemuan -->
+        <div class="flex items-center gap-2 shrink-0">
+          <span
             class="w-2.5 h-2.5 rounded-full shrink-0"
             :class="activeNodeInfo.badge === 'UTS' || activeNodeInfo.badge === 'UAS' ? 'bg-[#D97706] ring-2 ring-amber-500/30' : 'bg-[#0D9488] ring-2 ring-teal-500/30'"
-          ></div>
-          <div class="min-w-0">
-            <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Pertemuan &amp; Badge</span>
-            <div class="flex items-center gap-1.5 mt-0.5">
-              <span class="text-teal-300 font-bold truncate">P-{{ activeNodeInfo.sessionNum }}: {{ activeNodeInfo.label.replace(/^P-\d+:/, '') }}</span>
-              <span
-                class="text-[9px] px-1 py-0.2 rounded font-bold border shrink-0"
-                :class="{
-                  'bg-amber-950/70 border-amber-600/60 text-amber-300': activeNodeInfo.badge === 'UTS',
-                  'bg-sky-950/70 border-sky-600/60 text-sky-300': activeNodeInfo.badge === 'UAS',
-                  'bg-teal-950/70 border-teal-600/60 text-teal-300': activeNodeInfo.badge === 'MATERI',
-                  'bg-emerald-950/70 border-emerald-600/60 text-emerald-300': activeNodeInfo.badge === 'KUIS',
-                  'bg-indigo-950/70 border-indigo-600/60 text-indigo-300': activeNodeInfo.badge === 'TUGAS'
-                }"
-              >
-                {{ activeNodeInfo.badge }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Kolom 2: Topik Perkuliahan -->
-        <div class="min-w-0 md:border-r border-slate-800/80 pr-2">
-          <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Topik Perkuliahan</span>
-          <div class="text-slate-100 font-sans font-semibold text-[11px] truncate leading-snug mt-0.5" :title="activeNodeInfo.title">
-            {{ activeNodeInfo.title }}
-          </div>
-          <div class="text-slate-400 text-[9px] truncate" :title="activeNodeInfo.topic">
-            {{ activeNodeInfo.topic }}
-          </div>
-        </div>
-
-        <!-- Kolom 3: Kompleksitas / Bobot -->
-        <div class="min-w-0 border-r border-slate-800/80 pr-2">
-          <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Kompleksitas / Bobot</span>
-          <div class="flex items-center gap-1.5 mt-0.5">
-            <span class="text-teal-300 font-bold text-[11px] truncate">
-              {{ activeNodeInfo.complexity }}
-            </span>
-            <span class="text-[9px] text-slate-400 font-normal">
-              ({{ activeNodeInfo.badge === 'UTS' || activeNodeInfo.badge === 'UAS' ? 'Evaluasi Utama' : 'Algoritma' }})
-            </span>
-          </div>
-        </div>
-
-        <!-- Kolom 4: Status Evaluasi & Tombol Kunci -->
-        <div class="flex items-center justify-between gap-2 min-w-0">
-          <div class="min-w-0">
-            <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Status Evaluasi</span>
-            <div class="mt-0.5">
-              <span
-                v-if="currentMode === 'rps'"
-                class="font-bold text-[10px] truncate block"
-                :class="{
-                  'text-[#D97706]': activeNodeInfo.badge === 'UTS',
-                  'text-sky-400': activeNodeInfo.badge === 'UAS',
-                  'text-teal-300': activeNodeInfo.badge === 'MATERI',
-                  'text-emerald-400': activeNodeInfo.badge === 'KUIS',
-                  'text-indigo-400': activeNodeInfo.badge === 'TUGAS'
-                }"
-              >
-                {{ activeNodeInfo.badge }} Sesi {{ activeNodeInfo.sessionNum }}
-              </span>
-              <span
-                v-else
-                class="font-bold text-[10px] truncate block"
-                :class="activeNodeInfo.ewsStatus === 'SAFE' ? 'text-emerald-400' : (activeNodeInfo.ewsStatus === 'WARNING' ? 'text-[#D97706]' : 'text-red-400')"
-              >
-                {{ activeNodeInfo.ewsAttendance }}% Kehadiran ({{ activeNodeInfo.ewsStatus === 'SAFE' ? 'Aman' : 'Waspada' }})
-              </span>
-            </div>
-          </div>
-
-          <!-- Tombol Kunci/Lepas Simpul -->
-          <button
-            type="button"
-            @click="toggleLock"
-            class="shrink-0 px-2 py-1 rounded-sm text-[9px] font-mono font-semibold transition-all flex items-center gap-1 cursor-pointer border"
-            :class="isLocked ? 'bg-amber-950/80 border-amber-500/60 text-amber-300 shadow-xs' : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:text-white hover:border-teal-500/50'"
-            :title="isLocked ? 'Klik untuk melepas kunci inspeksi simpul' : 'Klik untuk mengunci inspeksi simpul ini'"
+          ></span>
+          <span
+            class="px-1.5 py-0.5 rounded-sm border font-bold text-[10px] whitespace-nowrap"
+            :class="{
+              'bg-amber-950/70 border-amber-600/60 text-amber-300': activeNodeInfo.badge === 'UTS',
+              'bg-sky-950/70 border-sky-600/60 text-sky-300': activeNodeInfo.badge === 'UAS',
+              'bg-teal-950/70 border-teal-600/60 text-teal-300': activeNodeInfo.badge === 'MATERI',
+              'bg-emerald-950/70 border-emerald-600/60 text-emerald-300': activeNodeInfo.badge === 'KUIS',
+              'bg-indigo-950/70 border-indigo-600/60 text-indigo-300': activeNodeInfo.badge === 'TUGAS'
+            }"
           >
-            <span>{{ isLocked ? '🔒 Terkunci' : '⚡ Kunci' }}</span>
-          </button>
+            P-{{ activeNodeInfo.sessionNum }} • {{ activeNodeInfo.badge }}
+          </span>
+        </div>
+
+        <!-- Tengah: Judul topik lengkap (tidak dipotong elipsis) -->
+        <div class="flex-1 min-w-0 text-center">
+          <span class="font-sans font-semibold text-[12px] text-slate-100 leading-snug">
+            {{ activeNodeInfo.title }}
+          </span>
+        </div>
+
+        <!-- Kanan: Metrik ringkas + gembok kecil saat simpul terkunci -->
+        <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
+          <span class="text-teal-300 font-semibold text-[10px]">{{ metricLabel }}</span>
+          <span class="text-slate-600">•</span>
+          <span
+            class="font-semibold text-[10px]"
+            :class="activeNodeInfo.ewsAttendance >= 75 ? 'text-emerald-400' : 'text-amber-400'"
+          >
+            {{ activeNodeInfo.ewsAttendance }}% Hadir
+          </span>
+          <svg
+            v-if="isLocked"
+            class="w-3 h-3 text-amber-400 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-label="Simpul terkunci"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
         </div>
       </div>
     </div>
 
     <!-- Canvas Simulation Area: 100% Bebas Halangan (No floating popup box inside) -->
-    <div ref="canvasWrapperRef" class="flex-1 relative w-full h-full min-h-[250px]">
+    <div ref="canvasWrapperRef" class="flex-1 relative w-full h-full min-h-[280px] bg-[#0F172A] pb-6">
       <canvas
         ref="canvasRef"
         @click="handleCanvasClick"
@@ -1056,27 +1028,14 @@ onUnmounted(() => {
       ></canvas>
     </div>
 
-    <!-- Bottom Telemetry Status Strip: Real Academic Metrics -->
-    <div class="px-3.5 py-2 border-t border-slate-800 bg-[#0B132B]/90 backdrop-blur-xs flex items-center justify-between text-[10px] font-mono text-slate-400 relative z-10">
-      <div class="flex items-center gap-2.5 flex-wrap">
-        <span class="text-slate-300">
-          P-1..P-16 · UTS P-8 · UAS P-16
-        </span>
-        <span class="text-slate-600 hidden sm:inline">•</span>
-        <span class="text-amber-400 font-bold hidden sm:inline">
-          AMBANG UAS: ≥75%
-        </span>
-        <span class="text-slate-600 hidden md:inline">•</span>
-        <span class="text-slate-400 hidden md:inline">
-          {{ currentMode === 'rps' ? '16 Simpul Relasional' : '16 Sesi Presensi & Retensi' }}
-        </span>
-      </div>
-
-      <div class="flex items-center gap-1.5 text-slate-400">
-        <span class="text-[9px] text-teal-400 font-bold hidden sm:inline">
-          {{ isLocked ? '[ 🔒 SIMPUL TERKUNCI ]' : '[ KLIK SIMPUL / TOMBOL UNTUK KUNCI ]' }}
-        </span>
-      </div>
+    <!-- Bottom Status Strip: Satu Baris Bersih -->
+    <div class="px-3.5 py-2 border-t border-slate-800 bg-[#0B132B] flex items-center justify-between gap-3 text-[10px] font-mono text-slate-400 relative z-10">
+      <span class="text-slate-300 whitespace-nowrap">
+        16 Pertemuan • UTS P-8 • UAS P-16
+      </span>
+      <span class="text-amber-400 font-bold whitespace-nowrap shrink-0">
+        Ambang UAS ≥ 75%
+      </span>
     </div>
   </div>
 </template>

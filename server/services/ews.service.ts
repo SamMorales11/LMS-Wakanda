@@ -444,12 +444,12 @@ export class EwsService {
     const recommendedClassInterventions: string[] = []
     if (criticalCount > 0) {
       recommendedClassInterventions.push(
-        `Perhatian Mendesak: Terdapat ${criticalCount} mahasiswa berstatus Kritis (#DC2626). Segera lakukan penjadwalan konseling akademik sebelum batas UAS.`
+        `Perhatian Mendesak: Terdapat ${criticalCount} mahasiswa berstatus Kritis. Segera lakukan penjadwalan konseling akademik sebelum batas UAS.`
       )
     }
     if (warningCount > 0) {
       recommendedClassInterventions.push(
-        `Pemantauan Kelas: Terdapat ${warningCount} mahasiswa berstatus Waspada (#D97706) yang membutuhkan pendampingan tugas dan presensi.`
+        `Pemantauan Kelas: Terdapat ${warningCount} mahasiswa berstatus Waspada yang membutuhkan pendampingan tugas dan presensi.`
       )
     }
     if (atRiskPercentage >= 30) {
@@ -458,7 +458,7 @@ export class EwsService {
       )
     }
     if (recommendedClassInterventions.length === 0) {
-      recommendedClassInterventions.push('Kinerja dan kedisiplinan seluruh peserta kelas berada dalam kategori Aman (#16A34A).')
+      recommendedClassInterventions.push('Kinerja dan kedisiplinan seluruh peserta kelas berada dalam kategori Aman.')
     }
 
     // Urutkan mahasiswa: Kritis paling atas, lalu Waspada, lalu Aman

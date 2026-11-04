@@ -92,6 +92,33 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
       return 'bg-slate-100 text-slate-700'
   }
 }
+
+// Distribusi Nilai Huruf: netral slate, aksen semantik hanya pada nilai > 0
+const LETTER_ORDER: LetterGrade[] = ['A', 'AB', 'B', 'BC', 'C', 'D', 'E']
+
+const distributionAccentClass = (letter: LetterGrade) => {
+  switch (letter) {
+    case 'A':
+      return 'text-semantic-success'
+    case 'AB':
+      return 'text-scholarly-teal'
+    case 'E':
+      return 'text-semantic-danger'
+    default:
+      return 'text-academic-navy'
+  }
+}
+
+const distributionEntries = computed(() =>
+  LETTER_ORDER.map((letter) => {
+    const count = gradebookStore.gradeDistribution[letter] || 0
+    return {
+      letter,
+      count,
+      valueClass: count > 0 ? distributionAccentClass(letter) : 'text-slate-300'
+    }
+  })
+)
 </script>
 
 <template>
@@ -100,227 +127,241 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
     <!-- HEADER BUKU NILAI & KONTROL UTAMA             -->
     <!-- ============================================== -->
     <section class="bg-white rounded-sm p-6 sm:p-7 shadow-none border border-slate-200 border-t-2 border-t-[#1E3A8A] space-y-6">
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-scholarly-teal text-xs font-semibold border border-teal-200 font-inter mb-2">
-            <span>Buku Nilai Akademik Terpadu (Gradebook Engine)</span>
-          </div>
-          <h2 class="text-2xl font-bold text-academic-navy font-jakarta">
-            {{ gradebook?.courseName || 'Buku Nilai Mata Kuliah' }}
-          </h2>
-          <p class="text-xs text-slate-500 font-inter mt-1 max-w-2xl">
-            Kalkulasi otomatis Nilai Akhir (NA), konversi skala huruf mutu standar ITW (A, AB, B, BC, C, D, E), verifikasi batas presensi 75%, serta audit trail perubahan nilai.
-          </p>
-        </div>
+      <!-- Baris atas: Eyebrow + Judul + Deskripsi -->
+      <div class="space-y-1.5">
+        <span class="block font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-scholarly-teal">
+          Buku Nilai Akademik
+        </span>
+        <h2 class="text-xl sm:text-2xl font-bold text-academic-navy font-jakarta">
+          {{ gradebook?.courseName || 'Buku Nilai Mata Kuliah' }}
+        </h2>
+        <p class="text-xs text-slate-500 font-inter max-w-3xl">
+          Kalkulasi otomatis Nilai Akhir (NA), konversi skala huruf mutu standar ITW (A, AB, B, BC, C, D, E), verifikasi batas presensi 75%, serta audit trail perubahan nilai.
+        </p>
+      </div>
 
-        <!-- Tombol Aksi Dosen -->
-        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+      <!-- Baris Action Toolbar (tumpuk penuh, tombol ringkas h-9) -->
+      <div class="flex flex-wrap items-center gap-2 pt-4 border-t border-slate-100">
+        <!-- Primary: Hitung Ulang NA -->
+        <button
+          type="button"
+          @click="handleRecalculate"
+          :disabled="gradebookStore.isCalculating"
+          class="h-9 px-3.5 rounded-lg bg-[#1E3A8A] hover:bg-blue-900 active:scale-95 text-white font-bold text-xs font-jakarta transition flex items-center gap-1.5 disabled:opacity-50"
+        >
+          <span v-if="gradebookStore.isCalculating" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Hitung Ulang NA</span>
+        </button>
+
+        <!-- Secondary: Bobot -->
+        <button
+          type="button"
+          @click="isConfigureWeightsOpen = true"
+          class="h-9 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs font-jakarta transition flex items-center gap-1.5"
+        >
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Bobot (100%)</span>
+        </button>
+
+        <!-- Secondary: Audit Trail -->
+        <button
+          type="button"
+          @click="isAuditLogsOpen = true"
+          class="h-9 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs font-jakarta transition flex items-center gap-1.5"
+        >
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Audit Trail</span>
+        </button>
+
+        <!-- Secondary: Unduh Excel -->
+        <a
+          v-if="academicStore.selectedClassId"
+          :href="`/api/reports/classes/${academicStore.selectedClassId}/gradebook`"
+          download
+          class="h-9 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs font-jakarta transition flex items-center gap-1.5"
+          title="Unduh Rekap Nilai Format Spreadsheet Excel (.xlsx)"
+        >
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Unduh Excel</span>
+        </a>
+
+        <!-- Secondary: Cetak Transkrip -->
+        <a
+          v-if="academicStore.selectedClassId"
+          :href="`/api/reports/classes/${academicStore.selectedClassId}/transcript`"
+          target="_blank"
+          class="h-9 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs font-jakarta transition flex items-center gap-1.5"
+          title="Buka Dokumen Cetak Transkrip Nilai Resmi ITW"
+        >
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          <span>Cetak Transkrip</span>
+        </a>
+
+        <!-- Secondary: Ekspor & Cetak Dropdown -->
+        <div class="relative">
           <button
             type="button"
-            @click="isConfigureWeightsOpen = true"
-            class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs font-jakarta transition flex items-center gap-1.5 shadow-2xs"
+            @click="isExportMenuOpen = !isExportMenuOpen"
+            class="h-9 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs font-jakarta transition flex items-center gap-1.5 cursor-pointer"
           >
-            <svg class="w-4 h-4 text-scholarly-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span>Bobot (100%)</span>
-          </button>
-
-          <button
-            type="button"
-            @click="handleRecalculate"
-            :disabled="gradebookStore.isCalculating"
-            class="px-4 py-2.5 rounded-xl bg-scholarly-teal hover:bg-teal-700 active:scale-95 text-white font-bold text-xs font-jakarta transition flex items-center gap-1.5 shadow-xs disabled:opacity-50"
-          >
-            <span v-if="gradebookStore.isCalculating" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>Hitung Ulang (NA)</span>
-          </button>
-
-          <button
-            type="button"
-            @click="isAuditLogsOpen = true"
-            class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs font-jakarta transition flex items-center gap-1.5 shadow-2xs"
-          >
-            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Audit Trail</span>
-          </button>
-
-          <!-- Tombol Aksi Cepat Unduh Excel & Cetak Transkrip -->
-          <a
-            v-if="academicStore.selectedClassId"
-            :href="`/api/reports/classes/${academicStore.selectedClassId}/gradebook`"
-            download
-            class="px-3.5 py-2.5 rounded-xl bg-scholarly-teal hover:bg-teal-700 text-white font-bold text-xs font-jakarta transition flex items-center gap-1.5 shadow-xs shrink-0"
-            title="Unduh Rekap Nilai Format Spreadsheet Excel (.xlsx)"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span>Unduh Excel</span>
-          </a>
-
-          <a
-            v-if="academicStore.selectedClassId"
-            :href="`/api/reports/classes/${academicStore.selectedClassId}/transcript`"
-            target="_blank"
-            class="px-3.5 py-2.5 rounded-xl bg-academic-navy hover:bg-slate-800 text-white font-bold text-xs font-jakarta transition flex items-center gap-1.5 shadow-xs shrink-0"
-            title="Buka Dokumen Cetak Transkrip Nilai Resmi ITW"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            <span>Ekspor &amp; Cetak</span>
+            <svg class="w-3.5 h-3.5 text-slate-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
-            <span>Cetak Transkrip</span>
-          </a>
+          </button>
 
-          <!-- Ekspor & Cetak Laporan Dropdown -->
-          <div class="relative">
-            <button
-              type="button"
-              @click="isExportMenuOpen = !isExportMenuOpen"
-              class="px-4 py-2.5 rounded-xl bg-academic-navy hover:bg-slate-800 text-white font-bold text-xs font-jakarta transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
-            >
-              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span>Ekspor &amp; Cetak</span>
-              <svg class="w-3.5 h-3.5 text-slate-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            <!-- Dropdown Menu -->
-            <div
-              v-if="isExportMenuOpen"
-              class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
-              @mouseleave="isExportMenuOpen = false"
-            >
-              <div class="px-3 py-1.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">
-                Format Spreadsheet Excel (.xlsx)
-              </div>
-              <a
-                :href="`/api/reports/classes/${academicStore.selectedClassId}/gradebook`"
-                download
-                @click="isExportMenuOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition"
-              >
-                <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  XLS
-                </span>
-                <div>
-                  <div class="font-bold font-jakarta text-slate-800">Rekap Nilai Akhir</div>
-                  <div class="text-[10px] text-slate-500">Nilai lengkap, NA, &amp; Indeks A-E</div>
-                </div>
-              </a>
-              <a
-                :href="`/api/reports/classes/${academicStore.selectedClassId}/attendance-matrix`"
-                download
-                @click="isExportMenuOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition"
-              >
-                <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  XLS
-                </span>
-                <div>
-                  <div class="font-bold font-jakarta text-slate-800">Matriks Presensi 16 Sesi</div>
-                  <div class="text-[10px] text-slate-500">H/T/I/S/A &amp; Kelayakan UAS</div>
-                </div>
-              </a>
-
-              <div class="my-1.5 border-t border-slate-100"></div>
-
-              <div class="px-3 py-1.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">
-                Dokumen Laporan Cetak Resmi
-              </div>
-              <a
-                :href="`/api/reports/classes/${academicStore.selectedClassId}/transcript`"
-                target="_blank"
-                @click="isExportMenuOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition"
-              >
-                <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
-                  DOC
-                </span>
-                <div>
-                  <div class="font-bold font-jakarta text-slate-800">Transkrip Nilai Kelas</div>
-                  <div class="text-[10px] text-slate-500">Kop ITW &amp; Lembar Pengesahan</div>
-                </div>
-              </a>
-              <a
-                :href="`/api/reports/classes/${academicStore.selectedClassId}/berita-acara`"
-                target="_blank"
-                @click="isExportMenuOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition"
-              >
-                <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
-                  DOC
-                </span>
-                <div>
-                  <div class="font-bold font-jakarta text-slate-800">Berita Acara Perkuliahan</div>
-                  <div class="text-[10px] text-slate-500">Log 16 Pertemuan &amp; Paraf Dosen</div>
-                </div>
-              </a>
+          <!-- Dropdown Menu -->
+          <div
+            v-if="isExportMenuOpen"
+            class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+            @mouseleave="isExportMenuOpen = false"
+          >
+            <div class="px-3 py-1.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">
+              Format Spreadsheet Excel (.xlsx)
             </div>
-          </div>
+            <a
+              :href="`/api/reports/classes/${academicStore.selectedClassId}/gradebook`"
+              download
+              @click="isExportMenuOpen = false"
+              class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition"
+            >
+              <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
+                XLS
+              </span>
+              <div>
+                <div class="font-bold font-jakarta text-slate-800">Rekap Nilai Akhir</div>
+                <div class="text-[10px] text-slate-500">Nilai lengkap, NA, &amp; Indeks A-E</div>
+              </div>
+            </a>
+            <a
+              :href="`/api/reports/classes/${academicStore.selectedClassId}/attendance-matrix`"
+              download
+              @click="isExportMenuOpen = false"
+              class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition"
+            >
+              <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
+                XLS
+              </span>
+              <div>
+                <div class="font-bold font-jakarta text-slate-800">Matriks Presensi 16 Sesi</div>
+                <div class="text-[10px] text-slate-500">H/T/I/S/A &amp; Kelayakan UAS</div>
+              </div>
+            </a>
 
-          <!-- Publikasi Nilai Dropdown / Button -->
-          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
-            <span class="text-[10px] font-mono text-slate-500 font-semibold px-2 uppercase">Status:</span>
-            <button
-              type="button"
-              @click="handleStatusChange('PUBLISHED')"
-              class="px-3 py-1 rounded-lg text-xs font-bold font-jakarta transition"
-              :class="gradebook?.students[0]?.finalGrade.status === 'PUBLISHED' ? 'bg-semantic-success text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-200'"
+            <div class="my-1.5 border-t border-slate-100"></div>
+
+            <div class="px-3 py-1.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">
+              Dokumen Laporan Cetak Resmi
+            </div>
+            <a
+              :href="`/api/reports/classes/${academicStore.selectedClassId}/transcript`"
+              target="_blank"
+              @click="isExportMenuOpen = false"
+              class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition"
             >
-              Publikasikan
-            </button>
-            <button
-              type="button"
-              @click="handleStatusChange('DRAFT')"
-              class="px-3 py-1 rounded-lg text-xs font-bold font-jakarta transition"
-              :class="gradebook?.students[0]?.finalGrade.status === 'DRAFT' ? 'bg-amber-alert text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-200'"
+              <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                DOC
+              </span>
+              <div>
+                <div class="font-bold font-jakarta text-slate-800">Transkrip Nilai Kelas</div>
+                <div class="text-[10px] text-slate-500">Kop ITW &amp; Lembar Pengesahan</div>
+              </div>
+            </a>
+            <a
+              :href="`/api/reports/classes/${academicStore.selectedClassId}/berita-acara`"
+              target="_blank"
+              @click="isExportMenuOpen = false"
+              class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition"
             >
-              Draft
-            </button>
+              <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                DOC
+              </span>
+              <div>
+                <div class="font-bold font-jakarta text-slate-800">Berita Acara Perkuliahan</div>
+                <div class="text-[10px] text-slate-500">Log 16 Pertemuan &amp; Paraf Dosen</div>
+              </div>
+            </a>
           </div>
+        </div>
+
+        <!-- Kontrol Status Publikasi -->
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg h-9">
+          <span class="text-[10px] font-mono text-slate-500 font-semibold px-1.5 uppercase">Status:</span>
+          <button
+            type="button"
+            @click="handleStatusChange('PUBLISHED')"
+            class="px-2.5 h-7 rounded-md text-[11px] font-bold font-jakarta transition"
+            :class="gradebook?.students[0]?.finalGrade.status === 'PUBLISHED' ? 'bg-semantic-success text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-200'"
+          >
+            Publikasikan
+          </button>
+          <button
+            type="button"
+            @click="handleStatusChange('DRAFT')"
+            class="px-2.5 h-7 rounded-md text-[11px] font-bold font-jakarta transition"
+            :class="gradebook?.students[0]?.finalGrade.status === 'DRAFT' ? 'bg-amber-alert text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-200'"
+          >
+            Draft
+          </button>
         </div>
       </div>
 
-      <!-- Ringkasan Statistik Kelas & Distribusi Nilai Huruf -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
-        <div class="p-3 rounded-sm bg-[#F8FAFC] border border-slate-200 text-center">
-          <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-bold">Mahasiswa</span>
-          <span class="text-xl font-black font-mono text-[#1E3A8A] mt-0.5 block">
+      <!-- Ringkasan Statistik: 2 KPI Utama + 1 Grup Distribusi Nilai Huruf -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2.5">
+        <!-- KPI 1: Total Peserta -->
+        <div class="p-3.5 rounded-sm bg-white border border-slate-200 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-bold">Total Peserta</span>
+            <span class="text-[10px] text-slate-400 font-inter block mt-0.5">Mahasiswa terdaftar</span>
+          </div>
+          <span class="text-2xl font-black font-mono text-[#1E3A8A] shrink-0">
             {{ gradebook?.totalStudents || 0 }}
           </span>
-          <span class="text-[10px] text-slate-400 font-inter">Peserta Terdaftar</span>
         </div>
 
-        <div class="p-3 rounded-sm bg-teal-50/70 border border-teal-200 text-center">
-          <span class="text-[10px] font-mono text-[#0D9488] uppercase tracking-wider block font-bold">Rata-rata NA</span>
-          <span class="text-xl font-black font-mono text-[#0D9488] mt-0.5 block">
+        <!-- KPI 2: Rata-rata NA -->
+        <div class="p-3.5 rounded-sm bg-white border border-slate-200 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-bold">Rata-rata NA</span>
+            <span class="text-[10px] text-slate-400 font-inter block mt-0.5">Nilai akhir kelas</span>
+          </div>
+          <span class="text-2xl font-black font-mono text-[#1E3A8A] shrink-0">
             {{ gradebook?.averageFinalScore !== null ? gradebook?.averageFinalScore?.toFixed(2) : '0.00' }}
           </span>
-          <span class="text-[10px] text-teal-700 font-inter">Rata-rata Kelas</span>
         </div>
 
-        <!-- Grade Distribution Cards -->
-        <div
-          v-for="letter in (['A', 'AB', 'B', 'BC', 'C', 'D', 'E'] as LetterGrade[])"
-          :key="letter"
-          class="p-2.5 rounded-sm border text-center transition"
-          :class="getLetterBadgeClass(letter)"
-        >
-          <span class="text-xs font-mono font-black block">Huruf {{ letter }}</span>
-          <span class="text-lg font-black font-mono mt-0.5 block">
-            {{ gradebookStore.gradeDistribution[letter] || 0 }}
+        <!-- Grup: Distribusi Nilai Huruf (A s/d E) -->
+        <div class="p-3.5 rounded-sm bg-white border border-slate-200 md:col-span-2">
+          <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-bold">
+            Distribusi Nilai Huruf (A s/d E)
           </span>
-          <span class="text-[9px] opacity-75 font-inter">Mahasiswa</span>
+          <div class="grid grid-cols-7 gap-1.5 mt-2">
+            <div
+              v-for="entry in distributionEntries"
+              :key="entry.letter"
+              class="rounded-sm border border-slate-100 bg-[#F8FAFC] px-1 py-1.5 text-center"
+            >
+              <span class="block text-[9px] font-mono font-bold text-slate-500">{{ entry.letter }}</span>
+              <span class="block text-sm font-black font-mono mt-0.5" :class="entry.valueClass">
+                {{ entry.count }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
