@@ -36,7 +36,7 @@ export const useAttendanceStore = defineStore('attendance', {
 
   getters: {
     hasActiveToken: (state): boolean => {
-      return !!state.activeToken && state.remainingSeconds > 0
+      return (state.sessionOverview?.hasActiveToken ?? false) || (!!state.activeToken && state.remainingSeconds > 0)
     },
 
     formattedRemainingTime: (state): string => {

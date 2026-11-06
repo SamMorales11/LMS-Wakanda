@@ -21,8 +21,16 @@ export class AuthService {
 
     // Ambil data user lengkap beserta hash password
     const user = await this.userRepo.findByEmailWithPassword(email)
+
+    // Pre-computed dummy bcrypt hash (work factor 10) untuk mengeliminasi timing discrepancy (SEC-12)
+    // Memastikan bcrypt.compare selalu dieksekusi dengan durasi konstan terlepas user ditemukan atau tidak
+    const DUMMY_BCRYPT_HASH = '$2a$10$wK1b8B9zYl4nC1r.2i3Q4eO6Fz/mK8wJ7L9sN0vP2rT4uV6xZ8a1b'
+    const hashToCompare = user?.passwordHash || DUMMY_BCRYPT_HASH
+
+    // Jalankan verifikasi password konstan
+    const isPasswordValid = await bcrypt.compare(password, hashToCompare)
+
     if (!user) {
-      // Menghindari email enumeration timing attack
       throw new UnauthorizedError('Email atau password tidak sesuai')
     }
 
@@ -34,8 +42,6 @@ export class AuthService {
       throw new UnauthorizedError('Akun belum memiliki kredensial password terdaftar')
     }
 
-    // Verifikasi kecocokan password bcrypt
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash)
     if (!isPasswordValid) {
       throw new UnauthorizedError('Email atau password tidak sesuai')
     }

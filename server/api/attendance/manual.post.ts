@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     const user = requireUserRole(event, ['lecturer', 'admin'])
     const body = await validateBody(event, manualAttendanceSchema)
 
-    const updatedLog = await attendanceService.manualUpdateStatus(body, user.id)
+    const updatedLog = await attendanceService.manualUpdateStatus(body, user.id, user.role)
 
     return createApiResponse(
       updatedLog,

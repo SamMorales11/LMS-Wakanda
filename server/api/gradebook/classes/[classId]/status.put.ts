@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await validateBody(event, updateGradeStatusSchema)
-    const result = await gradebookService.updateClassGradeStatus(classId, body.status, user.id)
+    const result = await gradebookService.updateClassGradeStatus(classId, body.status, user.id, user.role)
 
     return createApiResponse(
       result,

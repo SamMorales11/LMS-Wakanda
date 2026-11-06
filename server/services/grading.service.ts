@@ -12,6 +12,7 @@ import type {
   SubmissionTimingStatus
 } from '~/types'
 import { gradingRepository, type IGradingRepository } from '../repositories/grading.repository'
+import { classRepository, type IClassRepository } from '../repositories/class.repository'
 import { storageService, type IStorageService } from './storage.service'
 import {
   BadRequestError,
@@ -23,39 +24,47 @@ export interface IGradingService {
   getCollectiveAssignmentSubmissions(
     assignmentId: string,
     lecturerId: string,
-    origin?: string
+    origin?: string,
+    userRole?: string
   ): Promise<CollectiveSubmissionsDto>
   gradeAssignmentSubmission(
     submissionId: string,
     dto: GradeSubmissionPayloadDto,
     lecturerId: string,
-    origin?: string
+    origin?: string,
+    userRole?: string
   ): Promise<GradingSubmissionItemDto>
   batchGradeSubmissions(
     assignmentId: string,
     dto: BatchGradeSubmissionDto,
     lecturerId: string,
-    origin?: string
+    origin?: string,
+    userRole?: string
   ): Promise<{ updatedCount: number; results: GradingSubmissionItemDto[] }>
   getSubmissionSignedReadUrl(
     submissionId: string,
-    origin?: string
+    origin?: string,
+    userRole?: string,
+    userId?: string
   ): Promise<{ signedUrl: string; expiresAt: string; fileName: string | null; fileType: string | null }>
   getCollectiveQuizAttempts(
     quizId: string,
-    lecturerId: string
+    lecturerId: string,
+    userRole?: string
   ): Promise<CollectiveQuizAttemptsDto>
   gradeQuizAttemptEssay(
     attemptId: string,
     dto: GradeEssayPayloadDto,
-    lecturerId: string
+    lecturerId: string,
+    userRole?: string
   ): Promise<GradingQuizAttemptItemDto>
 }
 
 export class GradingService implements IGradingService {
   constructor(
     private readonly repo: IGradingRepository = gradingRepository,
-    private readonly storage: IStorageService = storageService
+    private readonly storage: IStorageService = storageService,
+    private readonly classRepo: IClassRepository = classRepository
   ) {}
 
   /**
@@ -117,11 +126,19 @@ export class GradingService implements IGradingService {
   public async getCollectiveAssignmentSubmissions(
     assignmentId: string,
     lecturerId: string,
-    origin?: string
+    origin?: string,
+    userRole?: string
   ): Promise<CollectiveSubmissionsDto> {
     const data = await this.repo.findAssignmentWithSubmissions(assignmentId)
     if (!data) {
       throw new NotFoundError(`Tugas dengan ID '${assignmentId}' tidak ditemukan`)
+    }
+
+    if (userRole === 'lecturer') {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(data.classId, lecturerId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
     }
 
     const maxScoreNum = parseFloat(data.assignment.maxScore)
@@ -235,11 +252,19 @@ export class GradingService implements IGradingService {
     submissionId: string,
     dto: GradeSubmissionPayloadDto,
     lecturerId: string,
-    origin?: string
+    origin?: string,
+    userRole?: string
   ): Promise<GradingSubmissionItemDto> {
     const row = await this.repo.findSubmissionById(submissionId)
     if (!row) {
       throw new NotFoundError(`Pengumpulan tugas dengan ID '${submissionId}' tidak ditemukan`)
+    }
+
+    if (userRole === 'lecturer') {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(row.assignment.classId, lecturerId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
     }
 
     const maxScoreNum = parseFloat(row.assignment.maxScore)
@@ -321,8 +346,20 @@ export class GradingService implements IGradingService {
     assignmentId: string,
     dto: BatchGradeSubmissionDto,
     lecturerId: string,
-    origin?: string
+    origin?: string,
+    userRole?: string
   ): Promise<{ updatedCount: number; results: GradingSubmissionItemDto[] }> {
+    if (userRole === 'lecturer') {
+      const data = await this.repo.findAssignmentWithSubmissions(assignmentId)
+      if (!data) {
+        throw new NotFoundError(`Tugas dengan ID '${assignmentId}' tidak ditemukan`)
+      }
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(data.classId, lecturerId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
+    }
+
     const results: GradingSubmissionItemDto[] = []
 
     for (const item of dto.grades) {
@@ -336,7 +373,8 @@ export class GradingService implements IGradingService {
           status: item.status
         },
         lecturerId,
-        origin
+        origin,
+        userRole
       )
       results.push(graded)
     }
@@ -352,11 +390,20 @@ export class GradingService implements IGradingService {
    */
   public async getSubmissionSignedReadUrl(
     submissionId: string,
-    origin?: string
+    origin?: string,
+    userRole?: string,
+    userId?: string
   ): Promise<{ signedUrl: string; expiresAt: string; fileName: string | null; fileType: string | null }> {
     const row = await this.repo.findSubmissionById(submissionId)
     if (!row) {
       throw new NotFoundError(`Pengumpulan tugas dengan ID '${submissionId}' tidak ditemukan`)
+    }
+
+    if (userRole === 'lecturer' && userId) {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(row.assignment.classId, userId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
     }
 
     if (!row.submission.fileKey) {
@@ -381,11 +428,19 @@ export class GradingService implements IGradingService {
    */
   public async getCollectiveQuizAttempts(
     quizId: string,
-    lecturerId: string
+    lecturerId: string,
+    userRole?: string
   ): Promise<CollectiveQuizAttemptsDto> {
     const data = await this.repo.findQuizWithAttempts(quizId)
     if (!data) {
       throw new NotFoundError(`Ujian dengan ID '${quizId}' tidak ditemukan`)
+    }
+
+    if (userRole === 'lecturer') {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(data.quiz.classId, lecturerId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
     }
 
     const questionsList = (data.quiz.questionsJsonb as QuizQuestion[]) || []
@@ -494,11 +549,19 @@ export class GradingService implements IGradingService {
   public async gradeQuizAttemptEssay(
     attemptId: string,
     dto: GradeEssayPayloadDto,
-    lecturerId: string
+    lecturerId: string,
+    userRole?: string
   ): Promise<GradingQuizAttemptItemDto> {
     const data = await this.repo.findQuizAttemptById(attemptId)
     if (!data) {
       throw new NotFoundError(`Percobaan ujian dengan ID '${attemptId}' tidak ditemukan`)
+    }
+
+    if (userRole === 'lecturer') {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(data.quiz.classId, lecturerId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
     }
 
     const quizQuestions = (data.quiz.questionsJsonb as QuizQuestion[]) || []

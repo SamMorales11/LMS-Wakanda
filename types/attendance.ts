@@ -74,6 +74,7 @@ export interface SessionAttendanceOverviewDto {
   sessionNumber: number
   sessionTitle: string
   activeToken: AttendanceTokenDto | null
+  hasActiveToken?: boolean
   totalEnrolled: number
   presentCount: number
   lateCount: number

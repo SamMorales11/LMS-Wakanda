@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
       throw new BadRequestError('ID ujian wajib disertakan')
     }
 
-    const result = await gradingService.getCollectiveQuizAttempts(quizId, user.id)
+    const result = await gradingService.getCollectiveQuizAttempts(quizId, user.id, user.role)
 
     return createApiResponse(
       result,

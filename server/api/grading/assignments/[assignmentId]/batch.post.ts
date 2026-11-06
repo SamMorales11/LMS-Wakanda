@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     const origin = host ? `${protocol}://${host}` : undefined
 
     const body = await validateBody(event, batchGradeSubmissionSchema)
-    const result = await gradingService.batchGradeSubmissions(assignmentId, body, user.id, origin)
+    const result = await gradingService.batchGradeSubmissions(assignmentId, body, user.id, origin, user.role)
 
     return createApiResponse(
       result,

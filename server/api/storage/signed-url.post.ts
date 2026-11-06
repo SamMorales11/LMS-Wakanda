@@ -3,9 +3,13 @@ import { signedReadUrlSchema } from '../../../server/utils/schemas'
 import { validateBody } from '../../../server/utils/validation'
 import { createApiResponse } from '../../../server/utils/response'
 import { handleServerError } from '../../../server/utils/errors'
+import { requireUserAuth } from '../../../server/utils/auth'
 
 export default defineEventHandler(async (event) => {
   try {
+    // 0. Autentikasi sesi: Hanya pengguna login yang berhak meminta signed read URL
+    requireUserAuth(event)
+
     const body = await validateBody(event, signedReadUrlSchema)
 
     const protocol = getRequestProtocol(event)

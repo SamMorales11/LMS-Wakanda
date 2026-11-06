@@ -24,7 +24,8 @@ export default defineEventHandler(async (event) => {
       classId,
       body,
       user.id,
-      ipAddress
+      ipAddress,
+      user.role
     )
 
     return createApiResponse(

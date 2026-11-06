@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     const user = requireUserRole(event, ['lecturer', 'admin'])
     const body = await validateBody(event, openAttendanceSchema)
 
-    const tokenData = await attendanceService.openAttendanceSession(body, user.id)
+    const tokenData = await attendanceService.openAttendanceSession(body, user.id, user.role)
 
     return createApiResponse(
       tokenData,

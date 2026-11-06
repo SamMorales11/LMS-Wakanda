@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
   // Developer Tools
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   // Experimental Features
   experimental: {
@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   // Runtime Configuration
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL || '',
-    sessionSecret: process.env.SESSION_SECRET || 'wakanda-super-secure-session-secret-key-32chars-min-2026!',
+    sessionSecret: process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'wakanda-dev-session-secret-key-32chars-min-2026!'),
     // Cloudflare R2 Object Storage
     r2AccountId: process.env.R2_ACCOUNT_ID || '',
     r2AccessKeyId: process.env.R2_ACCESS_KEY_ID || '',

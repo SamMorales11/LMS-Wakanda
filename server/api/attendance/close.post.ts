@@ -11,10 +11,10 @@ const closeAttendanceSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   try {
-    requireUserRole(event, ['lecturer', 'admin'])
+    const user = requireUserRole(event, ['lecturer', 'admin'])
     const body = await validateBody(event, closeAttendanceSchema)
 
-    const result = await attendanceService.closeAttendanceSession(body.sessionId)
+    const result = await attendanceService.closeAttendanceSession(body.sessionId, user.id, user.role)
 
     return createApiResponse(
       result,

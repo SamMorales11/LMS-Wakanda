@@ -5,14 +5,14 @@ import { handleServerError, BadRequestError } from '../../../../utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
-    requireUserRole(event, ['lecturer', 'admin'])
+    const user = requireUserRole(event, ['lecturer', 'admin'])
     const classId = getRouterParam(event, 'classId')
 
     if (!classId) {
       throw new BadRequestError('ID Kelas wajib disertakan pada parameter URL')
     }
 
-    const logs = await gradebookService.getClassAuditLogs(classId)
+    const logs = await gradebookService.getClassAuditLogs(classId, user.role, user.id)
 
     return createApiResponse(
       logs,

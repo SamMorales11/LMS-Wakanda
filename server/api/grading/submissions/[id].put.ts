@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     const origin = host ? `${protocol}://${host}` : undefined
 
     const body = await validateBody(event, gradeSubmissionDetailSchema)
-    const result = await gradingService.gradeAssignmentSubmission(id, body, user.id, origin)
+    const result = await gradingService.gradeAssignmentSubmission(id, body, user.id, origin, user.role)
 
     const statusMsg = result.status === 'RESUBMISSION_REQUESTED'
       ? `Penilaian disimpan: Meminta revisi pengumpulan tugas untuk mahasiswa ${result.studentName}`

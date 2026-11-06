@@ -15,6 +15,10 @@ import {
   type ClassGradeAssessmentData
 } from '../repositories/gradebook.repository'
 import {
+  classRepository,
+  type IClassRepository
+} from '../repositories/class.repository'
+import {
   BadRequestError,
   NotFoundError,
   ForbiddenError
@@ -29,7 +33,10 @@ export const DEFAULT_GRADE_WEIGHTS: GradeWeightItemDto[] = [
 ]
 
 export class GradebookService {
-  constructor(private readonly repo: IGradebookRepository = gradebookRepository) {}
+  constructor(
+    private readonly repo: IGradebookRepository = gradebookRepository,
+    private readonly classRepo: IClassRepository = classRepository
+  ) {}
 
   /**
    * Mengonversi skor numerik (0 - 100) ke huruf mutu standar ITW dan bobot indeks (IP)
@@ -93,8 +100,16 @@ export class GradebookService {
   public async configureGradeWeights(
     classId: string,
     dto: ConfigureGradeWeightsDto,
-    lecturerId: string
+    lecturerId: string,
+    userRole?: string
   ): Promise<GradeWeightItemDto[]> {
+    if (userRole === 'lecturer') {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(classId, lecturerId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
+    }
+
     const classInfo = await this.repo.findClassInfo(classId)
     if (!classInfo) {
       throw new NotFoundError(`Kelas perkuliahan dengan ID '${classId}' tidak ditemukan`)
@@ -341,7 +356,18 @@ export class GradebookService {
   /**
    * Mengambil data Gradebook kelas secara komprehensif
    */
-  public async getClassGradebook(classId: string): Promise<ClassGradebookDto> {
+  public async getClassGradebook(
+    classId: string,
+    userRole?: string,
+    userId?: string
+  ): Promise<ClassGradebookDto> {
+    if (userRole === 'lecturer' && userId) {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(classId, userId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
+    }
+
     const data = await this.repo.findClassAssessmentData(classId)
     if (!data) {
       throw new NotFoundError(`Kelas perkuliahan dengan ID '${classId}' tidak ditemukan`)
@@ -405,8 +431,16 @@ export class GradebookService {
    */
   public async calculateAndPersistClassGradebook(
     classId: string,
-    lecturerId: string
+    lecturerId: string,
+    userRole?: string
   ): Promise<ClassGradebookDto> {
+    if (userRole === 'lecturer') {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(classId, lecturerId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
+    }
+
     const data = await this.repo.findClassAssessmentData(classId)
     if (!data) {
       throw new NotFoundError(`Kelas perkuliahan dengan ID '${classId}' tidak ditemukan`)
@@ -476,11 +510,19 @@ export class GradebookService {
     classId: string,
     dto: ManualGradeAdjustmentDto,
     changedById: string,
-    ipAddress?: string
+    ipAddress?: string,
+    userRole?: string
   ): Promise<{
     finalGrade: StudentGradeBreakdownDto['finalGrade']
     auditLog: GradeAuditLogDto
   }> {
+    if (userRole === 'lecturer') {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(classId, changedById)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
+    }
+
     const data = await this.repo.findClassAssessmentData(classId)
     if (!data) {
       throw new NotFoundError(`Kelas perkuliahan dengan ID '${classId}' tidak ditemukan`)
@@ -602,7 +644,18 @@ export class GradebookService {
   /**
    * Mengambil riwayat audit log perubahan nilai manual kelas
    */
-  public async getClassAuditLogs(classId: string): Promise<GradeAuditLogDto[]> {
+  public async getClassAuditLogs(
+    classId: string,
+    userRole?: string,
+    userId?: string
+  ): Promise<GradeAuditLogDto[]> {
+    if (userRole === 'lecturer' && userId) {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(classId, userId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
+    }
+
     const classInfo = await this.repo.findClassInfo(classId)
     if (!classInfo) {
       throw new NotFoundError(`Kelas perkuliahan dengan ID '${classId}' tidak ditemukan`)
@@ -616,8 +669,16 @@ export class GradebookService {
   public async updateClassGradeStatus(
     classId: string,
     status: GradeStatus,
-    userId: string
+    userId: string,
+    userRole?: string
   ): Promise<{ updatedCount: number; status: GradeStatus }> {
+    if (userRole === 'lecturer') {
+      const isAssigned = await this.classRepo.isLecturerAssignedToClass(classId, userId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas ini')
+      }
+    }
+
     const classInfo = await this.repo.findClassInfo(classId)
     if (!classInfo) {
       throw new NotFoundError(`Kelas perkuliahan dengan ID '${classId}' tidak ditemukan`)

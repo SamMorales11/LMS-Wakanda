@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     const protocol = getRequestHeader(event, 'x-forwarded-proto') || 'http'
     const origin = host ? `${protocol}://${host}` : undefined
 
-    const result = await gradingService.getSubmissionSignedReadUrl(id, origin)
+    const result = await gradingService.getSubmissionSignedReadUrl(id, origin, user.role, user.id)
 
     return createApiResponse(
       result,

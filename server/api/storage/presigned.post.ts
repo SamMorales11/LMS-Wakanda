@@ -3,9 +3,13 @@ import { presignedUploadSchema } from '../../../server/utils/schemas'
 import { validateBody } from '../../../server/utils/validation'
 import { createApiResponse } from '../../../server/utils/response'
 import { handleServerError } from '../../../server/utils/errors'
+import { requireUserAuth } from '../../../server/utils/auth'
 
 export default defineEventHandler(async (event) => {
   try {
+    // 0. Autentikasi sesi: Hanya pengguna login yang berhak meminta presigned upload URL
+    requireUserAuth(event)
+
     // 1. Validasi Zod: format berkas PDF/ZIP, max size 25MB, kategori, sanitize filename
     const body = await validateBody(event, presignedUploadSchema)
 

@@ -3,9 +3,8 @@ import { UnauthorizedError, ForbiddenError, handleServerError } from '../utils/e
 
 export default defineEventHandler(async (event) => {
   const path = getRequestPath(event)
-  const method = getMethod(event)
 
-  // 1. Ambil session pengguna jika ada
+  // 1. Ekstraksi session pengguna terotentikasi jika cookie tersedia
   try {
     const session = await getUserSession(event)
     if (session.data?.user?.id) {
@@ -15,75 +14,69 @@ export default defineEventHandler(async (event) => {
     console.error('[Auth Middleware] Gagal membaca session:', err)
   }
 
-  // 2. Lewati middleware untuk endpoint publik atau non-API
+  // 2. Lewati middleware untuk endpoint non-API
   if (!path.startsWith('/api')) {
     return
   }
 
-  // Endpoint publik tanpa autentikasi sesi (termasuk storage local yang divalidasi via signed HMAC token)
-  const publicApiPaths = [
-    '/api/auth/login',
-    '/api/health',
-    '/api/storage/local'
-  ]
+  // 3. Rute publik yang dikecualikan dari kewajiban otentikasi sesi:
+  // - /api/auth/login: Form otentikasi kredensial pengguna
+  // - /api/auth/logout: Pembersihan sesi aktif
+  // - /api/auth/me: Pemeriksaan status sesi aktif oleh client store
+  // - /api/health: Pemeriksaan ketersediaan sistem & basis data
+  // - /api/storage/local/**: Pengunggahan/pengunduhan fallback lokal yang divalidasi via HMAC signature
+  const isPublicRoute =
+    path === '/api/auth/login' ||
+    path === '/api/auth/logout' ||
+    path === '/api/auth/me' ||
+    path === '/api/health' ||
+    path.startsWith('/api/storage/local')
 
-  if (publicApiPaths.some(p => path === p || path.startsWith(`${p}/`))) {
+  if (isPublicRoute) {
     return
   }
 
   try {
-    // 3. Endpoint autentikasi sesi aktif (/api/auth/me, /api/auth/logout)
-    if (path.startsWith('/api/auth/')) {
-      if (!event.context.user) {
-        throw new UnauthorizedError('Sesi autentikasi diperlukan untuk mengakses layanan ini')
+    // 4. Deny-by-Default (SEC-02): Seluruh rute /api/** lainnya WAJIB memiliki sesi aktif
+    if (!event.context.user) {
+      throw new UnauthorizedError('Sesi autentikasi diperlukan untuk mengakses layanan API ini')
+    }
+
+    // 5. Role-Based Access Control (RBAC) Route Protection:
+
+    // A. Manajemen Pengguna (/api/users/**): Seluruh metode (GET, POST, PUT, DELETE) WAJIB Admin
+    if (path === '/api/users' || path.startsWith('/api/users/')) {
+      if (event.context.user.role !== 'admin') {
+        throw new ForbiddenError('Akses ditolak: Hanya Administrator yang berhak mengelola data pengguna')
       }
       return
     }
 
-    // 4. Role-Based Access Control (RBAC) Route Protection
-    // A. Endpoint Administrator (/api/admin/**)
+    // B. Endpoint Khusus Administrator (/api/admin/**)
     if (path.startsWith('/api/admin')) {
-      if (!event.context.user) {
-        throw new UnauthorizedError('Anda harus login terlebih dahulu sebagai Administrator')
-      }
       if (event.context.user.role !== 'admin') {
         throw new ForbiddenError('Akses ditolak: Hanya peran Administrator yang dapat mengakses endpoint ini')
       }
       return
     }
 
-    // B. Endpoint Dosen (/api/lecturer/**)
+    // C. Endpoint Khusus Dosen (/api/lecturer/**)
     if (path.startsWith('/api/lecturer')) {
-      if (!event.context.user) {
-        throw new UnauthorizedError('Anda harus login terlebih dahulu sebagai Dosen')
-      }
       if (event.context.user.role !== 'lecturer' && event.context.user.role !== 'admin') {
         throw new ForbiddenError('Akses ditolak: Hanya Dosen dan Administrator yang diizinkan')
       }
       return
     }
 
-    // C. Endpoint Mahasiswa (/api/student/**)
+    // D. Endpoint Khusus Mahasiswa (/api/student/**)
     if (path.startsWith('/api/student')) {
-      if (!event.context.user) {
-        throw new UnauthorizedError('Anda harus login terlebih dahulu sebagai Mahasiswa')
-      }
       if (event.context.user.role !== 'student' && event.context.user.role !== 'admin') {
         throw new ForbiddenError('Akses ditolak: Hanya Mahasiswa dan Administrator yang diizinkan')
       }
       return
     }
 
-    // D. Proteksi Mutasi Data Pengguna (/api/users POST, PUT, DELETE)
-    if (path.startsWith('/api/users') && ['POST', 'PUT', 'DELETE'].includes(method)) {
-      if (!event.context.user) {
-        throw new UnauthorizedError('Anda harus login untuk melakukan perubahan data pengguna')
-      }
-      if (event.context.user.role !== 'admin') {
-        throw new ForbiddenError('Akses ditolak: Hanya Administrator yang berhak mengelola data pengguna')
-      }
-      return
-    }
+    // Rute terotentikasi umum lainnya lolos verifikasi sesi Deny-by-Default dan diteruskan ke handler spesifik
   } catch (error) {
     return handleServerError(error)
   }

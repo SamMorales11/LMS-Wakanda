@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
       throw new BadRequestError('ID Kelas wajib disertakan pada parameter URL')
     }
 
-    const gradebook = await gradebookService.calculateAndPersistClassGradebook(classId, user.id)
+    const gradebook = await gradebookService.calculateAndPersistClassGradebook(classId, user.id, user.role)
 
     return createApiResponse(
       gradebook,

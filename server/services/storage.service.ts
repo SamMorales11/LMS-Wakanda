@@ -45,8 +45,14 @@ export class StorageService implements IStorageService {
   private readonly sessionSecret: string
 
   constructor() {
+    let resolvedSecret = process.env.SESSION_SECRET || ''
+    try {
+      resolvedSecret = useRuntimeConfig().sessionSecret || resolvedSecret
+    } catch {
+      // Fallback jika dipanggil di luar konteks runtime
+    }
     this.sessionSecret =
-      process.env.SESSION_SECRET || 'wakanda-super-secure-session-secret-key-32chars-min-2026!'
+      resolvedSecret || (process.env.NODE_ENV === 'production' ? '' : 'wakanda-dev-session-secret-key-32chars-min-2026!')
     this.localStorageDir = path.resolve(process.cwd(), 'storage/uploads')
 
     // R2 Credentials from environment
@@ -264,12 +270,18 @@ export class StorageService implements IStorageService {
   }
 
   /**
-   * Resolves safe local file path.
+   * Resolves safe local file path with canonical path traversal check.
    */
   public getLocalFilePath(fileKey: string): string {
-    // Prevent directory traversal
-    const safeKey = path.normalize(fileKey).replace(/^(\.\.(\/|\\|$))+/, '')
-    return path.join(this.localStorageDir, safeKey)
+    if (!fileKey || typeof fileKey !== 'string') {
+      throw new BadRequestError('Kunci berkas tidak valid')
+    }
+    const normalizedDir = path.resolve(this.localStorageDir)
+    const resolvedPath = path.resolve(normalizedDir, fileKey)
+    if (!resolvedPath.startsWith(normalizedDir + path.sep)) {
+      throw new BadRequestError('Akses berkas ditolak: Path traversal terdeteksi pada kunci berkas')
+    }
+    return resolvedPath
   }
 
   /**

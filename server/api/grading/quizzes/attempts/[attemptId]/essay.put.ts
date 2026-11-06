@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await validateBody(event, gradeQuizEssayDetailSchema)
-    const result = await gradingService.gradeQuizAttemptEssay(attemptId, body, user.id)
+    const result = await gradingService.gradeQuizAttemptEssay(attemptId, body, user.id, user.role)
 
     return createApiResponse(
       result,

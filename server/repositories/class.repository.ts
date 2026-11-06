@@ -31,6 +31,7 @@ export interface IClassRepository {
   delete(id: string): Promise<boolean>
   getSessions(classId: string): Promise<ClassSessionDto[]>
   getGradeWeights(classId: string): Promise<GradeWeightDto[]>
+  isLecturerAssignedToClass(classId: string, lecturerId: string): Promise<boolean>
 }
 
 export class ClassRepository implements IClassRepository {
@@ -352,6 +353,18 @@ export class ClassRepository implements IClassRepository {
 
   public async delete(id: string): Promise<boolean> {
     const rows = await db.delete(courseClasses).where(eq(courseClasses.id, id)).returning({ id: courseClasses.id })
+    return rows.length > 0
+  }
+
+  /**
+   * SEC-05: Memeriksa apakah seorang dosen ditugaskan sebagai pengampu kelas ini
+   */
+  public async isLecturerAssignedToClass(classId: string, lecturerId: string): Promise<boolean> {
+    const rows = await db
+      .select({ id: classLecturers.id })
+      .from(classLecturers)
+      .where(and(eq(classLecturers.classId, classId), eq(classLecturers.lecturerId, lecturerId)))
+      .limit(1)
     return rows.length > 0
   }
 }

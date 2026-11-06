@@ -5,7 +5,7 @@ import { BadRequestError, handleServerError } from '../../../utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
-    requireUserAuth(event)
+    const user = requireUserAuth(event)
 
     const sessionId = getRouterParam(event, 'sessionId')
     if (!sessionId) {
@@ -15,7 +15,8 @@ export default defineEventHandler(async (event) => {
     const query = getQuery(event)
     const classId = typeof query.classId === 'string' ? query.classId : undefined
 
-    const overview = await attendanceService.getSessionAttendanceOverview(sessionId, classId)
+    // SEC-03: Sensor data token PIN & QR jika pemanggil adalah mahasiswa
+    const overview = await attendanceService.getSessionAttendanceOverview(sessionId, classId, user.role, user.id)
 
     return createApiResponse(
       overview,
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
         sessionId: overview.sessionId,
         totalEnrolled: overview.totalEnrolled,
         presentCount: overview.presentCount,
-        hasActiveToken: !!overview.activeToken,
+        hasActiveToken: overview.hasActiveToken ?? !!overview.activeToken,
         requestId: event.context.requestId
       }
     )

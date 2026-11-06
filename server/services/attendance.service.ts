@@ -84,16 +84,23 @@ export class AttendanceService {
    */
   public async openAttendanceSession(
     dto: OpenAttendanceSessionDto,
-    lecturerId?: string
+    lecturerId?: string,
+    userRole?: string
   ): Promise<AttendanceTokenDto> {
-    const [session] = await Promise.all([
-      this.repo.getSessionById(dto.sessionId),
-      this.repo.deactivateTokensBySessionId(dto.sessionId)
-    ])
-
+    const session = await this.repo.getSessionById(dto.sessionId)
     if (!session) {
       throw new NotFoundError(`Sesi perkuliahan dengan ID '${dto.sessionId}' tidak ditemukan`)
     }
+
+    // SEC-05: Ownership Guard - Jika Dosen, wajibkan terdaftar sebagai pengampu kelas ini
+    if (userRole === 'lecturer' && lecturerId) {
+      const isAssigned = await classRepository.isLecturerAssignedToClass(session.classId, lecturerId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas perkuliahan ini')
+      }
+    }
+
+    await this.repo.deactivateTokensBySessionId(dto.sessionId)
 
     // 2. Generate 6-digit PIN acak kriptografis (100000 - 999999)
     const pinNumber = crypto.randomInt(100000, 999999).toString()
@@ -138,10 +145,22 @@ export class AttendanceService {
   /**
    * Dosen menutup sesi presensi lebih awal
    */
-  public async closeAttendanceSession(sessionId: string): Promise<{ success: boolean; message: string }> {
+  public async closeAttendanceSession(
+    sessionId: string,
+    lecturerId?: string,
+    userRole?: string
+  ): Promise<{ success: boolean; message: string }> {
     const session = await this.repo.getSessionById(sessionId)
     if (!session) {
       throw new NotFoundError(`Sesi perkuliahan dengan ID '${sessionId}' tidak ditemukan`)
+    }
+
+    // SEC-05: Ownership Guard - Jika Dosen, wajibkan terdaftar sebagai pengampu kelas ini
+    if (userRole === 'lecturer' && lecturerId) {
+      const isAssigned = await classRepository.isLecturerAssignedToClass(session.classId, lecturerId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas perkuliahan ini')
+      }
     }
 
     await this.repo.deactivateTokensBySessionId(sessionId)
@@ -303,11 +322,20 @@ export class AttendanceService {
    */
   public async manualUpdateStatus(
     dto: ManualAttendanceUpdateDto,
-    _updatedBy?: string
+    updatedBy?: string,
+    userRole?: string
   ): Promise<AttendanceLogDto> {
     const session = await this.repo.getSessionById(dto.sessionId)
     if (!session) {
       throw new NotFoundError(`Sesi perkuliahan dengan ID '${dto.sessionId}' tidak ditemukan`)
+    }
+
+    // SEC-05: Ownership Guard - Jika Dosen, wajibkan terdaftar sebagai pengampu kelas ini
+    if (userRole === 'lecturer' && updatedBy) {
+      const isAssigned = await classRepository.isLecturerAssignedToClass(session.classId, updatedBy)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas perkuliahan ini')
+      }
     }
 
     const updated = await this.repo.createOrUpdateLog({
@@ -436,10 +464,14 @@ export class AttendanceService {
 
   /**
    * Mengambil ikhtisar presensi sesi perkuliahan (Token aktif, rekap hadir, daftar mahasiswa)
+   * SEC-03: Sensor activeToken (PIN & QR payload) jika dipanggil oleh mahasiswa
+   * SEC-05: Validasi ownership dosen pengampu
    */
   public async getSessionAttendanceOverview(
     sessionId: string,
-    classId?: string
+    classId?: string,
+    userRole?: string,
+    userId?: string
   ): Promise<SessionAttendanceOverviewDto> {
     const session = await this.repo.getSessionById(sessionId)
     if (!session) {
@@ -447,6 +479,14 @@ export class AttendanceService {
     }
 
     const targetClassId = classId || session.classId
+
+    // SEC-05: Ownership Guard - Jika Dosen, wajibkan terdaftar sebagai pengampu kelas ini
+    if (userRole === 'lecturer' && userId) {
+      const isAssigned = await classRepository.isLecturerAssignedToClass(targetClassId, userId)
+      if (!isAssigned) {
+        throw new ForbiddenError('Akses ditolak: Anda bukan dosen pengampu untuk kelas perkuliahan ini')
+      }
+    }
 
     // 1. Eksekusi query terindeks secara concurrent untuk performa tinggi < 200ms
     const [activeTokenRow, totalEnrolled, logs] = await Promise.all([
@@ -456,6 +496,11 @@ export class AttendanceService {
     ])
 
     const activeToken = activeTokenRow ? await this.toTokenDto(activeTokenRow) : null
+    const hasActiveToken = !!activeToken && activeToken.isActive
+
+    // SEC-03: Sensor data token PIN & QR jika pemanggil adalah mahasiswa
+    // Mahasiswa hanya menerima hasActiveToken: true/false agar tidak dapat mencuri PIN dari respons API
+    const sanitizedActiveToken = (userRole === 'student') ? null : activeToken
 
     let presentCount = 0
     let lateCount = 0
@@ -475,14 +520,15 @@ export class AttendanceService {
       sessionId: session.id,
       sessionNumber: session.sessionNumber,
       sessionTitle: session.title,
-      activeToken,
+      activeToken: sanitizedActiveToken,
+      hasActiveToken,
       totalEnrolled,
       presentCount,
       lateCount,
       permitCount,
       sickCount,
       absentCount,
-      logs
+      logs: (userRole === 'student' && userId) ? logs.filter(l => l.studentId === userId) : logs
     }
   }
 }

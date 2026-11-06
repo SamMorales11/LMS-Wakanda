@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await validateBody(event, configureGradeWeightsSchema)
-    const weights = await gradebookService.configureGradeWeights(classId, body, user.id)
+    const weights = await gradebookService.configureGradeWeights(classId, body, user.id, user.role)
 
     return createApiResponse(
       weights,
