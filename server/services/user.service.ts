@@ -1,11 +1,13 @@
+import bcrypt from 'bcryptjs'
 import type { User, CreateUserDto, UpdateUserDto, UserRole } from '~/types'
 import { userRepository, type IUserRepository } from '../repositories'
 import { ConflictError, NotFoundError, BadRequestError } from '../utils/errors'
+import { assertNotProtectedDemoAccount } from '../utils/demo-guard'
 
 export class UserService {
   constructor(private readonly repo: IUserRepository = userRepository) {}
 
-  public async getAllUsers(filter?: { role?: UserRole; search?: string }): Promise<User[]> {
+  public async getAllUsers(filter?: { role?: UserRole; search?: string; limit?: number; offset?: number }): Promise<User[]> {
     return this.repo.findAll(filter)
   }
 
@@ -28,11 +30,24 @@ export class UserService {
       throw new ConflictError(`User with email '${dto.email}' already exists`)
     }
 
-    return this.repo.create(dto)
+    let passwordHash = dto.passwordHash
+    if (!passwordHash) {
+      const rawPassword = dto.password || 'Password123!'
+      passwordHash = await bcrypt.hash(rawPassword, 10)
+    }
+
+    return this.repo.create({
+      ...dto,
+      passwordHash
+    })
   }
 
   public async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
-    await this.getUserById(id)
+    const user = await this.getUserById(id)
+
+    if (dto.isActive === false || (dto.email && dto.email.trim().toLowerCase() !== user.email.toLowerCase())) {
+      assertNotProtectedDemoAccount(user.email, 'Penonaktifan atau modifikasi email')
+    }
 
     if (dto.email) {
       const existingWithEmail = await this.repo.findByEmail(dto.email)
@@ -50,9 +65,27 @@ export class UserService {
   }
 
   public async deleteUser(id: string): Promise<{ id: string; deleted: boolean }> {
-    await this.getUserById(id)
+    const user = await this.getUserById(id)
+    assertNotProtectedDemoAccount(user.email, 'Penghapusan akun')
     const deleted = await this.repo.delete(id)
     return { id, deleted }
+  }
+
+  public async resetPassword(
+    id: string,
+    newPassword?: string
+  ): Promise<{ success: boolean; message: string }> {
+    const user = await this.getUserById(id)
+    assertNotProtectedDemoAccount(user.email, 'Reset kata sandi')
+
+    const rawPassword = newPassword || 'Password123!'
+    const passwordHash = await bcrypt.hash(rawPassword, 10)
+    await this.repo.updatePassword(id, passwordHash)
+
+    return {
+      success: true,
+      message: `Kata sandi untuk pengguna '${user.name}' berhasil direset`
+    }
   }
 }
 

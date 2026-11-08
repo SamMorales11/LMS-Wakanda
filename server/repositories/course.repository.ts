@@ -5,7 +5,7 @@ import { db, courses, programs, type Course as DrizzleCourse } from '../database
 export interface ICourseRepository {
   findById(id: string): Promise<CourseDto | null>
   findByProgramAndCode(programId: string, code: string): Promise<CourseDto | null>
-  findAll(filter?: { programId?: string; search?: string }): Promise<CourseDto[]>
+  findAll(filter?: { programId?: string; search?: string; limit?: number; offset?: number }): Promise<CourseDto[]>
   create(dto: CreateCourseDto): Promise<CourseDto>
   update(id: string, dto: UpdateCourseDto): Promise<CourseDto | null>
   delete(id: string): Promise<boolean>
@@ -61,7 +61,7 @@ export class CourseRepository implements ICourseRepository {
     return rows[0] ? this.toDto(rows[0].course, rows[0].programName || undefined, rows[0].programCode || undefined) : null
   }
 
-  public async findAll(filter?: { programId?: string; search?: string }): Promise<CourseDto[]> {
+  public async findAll(filter?: { programId?: string; search?: string; limit?: number; offset?: number }): Promise<CourseDto[]> {
     const conditions = []
 
     if (filter?.programId) {
@@ -73,6 +73,9 @@ export class CourseRepository implements ICourseRepository {
       conditions.push(or(ilike(courses.code, q), ilike(courses.name, q)))
     }
 
+    const safeLimit = Math.min(Math.max(1, Number(filter?.limit) || 100), 100)
+    const safeOffset = Math.max(0, Number(filter?.offset) || 0)
+
     const rows = await db
       .select({
         course: courses,
@@ -83,6 +86,8 @@ export class CourseRepository implements ICourseRepository {
       .leftJoin(programs, eq(courses.programId, programs.id))
       .where(conditions.length > 0 ? (conditions.length === 1 ? conditions[0] : and(...conditions)) : undefined)
       .orderBy(courses.semester, courses.code)
+      .limit(safeLimit)
+      .offset(safeOffset)
 
     return rows.map(r => this.toDto(r.course, r.programName || undefined, r.programCode || undefined))
   }

@@ -18,6 +18,7 @@ export interface CreateUserDto {
   email: string
   role: UserRole
   nimNidn?: string
+  password?: string
   passwordHash?: string
   phoneNumber?: string
 }

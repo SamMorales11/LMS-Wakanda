@@ -2,8 +2,9 @@ import bcrypt from 'bcryptjs'
 import type { AuthSessionUser, AuthResponse, UserRole } from '~/types'
 import { userRepository, type IUserRepository } from '../repositories'
 import { getUserSession } from '../utils/session'
-import { UnauthorizedError, ForbiddenError, BadRequestError } from '../utils/errors'
-import type { LoginInput } from '../utils/schemas'
+import { UnauthorizedError, ForbiddenError, BadRequestError, NotFoundError } from '../utils/errors'
+import { assertNotProtectedDemoAccount } from '../utils/demo-guard'
+import type { LoginInput, ChangePasswordInput } from '../utils/schemas'
 
 export class AuthService {
   constructor(private readonly userRepo: IUserRepository = userRepository) {}
@@ -130,6 +131,43 @@ export class AuthService {
 
     event.context.user = updatedProfile
     return updatedProfile
+  }
+
+  /**
+   * Mengubah kata sandi mandiri pengguna aktif dengan verifikasi kata sandi lama
+   */
+  public async changePassword(
+    userId: string,
+    input: ChangePasswordInput
+  ): Promise<{ success: boolean; message: string }> {
+    const user = await this.userRepo.findByIdWithPassword(userId)
+    if (!user) {
+      throw new NotFoundError('Data pengguna tidak ditemukan')
+    }
+
+    // Protected Demo Account Guard
+    assertNotProtectedDemoAccount(user.email, 'Pengubahan kata sandi')
+
+    if (!user.passwordHash) {
+      throw new BadRequestError('Akun belum memiliki kata sandi terdaftar')
+    }
+
+    const isOldValid = await bcrypt.compare(input.currentPassword, user.passwordHash)
+    if (!isOldValid) {
+      throw new BadRequestError('Kata sandi saat ini tidak sesuai')
+    }
+
+    if (input.currentPassword === input.newPassword) {
+      throw new BadRequestError('Kata sandi baru harus berbeda dari kata sandi lama')
+    }
+
+    const newHash = await bcrypt.hash(input.newPassword, 10)
+    await this.userRepo.updatePassword(userId, newHash)
+
+    return {
+      success: true,
+      message: 'Kata sandi akun Anda berhasil diperbarui'
+    }
   }
 }
 

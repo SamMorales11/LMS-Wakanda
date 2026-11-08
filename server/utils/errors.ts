@@ -52,23 +52,35 @@ export class ForbiddenError extends DomainError {
 }
 
 /**
- * Maps a DomainError to an H3 Nitro error.
+ * Maps a DomainError to an H3 Nitro error with production error sanitization.
  */
 export const handleServerError = (error: unknown) => {
+  const isProd = process.env.NODE_ENV === 'production'
+
   if (error instanceof DomainError) {
+    const isInternal500 = error.statusCode >= 500
+    const safeMessage = (isProd && isInternal500) ? 'Terjadi kesalahan internal server' : error.message
+
     throw createError({
       statusCode: error.statusCode,
-      statusMessage: error.message,
+      statusMessage: safeMessage,
       data: {
         code: error.code,
-        details: error.details,
+        details: isProd && isInternal500 ? undefined : error.details,
         timestamp: new Date().toISOString()
       }
     })
   }
 
-  // Fallback for standard or unknown errors
-  const message = error instanceof Error ? error.message : 'Internal Server Error'
+  // Fallback for standard or unknown errors (e.g. raw Neon/Drizzle database errors)
+  if (isProd) {
+    console.error('[InternalServerError]:', error)
+  }
+
+  const message = isProd
+    ? 'Terjadi kesalahan internal server'
+    : (error instanceof Error ? error.message : 'Internal Server Error')
+
   throw createError({
     statusCode: 500,
     statusMessage: message,

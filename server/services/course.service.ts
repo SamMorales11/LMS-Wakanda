@@ -7,7 +7,7 @@ import { ConflictError, NotFoundError, BadRequestError } from '../utils/errors'
 export class CourseService {
   constructor(private readonly repo: ICourseRepository = courseRepository) {}
 
-  public async getAllCourses(filter?: { programId?: string; search?: string }): Promise<CourseDto[]> {
+  public async getAllCourses(filter?: { programId?: string; search?: string; limit?: number; offset?: number }): Promise<CourseDto[]> {
     return this.repo.findAll(filter)
   }
 

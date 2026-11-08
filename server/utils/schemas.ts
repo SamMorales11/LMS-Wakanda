@@ -6,7 +6,9 @@ export const createUserSchema = z.object({
   name: z.string().trim().min(2, 'Nama minimal 2 karakter').max(100),
   email: z.string().trim().email('Format email tidak valid'),
   role: userRoleSchema,
-  nimNidn: z.string().trim().max(50).optional()
+  nimNidn: z.string().trim().max(50).optional(),
+  password: z.string().min(6, 'Password minimal 6 karakter').optional(),
+  phoneNumber: z.string().trim().max(20).optional()
 })
 
 export const updateUserSchema = z.object({
@@ -19,12 +21,38 @@ export const updateUserSchema = z.object({
 
 export const userQuerySchema = z.object({
   role: userRoleSchema.optional(),
-  search: z.string().trim().optional()
+  search: z.string().trim().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional().default(100),
+  offset: z.coerce.number().int().min(0).optional().default(0)
+})
+
+export const classQuerySchema = z.object({
+  academicTermId: z.string().trim().optional(),
+  courseId: z.string().trim().optional(),
+  search: z.string().trim().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional().default(100),
+  offset: z.coerce.number().int().min(0).optional().default(0)
+})
+
+export const courseQuerySchema = z.object({
+  programId: z.string().trim().optional(),
+  search: z.string().trim().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional().default(100),
+  offset: z.coerce.number().int().min(0).optional().default(0)
 })
 
 export const loginSchema = z.object({
   email: z.string().trim().email('Format email tidak valid'),
   password: z.string().min(1, 'Password wajib diisi')
+})
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Kata sandi saat ini wajib diisi'),
+  newPassword: z.string().min(6, 'Kata sandi baru minimal 6 karakter').max(100)
+})
+
+export const resetPasswordSchema = z.object({
+  newPassword: z.string().min(6, 'Kata sandi baru minimal 6 karakter').max(100).optional().default('Password123!')
 })
 
 // --- Academic Terms Schemas ---
@@ -101,12 +129,16 @@ export type CreateUserInput = z.infer<typeof createUserSchema>
 export type UpdateUserInput = z.infer<typeof updateUserSchema>
 export type UserQueryInput = z.infer<typeof userQuerySchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 export type CreateAcademicTermInput = z.infer<typeof createAcademicTermSchema>
 export type UpdateAcademicTermInput = z.infer<typeof updateAcademicTermSchema>
 export type CreateCourseInput = z.infer<typeof createCourseSchema>
 export type UpdateCourseInput = z.infer<typeof updateCourseSchema>
 export type CreateCourseClassInput = z.infer<typeof createCourseClassSchema>
 export type UpdateCourseClassInput = z.infer<typeof updateCourseClassSchema>
+export type ClassQueryInput = z.infer<typeof classQuerySchema>
+export type CourseQueryInput = z.infer<typeof courseQuerySchema>
 
 // ============================================================================
 // 6. Object Storage Validation Schemas (Cloudflare R2 & Local Fallback)

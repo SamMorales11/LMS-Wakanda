@@ -25,7 +25,7 @@ export interface IClassRepository {
   findById(id: string): Promise<CourseClassDto | null>
   findDetailById(id: string): Promise<CourseClassDetailDto | null>
   findByTermAndCourse(academicTermId: string, courseId: string, code: string): Promise<CourseClassDto | null>
-  findAll(filter?: { academicTermId?: string; courseId?: string; search?: string }): Promise<CourseClassDto[]>
+  findAll(filter?: { academicTermId?: string; courseId?: string; search?: string; limit?: number; offset?: number }): Promise<CourseClassDto[]>
   createWithSessionsAndWeights(dto: CreateCourseClassDto, baseDate: string): Promise<CourseClassDetailDto>
   update(id: string, dto: UpdateCourseClassDto): Promise<CourseClassDto | null>
   delete(id: string): Promise<boolean>
@@ -132,7 +132,7 @@ export class ClassRepository implements IClassRepository {
       : null
   }
 
-  public async findAll(filter?: { academicTermId?: string; courseId?: string; search?: string }): Promise<CourseClassDto[]> {
+  public async findAll(filter?: { academicTermId?: string; courseId?: string; search?: string; limit?: number; offset?: number }): Promise<CourseClassDto[]> {
     const conditions = []
 
     if (filter?.academicTermId) {
@@ -148,6 +148,9 @@ export class ClassRepository implements IClassRepository {
       conditions.push(or(ilike(courseClasses.code, q), ilike(courses.name, q), ilike(courses.code, q)))
     }
 
+    const safeLimit = Math.min(Math.max(1, Number(filter?.limit) || 100), 100)
+    const safeOffset = Math.max(0, Number(filter?.offset) || 0)
+
     const rows = await db
       .select({
         courseClass: courseClasses,
@@ -161,6 +164,8 @@ export class ClassRepository implements IClassRepository {
       .leftJoin(academicTerms, eq(courseClasses.academicTermId, academicTerms.id))
       .where(conditions.length > 0 ? (conditions.length === 1 ? conditions[0] : and(...conditions)) : undefined)
       .orderBy(courses.code, courseClasses.code)
+      .limit(safeLimit)
+      .offset(safeOffset)
 
     return rows.map(r => this.toDto(r.courseClass, r.courseName || undefined, r.courseCode || undefined, r.termName || undefined, r.termCode || undefined))
   }

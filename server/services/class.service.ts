@@ -22,6 +22,8 @@ export class ClassService {
     academicTermId?: string
     courseId?: string
     search?: string
+    limit?: number
+    offset?: number
   }): Promise<CourseClassDto[]> {
     return this.repo.findAll(filter)
   }

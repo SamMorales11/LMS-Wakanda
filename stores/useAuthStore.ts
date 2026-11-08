@@ -118,6 +118,34 @@ export const useAuthStore = defineStore('auth', {
       if (!this.isInitialized) {
         await this.fetchUser()
       }
+    },
+
+    /**
+     * Memperbarui kata sandi mandiri pengguna aktif ke endpoint PUT /api/auth/change-password.
+     */
+    async changePassword(payload: { currentPassword: string; newPassword: string }): Promise<{ success: boolean; message: string }> {
+      this.isLoading = true
+      this.error = null
+
+      try {
+        const response = await $fetch<ApiResponse<{ success: boolean; message: string }>>('/api/auth/change-password', {
+          method: 'PUT',
+          body: payload
+        })
+
+        if (!response.success) {
+          throw new Error(response.message || 'Gagal mengubah kata sandi')
+        }
+
+        return response.data || { success: true, message: response.message }
+      } catch (err: unknown) {
+        const fetchErr = err as { data?: { statusMessage?: string; message?: string } }
+        const message = fetchErr.data?.statusMessage || fetchErr.data?.message || (err instanceof Error ? err.message : 'Gagal mengubah kata sandi')
+        this.error = message
+        throw new Error(message)
+      } finally {
+        this.isLoading = false
+      }
     }
   }
 })

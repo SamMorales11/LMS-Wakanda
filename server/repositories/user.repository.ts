@@ -1,4 +1,5 @@
-import { eq, or, ilike, desc } from 'drizzle-orm'
+import { eq, and, or, ilike, desc } from 'drizzle-orm'
+import bcrypt from 'bcryptjs'
 import type { User as DomainUser, CreateUserDto, UpdateUserDto, UserRole } from '~/types'
 import type { IBaseRepository } from './base.repository'
 import { db, users, type User as DrizzleUser } from '../database'
@@ -6,7 +7,10 @@ import { db, users, type User as DrizzleUser } from '../database'
 export interface IUserRepository extends IBaseRepository<DomainUser, string, CreateUserDto> {
   findByEmail(email: string): Promise<DomainUser | null>
   findByEmailWithPassword(email: string): Promise<DrizzleUser | null>
+  findByIdWithPassword(id: string): Promise<DrizzleUser | null>
   findByRole(role: UserRole): Promise<DomainUser[]>
+  findAll(filter?: { role?: UserRole; search?: string; limit?: number; offset?: number }): Promise<DomainUser[]>
+  updatePassword(id: string, passwordHash: string): Promise<boolean>
 }
 
 export class UserRepository implements IUserRepository {
@@ -42,12 +46,17 @@ export class UserRepository implements IUserRepository {
     return rows[0] || null
   }
 
+  public async findByIdWithPassword(id: string): Promise<DrizzleUser | null> {
+    const rows = await db.select().from(users).where(eq(users.id, id)).limit(1)
+    return rows[0] || null
+  }
+
   public async findByRole(role: UserRole): Promise<DomainUser[]> {
     const rows = await db.select().from(users).where(eq(users.role, role)).orderBy(desc(users.createdAt))
     return rows.map(r => this.toDomain(r))
   }
 
-  public async findAll(filter?: { role?: UserRole; search?: string }): Promise<DomainUser[]> {
+  public async findAll(filter?: { role?: UserRole; search?: string; limit?: number; offset?: number }): Promise<DomainUser[]> {
     const conditions = []
 
     if (filter?.role) {
@@ -59,22 +68,33 @@ export class UserRepository implements IUserRepository {
       conditions.push(or(ilike(users.name, q), ilike(users.email, q)))
     }
 
+    const safeLimit = Math.min(Math.max(1, Number(filter?.limit) || 100), 100)
+    const safeOffset = Math.max(0, Number(filter?.offset) || 0)
+
     const rows = await db
       .select()
       .from(users)
-      .where(conditions.length > 0 ? (conditions.length === 1 ? conditions[0] : or(...conditions)) : undefined)
+      .where(conditions.length > 0 ? (conditions.length === 1 ? conditions[0] : and(...conditions)) : undefined)
       .orderBy(desc(users.createdAt))
+      .limit(safeLimit)
+      .offset(safeOffset)
 
     return rows.map(r => this.toDomain(r))
   }
 
   public async create(dto: CreateUserDto): Promise<DomainUser> {
+    let passwordHash = dto.passwordHash
+    if (!passwordHash) {
+      const rawPassword = dto.password || 'Password123!'
+      passwordHash = await bcrypt.hash(rawPassword, 10)
+    }
+
     const rows = await db.insert(users).values({
       name: dto.name,
       email: dto.email.trim().toLowerCase(),
       role: dto.role,
       nimNidn: dto.nimNidn || null,
-      passwordHash: dto.passwordHash || null,
+      passwordHash,
       phoneNumber: dto.phoneNumber || null,
       isActive: true
     }).returning()
@@ -95,6 +115,14 @@ export class UserRepository implements IUserRepository {
     }).where(eq(users.id, id)).returning()
 
     return rows[0] ? this.toDomain(rows[0]) : null
+  }
+
+  public async updatePassword(id: string, passwordHash: string): Promise<boolean> {
+    const rows = await db.update(users).set({
+      passwordHash,
+      updatedAt: new Date()
+    }).where(eq(users.id, id)).returning({ id: users.id })
+    return rows.length > 0
   }
 
   public async delete(id: string): Promise<boolean> {
