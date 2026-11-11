@@ -35,7 +35,7 @@ export interface IClassRepository {
 }
 
 export class ClassRepository implements IClassRepository {
-  private toDto(row: DrizzleClass, courseName?: string, courseCode?: string, termName?: string, termCode?: string, lecturerName?: string | null): CourseClassDto {
+  private toDto(row: DrizzleClass, courseName?: string, courseCode?: string, termName?: string, termCode?: string, lecturerName?: string | null, lecturerId?: string | null): CourseClassDto {
     return {
       id: row.id,
       courseId: row.courseId,
@@ -52,6 +52,7 @@ export class ClassRepository implements IClassRepository {
       termName,
       termCode,
       lecturerName: lecturerName || null,
+      lecturerId: lecturerId || null,
       createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
       updatedAt: row.updatedAt instanceof Date ? row.updatedAt.toISOString() : String(row.updatedAt)
     }
@@ -93,16 +94,26 @@ export class ClassRepository implements IClassRepository {
         courseName: courses.name,
         courseCode: courses.code,
         termName: academicTerms.name,
-        termCode: academicTerms.code
+        termCode: academicTerms.code,
+        lecturerName: users.name,
+        lecturerId: classLecturers.lecturerId
       })
       .from(courseClasses)
       .leftJoin(courses, eq(courseClasses.courseId, courses.id))
       .leftJoin(academicTerms, eq(courseClasses.academicTermId, academicTerms.id))
+      .leftJoin(
+        classLecturers,
+        and(
+          eq(classLecturers.classId, courseClasses.id),
+          eq(classLecturers.isPrimary, true)
+        )
+      )
+      .leftJoin(users, eq(users.id, classLecturers.lecturerId))
       .where(eq(courseClasses.id, id))
       .limit(1)
 
     return rows[0]
-      ? this.toDto(rows[0].courseClass, rows[0].courseName || undefined, rows[0].courseCode || undefined, rows[0].termName || undefined, rows[0].termCode || undefined)
+      ? this.toDto(rows[0].courseClass, rows[0].courseName || undefined, rows[0].courseCode || undefined, rows[0].termName || undefined, rows[0].termCode || undefined, rows[0].lecturerName, rows[0].lecturerId)
       : null
   }
 
@@ -159,7 +170,8 @@ export class ClassRepository implements IClassRepository {
         courseCode: courses.code,
         termName: academicTerms.name,
         termCode: academicTerms.code,
-        lecturerName: users.name
+        lecturerName: users.name,
+        lecturerId: classLecturers.lecturerId
       })
       .from(courseClasses)
       .leftJoin(courses, eq(courseClasses.courseId, courses.id))
@@ -177,7 +189,7 @@ export class ClassRepository implements IClassRepository {
       .limit(safeLimit)
       .offset(safeOffset)
 
-    return rows.map(r => this.toDto(r.courseClass, r.courseName || undefined, r.courseCode || undefined, r.termName || undefined, r.termCode || undefined, r.lecturerName))
+    return rows.map(r => this.toDto(r.courseClass, r.courseName || undefined, r.courseCode || undefined, r.termName || undefined, r.termCode || undefined, r.lecturerName, r.lecturerId))
   }
 
   public async getSessions(classId: string): Promise<ClassSessionDto[]> {

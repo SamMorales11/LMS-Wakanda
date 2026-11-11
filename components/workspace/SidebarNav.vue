@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAcademicStore } from '~/stores/useAcademicStore'
@@ -27,6 +27,28 @@ const handleLogout = async () => {
 }
 
 const activeClassId = computed(() => academicStore.selectedClassId)
+
+const displayedClasses = computed(() => {
+  if (authStore.isLecturer && authStore.user?.id) {
+    return academicStore.classes.filter(c => c.lecturerId === authStore.user?.id)
+  }
+  return academicStore.classes
+})
+
+// Otomatis memilih kelas pertama yang diampu dosen saat berganti akun dosen atau saat kelas aktif tidak valid
+watch(
+  () => [authStore.user?.id, displayedClasses.value],
+  () => {
+    if (authStore.isLecturer && displayedClasses.value.length > 0) {
+      const currentSelected = academicStore.selectedClassId
+      const isValid = currentSelected && displayedClasses.value.some(c => c.id === currentSelected)
+      if (!isValid) {
+        academicStore.selectClass(displayedClasses.value[0].id)
+      }
+    }
+  },
+  { immediate: true }
+)
 
 const roleLabel = computed(() => {
   if (authStore.isAdmin) return 'Administrator'
@@ -93,7 +115,7 @@ const roleLabel = computed(() => {
         <div class="flex items-center justify-between px-2">
           <span class="text-[10px] font-mono font-bold text-slate-400 tracking-wider uppercase">Kelas Perkuliahan</span>
           <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-slate-800 text-slate-300 border border-slate-700">
-            {{ academicStore.classes.length }}
+            {{ displayedClasses.length }}
           </span>
         </div>
 
@@ -103,15 +125,15 @@ const roleLabel = computed(() => {
         </div>
 
         <div
-          v-else-if="academicStore.classes.length === 0"
+          v-else-if="displayedClasses.length === 0"
           class="p-4 text-center text-xs text-slate-400 font-inter bg-slate-900 rounded-sm border border-slate-800"
         >
-          Belum ada kelas paralel terdaftar.
+          {{ authStore.isLecturer ? 'Belum ada kelas perkuliahan yang diampu.' : 'Belum ada kelas paralel terdaftar.' }}
         </div>
 
         <div v-else class="space-y-1.5">
           <button
-            v-for="item in academicStore.classes"
+            v-for="item in displayedClasses"
             :key="item.id"
             type="button"
             @click="academicStore.selectClass(item.id)"

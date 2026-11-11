@@ -143,6 +143,27 @@ const handleDeleteAssignment = async (a: AssignmentDto) => {
 }
 
 // Format tanggal sesi perkuliahan
+const DAY_TRANSLATIONS: Record<string, string> = {
+  monday: 'SENIN',
+  tuesday: 'SELASA',
+  wednesday: 'RABU',
+  thursday: 'KAMIS',
+  friday: 'JUMAT',
+  saturday: 'SABTU',
+  sunday: 'MINGGU'
+}
+
+const formatDay = (day?: string | null) => {
+  if (!day) return 'SENIN'
+  const clean = day.trim().toLowerCase()
+  return DAY_TRANSLATIONS[clean] || day.toUpperCase()
+}
+
+const formatTime = (time?: string | null, fallback = '08:00') => {
+  if (!time) return fallback
+  return time.trim().slice(0, 5)
+}
+
 const formatSessionDate = (dateStr?: string) => {
   if (!dateStr) return '-'
   try {
@@ -244,94 +265,90 @@ const formatFileSize = (bytes?: number | null) => {
       <!-- Banner Peringatan Dini EWS Otomatis Mahasiswa -->
       <EwsAlertBanner />
 
-      <!-- Header Banner Kelas Aktif -->
-      <section class="bg-white rounded-sm p-5 sm:p-6 border border-slate-200 border-t-2 border-t-[#1E3A8A]">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-          <div class="min-w-0 space-y-2">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2 py-0.5 rounded-sm bg-slate-100 text-[#1E3A8A] border border-slate-200 font-mono text-[10px] font-bold">
-                {{ currentClass.courseCode || 'KODE MK' }}
-              </span>
-              <span class="px-2 py-0.5 rounded-sm bg-slate-100 text-slate-700 border border-slate-200 font-mono text-[10px] font-semibold">
-                Kelas {{ currentClass.code }}
-              </span>
-              <span class="px-2 py-0.5 rounded-sm bg-slate-100 text-slate-600 border border-slate-200 font-mono text-[10px]">
-                Kapasitas {{ currentClass.capacity || 0 }} Mahasiswa
-              </span>
-            </div>
+      <!-- Micro-Meta Bar Kelas Aktif (Tanpa Redundansi Judul Mata Kuliah terhadap Top Bar) -->
+      <section class="bg-white rounded-sm px-4 py-2.5 border border-slate-200 border-t-2 border-t-[#1E3A8A]">
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 font-inter">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+              <span>Dosen: <LecturerName /></span>
+            </span>
 
-            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight font-jakarta text-[#0F172A]">
-              {{ currentClass.courseName || currentClass.code }}
-            </h2>
+            <span class="text-slate-300 hidden sm:inline">&middot;</span>
 
-            <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-slate-600 font-inter">
-              <span class="flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-                <span>Dosen: <LecturerName /></span>
-              </span>
-              <span class="flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                </svg>
-                <span>{{ currentClass.room || 'Ruang Belum Ditentukan' }}</span>
-              </span>
-              <span class="flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-                <span class="font-mono text-slate-600">{{ currentClass.scheduleDay || 'Senin' }}, {{ currentClass.scheduleStart || '08:00' }} - {{ currentClass.scheduleEnd || '10:30' }} WIB</span>
-              </span>
-            </div>
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              <span>{{ currentClass.room || 'Ruang Belum Ditentukan' }}</span>
+            </span>
+
+            <span class="text-slate-300 hidden sm:inline">&middot;</span>
+
+            <span class="flex items-center gap-1.5 font-mono whitespace-nowrap">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{{ formatDay(currentClass.scheduleDay) }}, {{ formatTime(currentClass.scheduleStart, '08:00') }} - {{ formatTime(currentClass.scheduleEnd, '11:30') }} WIB</span>
+            </span>
           </div>
 
-          <!-- Ringkasan Kurikulum -->
-          <div class="shrink-0 md:text-right">
-            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 block">Kurikulum Semester</span>
-            <span class="text-xl font-bold font-mono text-[#1E3A8A] block">16 Pertemuan</span>
-            <span class="text-[11px] text-slate-400 font-inter block">UTS pada sesi 8 · UAS pada sesi 16</span>
+          <div class="flex items-center gap-2 font-mono text-[10px] text-slate-500">
+            <span class="px-2 py-0.5 rounded-sm bg-slate-100 border border-slate-200">
+              Kapasitas {{ currentClass.capacity || 0 }} mhs
+            </span>
+            <span class="px-2 py-0.5 rounded-sm bg-slate-100 border border-slate-200 font-bold text-[#1E3A8A]">
+              16 Pertemuan
+            </span>
           </div>
         </div>
       </section>
 
-      <!-- Navigator 16 Pertemuan Perkuliahan -->
-      <section class="bg-white rounded-sm p-4 sm:p-5 border border-slate-200 space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
-              Struktur 16 Pertemuan Kurikulum
-            </h3>
-            <p class="text-[11px] text-slate-500 font-inter mt-0.5">
-              Pilih pertemuan untuk melihat silabus, materi ajar, dan status kehadiran.
-            </p>
+      <!-- Strip Pemilih 16 Pertemuan Kompak (grid-cols-8) -->
+      <section class="bg-white rounded-sm p-3 border border-slate-200 space-y-2">
+        <div class="flex items-center justify-between text-xs font-inter px-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
+              Struktur 16 Pertemuan
+            </span>
+            <span class="font-mono text-[10px] px-1.5 py-0.2 rounded-xs bg-[#1E3A8A] text-white font-bold">
+              P-{{ selectedSessionNum }} Aktif
+            </span>
           </div>
-          <span class="hidden sm:inline-flex text-[10px] font-mono text-slate-400">
-            P-8: UTS · P-16: UAS
-          </span>
+          <div class="flex items-center gap-2.5 text-[10px] font-mono text-slate-400">
+            <span class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-xs bg-amber-400"></span> P-8: UTS
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-xs bg-blue-500"></span> P-16: UAS
+            </span>
+          </div>
         </div>
 
-        <!-- Grid 16 Pertemuan -->
-        <div class="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-16 gap-1.5">
+        <!-- Grid 8 Kolom (2 Baris x 8 Pertemuan) Kompak & Nyaman di Layar Laptop -->
+        <div class="grid grid-cols-8 gap-1.5">
           <button
             v-for="s in sessions"
             :key="s.id"
             type="button"
             @click="academicStore.selectSession(s.sessionNumber)"
-            class="flex flex-col items-center justify-center py-2 px-1 rounded-sm border transition text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
+            class="flex items-center justify-center gap-1 py-1.5 px-2 rounded-sm border transition text-xs font-inter focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
             :class="selectedSessionNum === s.sessionNumber
               ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] font-bold shadow-xs'
               : (s.sessionType === 'MIDTERM_EXAM'
-                  ? 'bg-amber-50/50 border-amber-300 text-amber-900 hover:bg-amber-100/60'
+                  ? 'bg-amber-50/70 border-amber-300 text-amber-900 hover:bg-amber-100'
                   : (s.sessionType === 'FINAL_EXAM'
-                      ? 'bg-blue-50/50 border-blue-300 text-[#1E3A8A] hover:bg-blue-100/60'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'))"
+                      ? 'bg-blue-50/70 border-blue-300 text-[#1E3A8A] hover:bg-blue-100'
+                      : 'bg-slate-50/60 text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-100'))"
+            :title="`Pertemuan ${s.sessionNumber}: ${s.title}`"
           >
-            <span class="text-[10px] font-mono font-bold leading-none">P-{{ s.sessionNumber }}</span>
+            <span class="font-mono font-bold">P-{{ s.sessionNumber }}</span>
             <span
               v-if="s.sessionType === 'MIDTERM_EXAM' || s.sessionType === 'FINAL_EXAM'"
-              class="text-[8px] font-mono mt-1 font-bold leading-none uppercase"
+              class="text-[9px] font-mono font-bold uppercase ml-0.5"
               :class="selectedSessionNum === s.sessionNumber ? 'text-teal-200' : (s.sessionType === 'MIDTERM_EXAM' ? 'text-[#D97706]' : 'text-[#1E3A8A]')"
             >
               {{ s.sessionType === 'MIDTERM_EXAM' ? 'UTS' : 'UAS' }}
@@ -370,7 +387,7 @@ const formatFileSize = (bytes?: number | null) => {
               {{ formatSessionDate(selectedSession.sessionDate) }}
             </span>
             <span class="font-mono text-scholarly-teal block">
-              {{ selectedSession.startTime || '08:00' }} - {{ selectedSession.endTime || '10:30' }} WIB
+              {{ formatTime(selectedSession.startTime, '08:00') }} - {{ formatTime(selectedSession.endTime, '10:30') }} WIB
             </span>
           </div>
         </div>

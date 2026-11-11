@@ -6,7 +6,6 @@ import { useAttendanceStore } from '~/stores/useAttendanceStore'
 import { useAssignmentStore } from '~/stores/useAssignmentStore'
 import QrCodeModal from './QrCodeModal.vue'
 import ManualAttendanceModal from './ManualAttendanceModal.vue'
-import LecturerName from './shared/LecturerName.vue'
 
 const authStore = useAuthStore()
 const academicStore = useAcademicStore()
@@ -496,23 +495,6 @@ const dynamicDeadlines = computed(() => {
             <span class="font-mono text-slate-600 font-medium">{{ item.due }}</span>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- PANEL 3: DOSEN PENGAMPU KELAS -->
-    <section
-      v-if="!authStore.isAdmin"
-      class="p-3.5 rounded-sm bg-[#F8FAFC] border border-slate-200 space-y-2.5"
-    >
-      <div class="flex items-center gap-2 text-xs font-bold text-[#0F172A] font-jakarta">
-        <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-        </svg>
-        <span>Dosen Pengampu Kelas</span>
-      </div>
-
-      <div class="text-xs font-inter space-y-1 text-slate-700">
-        <LecturerName show-nidn show-email />
       </div>
     </section>
 

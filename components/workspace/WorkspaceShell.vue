@@ -30,6 +30,10 @@ const activeNavItem = computed(
 
 const currentClass = computed(() => academicStore.selectedClassDetail || academicStore.selectedClass)
 
+// Contextual Split Layout: Panel kanan hanya relevan di tab 'sessions' (Struktur Pertemuan)
+const isSessionsSection = computed(() => activeSection.value === 'sessions')
+const shouldShowContextualPanel = computed(() => !authStore.isAdmin && isSessionsSection.value)
+
 // State Drawer Mobile
 const isMobileSidebarOpen = ref(false)
 const isMobilePanelOpen = ref(false)
@@ -114,8 +118,8 @@ const togglePanelCollapsed = () => {
           <span>{{ activeNavItem.label }}</span>
         </span>
 
-        <!-- Kendali Panel Kanan (Hanya Dosen & Mahasiswa) -->
-        <template v-if="!authStore.isAdmin">
+        <!-- Kendali Panel Kanan (Hanya tampil di tab 'sessions' untuk Dosen & Mahasiswa) -->
+        <template v-if="shouldShowContextualPanel">
           <!-- Desktop Toggle -->
           <button
             type="button"
@@ -185,8 +189,8 @@ const togglePanelCollapsed = () => {
         </div>
       </main>
 
-      <!-- ZONA 3 (KANAN): PANEL KONTEKSTUAL PRESENSI (Hanya untuk Dosen & Mahasiswa) -->
-      <template v-if="!authStore.isAdmin">
+      <!-- ZONA 3 (KANAN): PANEL KONTEKSTUAL PRESENSI (Hanya saat tab 'sessions' untuk Dosen & Mahasiswa) -->
+      <template v-if="shouldShowContextualPanel">
         <div
           v-if="isMobilePanelOpen"
           class="fixed inset-0 bg-[#0F172A]/70 backdrop-blur-xs z-40 lg:hidden"

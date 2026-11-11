@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useAuthStore } from './useAuthStore'
 import type {
   AcademicTermDto,
   CourseClassDto,
@@ -168,13 +169,26 @@ export const useAcademicStore = defineStore('academic', {
     async initWorkspace(): Promise<void> {
       this.isLoading = true
       try {
+        const authStore = useAuthStore()
+        if (!authStore.user) {
+          await authStore.fetchUser()
+        }
+
         const term = await this.fetchActiveTerm()
         const classes = await this.fetchClasses(term?.id)
         if (classes.length > 0) {
-          // Pilih kelas pertama secara default jika belum ada yang dipilih
-          const targetId = this.selectedClassId && classes.some(c => c.id === this.selectedClassId)
+          // Khusus role 'lecturer': prioritaskan kelas yang benar-benar diampu oleh dosen yang login
+          const candidateClasses = (authStore.isLecturer && authStore.user?.id)
+            ? classes.filter(c => c.lecturerId === authStore.user?.id)
+            : classes
+
+          const availableClasses = candidateClasses.length > 0 ? candidateClasses : classes
+
+          // Validasi apakah target kelas yang tersimpan masih valid di antara availableClasses
+          const targetId = this.selectedClassId && availableClasses.some(c => c.id === this.selectedClassId)
             ? this.selectedClassId
-            : classes[0].id
+            : availableClasses[0].id
+
           await this.selectClass(targetId)
         }
       } finally {

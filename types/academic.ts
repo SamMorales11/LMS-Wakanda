@@ -88,6 +88,7 @@ export interface CourseClassDto {
   termName?: string
   termCode?: string
   lecturerName?: string | null
+  lecturerId?: string | null
   createdAt: string
   updatedAt: string
 }
