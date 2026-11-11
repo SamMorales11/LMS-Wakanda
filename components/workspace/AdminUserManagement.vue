@@ -195,7 +195,8 @@ const handleDeleteUser = async (user: User) => {
 </script>
 
 <template>
-  <section class="bg-white rounded-sm border border-slate-200 space-y-4 overflow-hidden font-inter">
+  <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+    <section class="bg-white rounded-sm border border-slate-200 space-y-4 overflow-hidden font-inter">
     <!-- Header Section -->
     <div class="px-5 pt-5 pb-1 flex items-center justify-between gap-3 flex-wrap">
       <div>
@@ -571,4 +572,5 @@ const handleDeleteUser = async (user: User) => {
       </div>
     </Teleport>
   </section>
+  </div>
 </template>

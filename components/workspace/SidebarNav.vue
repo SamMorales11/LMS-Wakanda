@@ -63,7 +63,7 @@ const roleLabel = computed(() => {
             {{ academicStore.activeTerm?.name || 'Semester Aktif' }}
           </span>
           <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-slate-800 text-teal-400 border border-slate-700 shrink-0 font-bold">
-            {{ academicStore.activeTerm?.code || '—' }}
+            {{ academicStore.activeTerm?.code || '\u2014' }}
           </span>
         </div>
       </div>
@@ -88,8 +88,8 @@ const roleLabel = computed(() => {
         </button>
       </div>
 
-      <!-- DAFTAR KELAS PERKULIAHAN -->
-      <div class="space-y-2">
+      <!-- DAFTAR KELAS PERKULIAHAN (Hanya untuk Dosen & Mahasiswa) -->
+      <div v-if="!authStore.isAdmin" class="space-y-2">
         <div class="flex items-center justify-between px-2">
           <span class="text-[10px] font-mono font-bold text-slate-400 tracking-wider uppercase">Kelas Perkuliahan</span>
           <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-slate-800 text-slate-300 border border-slate-700">
@@ -150,7 +150,7 @@ const roleLabel = computed(() => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
               </svg>
               <span class="truncate">{{ item.room || 'Lab Utama' }}</span>
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true">&middot;</span>
               <span class="truncate font-mono">{{ item.scheduleDay || 'Senin' }}</span>
             </div>
           </button>
@@ -178,7 +178,7 @@ const roleLabel = computed(() => {
             </p>
             <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-400">
               <span class="truncate">{{ roleLabel }}</span>
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true">&middot;</span>
               <span class="truncate">{{ authStore.user.nimNidn || '-' }}</span>
             </div>
           </div>

@@ -69,7 +69,24 @@ const togglePanelCollapsed = () => {
           </svg>
         </button>
 
-        <div class="flex items-center gap-2.5 min-w-0">
+        <!-- Konteks Header Kiri: Institusional untuk Admin vs Kelas untuk Dosen/Mahasiswa -->
+        <div v-if="authStore.isAdmin" class="flex items-center gap-2.5 min-w-0">
+          <span
+            class="hidden sm:inline-flex px-2 py-0.5 rounded-sm bg-[#1E3A8A] text-white font-mono text-[10px] font-bold tracking-wider shrink-0"
+          >
+            ITW
+          </span>
+          <div class="min-w-0">
+            <p class="truncate text-xs font-bold text-[#0F172A] font-jakarta">
+              Pusat Kendali Akademik ITW &bull; {{ academicStore.activeTerm ? `${academicStore.activeTerm.name} (${academicStore.activeTerm.code})` : 'Tahun Akademik 2026/2027 (20261)' }}
+            </p>
+            <p class="truncate text-[10px] text-slate-500 font-mono">
+              Dashboard Analitik Institusional
+            </p>
+          </div>
+        </div>
+
+        <div v-else class="flex items-center gap-2.5 min-w-0">
           <span
             v-if="currentClass?.courseCode"
             class="hidden sm:inline-flex px-2 py-0.5 rounded-sm bg-[#1E3A8A] text-white font-mono text-[10px] font-bold tracking-wider shrink-0"
@@ -97,36 +114,39 @@ const togglePanelCollapsed = () => {
           <span>{{ activeNavItem.label }}</span>
         </span>
 
-        <!-- Kendali Panel Kanan (Desktop) -->
-        <button
-          type="button"
-          @click="togglePanelCollapsed"
-          class="hidden lg:flex p-1.5 rounded-sm border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#1E3A8A] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
-          :title="isPanelCollapsed ? 'Tampilkan Panel Kontekstual' : 'Sembunyikan Panel Kontekstual'"
-        >
-          <svg v-if="!isPanelCollapsed" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+        <!-- Kendali Panel Kanan (Hanya Dosen & Mahasiswa) -->
+        <template v-if="!authStore.isAdmin">
+          <!-- Desktop Toggle -->
+          <button
+            type="button"
+            @click="togglePanelCollapsed"
+            class="hidden lg:flex p-1.5 rounded-sm border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#1E3A8A] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
+            :title="isPanelCollapsed ? 'Tampilkan Panel Kontekstual' : 'Sembunyikan Panel Kontekstual'"
+          >
+            <svg v-if="!isPanelCollapsed" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
 
-        <!-- Kendali Panel Kanan (Mobile) -->
-        <button
-          type="button"
-          @click="isMobilePanelOpen = true"
-          class="lg:hidden p-1.5 rounded-sm border border-slate-200 text-slate-500 hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
-          title="Buka Presensi & Tenggat"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+          <!-- Mobile Toggle -->
+          <button
+            type="button"
+            @click="isMobilePanelOpen = true"
+            class="lg:hidden p-1.5 rounded-sm border border-slate-200 text-slate-500 hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
+            title="Buka Presensi & Tenggat"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </template>
       </div>
     </header>
 
-    <!-- 3-ZONE ACADEMIC WORKSPACE CONTAINER -->
+    <!-- 2/3-ZONE ACADEMIC WORKSPACE CONTAINER -->
     <div class="flex-1 flex overflow-hidden relative">
       <!-- ZONA 1 (KIRI): SIDEBAR NAVIGASI -->
       <div
@@ -165,20 +185,22 @@ const togglePanelCollapsed = () => {
         </div>
       </main>
 
-      <!-- ZONA 3 (KANAN): PANEL KONTEKSTUAL PRESENSI -->
-      <div
-        v-if="isMobilePanelOpen"
-        class="fixed inset-0 bg-[#0F172A]/70 backdrop-blur-xs z-40 lg:hidden"
-        @click="isMobilePanelOpen = false"
-      ></div>
+      <!-- ZONA 3 (KANAN): PANEL KONTEKSTUAL PRESENSI (Hanya untuk Dosen & Mahasiswa) -->
+      <template v-if="!authStore.isAdmin">
+        <div
+          v-if="isMobilePanelOpen"
+          class="fixed inset-0 bg-[#0F172A]/70 backdrop-blur-xs z-40 lg:hidden"
+          @click="isMobilePanelOpen = false"
+        ></div>
 
-      <div
-        v-if="!isPanelCollapsed"
-        class="fixed inset-y-0 right-0 z-50 lg:static lg:z-auto transition-transform duration-300 ease-in-out lg:translate-x-0"
-        :class="isMobilePanelOpen ? 'translate-x-0' : 'translate-x-full'"
-      >
-        <ContextualPanel />
-      </div>
+        <div
+          v-if="!isPanelCollapsed"
+          class="fixed inset-y-0 right-0 z-50 lg:static lg:z-auto transition-transform duration-300 ease-in-out lg:translate-x-0"
+          :class="isMobilePanelOpen ? 'translate-x-0' : 'translate-x-full'"
+        >
+          <ContextualPanel />
+        </div>
+      </template>
     </div>
 
     <!-- Modal Ujian Daring Mahasiswa -->

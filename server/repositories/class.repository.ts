@@ -35,7 +35,7 @@ export interface IClassRepository {
 }
 
 export class ClassRepository implements IClassRepository {
-  private toDto(row: DrizzleClass, courseName?: string, courseCode?: string, termName?: string, termCode?: string): CourseClassDto {
+  private toDto(row: DrizzleClass, courseName?: string, courseCode?: string, termName?: string, termCode?: string, lecturerName?: string | null): CourseClassDto {
     return {
       id: row.id,
       courseId: row.courseId,
@@ -51,6 +51,7 @@ export class ClassRepository implements IClassRepository {
       courseCode,
       termName,
       termCode,
+      lecturerName: lecturerName || null,
       createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
       updatedAt: row.updatedAt instanceof Date ? row.updatedAt.toISOString() : String(row.updatedAt)
     }
@@ -157,17 +158,26 @@ export class ClassRepository implements IClassRepository {
         courseName: courses.name,
         courseCode: courses.code,
         termName: academicTerms.name,
-        termCode: academicTerms.code
+        termCode: academicTerms.code,
+        lecturerName: users.name
       })
       .from(courseClasses)
       .leftJoin(courses, eq(courseClasses.courseId, courses.id))
       .leftJoin(academicTerms, eq(courseClasses.academicTermId, academicTerms.id))
+      .leftJoin(
+        classLecturers,
+        and(
+          eq(classLecturers.classId, courseClasses.id),
+          eq(classLecturers.isPrimary, true)
+        )
+      )
+      .leftJoin(users, eq(users.id, classLecturers.lecturerId))
       .where(conditions.length > 0 ? (conditions.length === 1 ? conditions[0] : and(...conditions)) : undefined)
       .orderBy(courses.code, courseClasses.code)
       .limit(safeLimit)
       .offset(safeOffset)
 
-    return rows.map(r => this.toDto(r.courseClass, r.courseName || undefined, r.courseCode || undefined, r.termName || undefined, r.termCode || undefined))
+    return rows.map(r => this.toDto(r.courseClass, r.courseName || undefined, r.courseCode || undefined, r.termName || undefined, r.termCode || undefined, r.lecturerName))
   }
 
   public async getSessions(classId: string): Promise<ClassSessionDto[]> {

@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import WorkspaceShell from '~/components/workspace/WorkspaceShell.vue'
 import AdminOverviewView from '~/components/workspace/AdminOverviewView.vue'
-import SessionWorkspace from '~/components/workspace/SessionWorkspace.vue'
-import AttendanceRecapView from '~/components/workspace/AttendanceRecapView.vue'
-import AssignmentRecapView from '~/components/workspace/AssignmentRecapView.vue'
-import GradebookView from '~/components/workspace/GradebookView.vue'
-import EwsDashboardView from '~/components/workspace/EwsDashboardView.vue'
+import AdminUserManagement from '~/components/workspace/AdminUserManagement.vue'
+import AdminClassListView from '~/components/workspace/AdminClassListView.vue'
 import { buildWorkspaceNav, defaultSectionFor } from '~/utils/workspaceNav'
 
 definePageMeta({
@@ -21,11 +18,8 @@ const defaultSection = defaultSectionFor('admin')
   <WorkspaceShell :sections="sections" :default-section="defaultSection">
     <template #default="{ section }">
       <AdminOverviewView v-if="section === 'overview'" />
-      <SessionWorkspace v-else-if="section === 'sessions'" />
-      <AttendanceRecapView v-else-if="section === 'attendance'" />
-      <AssignmentRecapView v-else-if="section === 'assignments'" />
-      <GradebookView v-else-if="section === 'grades'" />
-      <EwsDashboardView v-else-if="section === 'ews'" />
+      <AdminUserManagement v-else-if="section === 'directory'" />
+      <AdminClassListView v-else-if="section === 'classes-list'" />
     </template>
   </WorkspaceShell>
 </template>
