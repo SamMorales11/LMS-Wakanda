@@ -14,7 +14,9 @@ import {
   Users,
   BookOpen,
   ClipboardCheck,
-  BarChart2
+  BarChart2,
+  HelpCircle,
+  X
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/useAuthStore'
 
@@ -30,6 +32,7 @@ const showPassword = ref(false)
 const isCapsLockOn = ref(false)
 const selectedCategory = ref<'all' | 'admin' | 'lecturer' | 'student'>('all')
 const activePresetId = ref<string>('adm-001')
+const showForgotPasswordModal = ref(false)
 
 // State Feedback & Validasi
 const errorMessage = ref<string | null>(null)
@@ -417,6 +420,13 @@ onMounted(() => {
                     >
                       [CAPS LOCK AKTIF]
                     </span>
+                    <button
+                      type="button"
+                      @click="showForgotPasswordModal = true"
+                      class="text-[11px] font-inter font-semibold text-[#0D9488] hover:text-teal-700 hover:underline transition focus:outline-none"
+                    >
+                      Lupa kata sandi?
+                    </button>
                   </div>
                 </div>
                 <div class="relative">
@@ -590,5 +600,85 @@ onMounted(() => {
         &copy; 2026 Institut Teknologi Wakanda. Seluruh Hak Cipta Dilindungi Undang-Undang.
       </div>
     </footer>
+
+    <!-- Modal Informasi Lupa Kata Sandi & Registrasi Terpusat -->
+    <Teleport to="body">
+      <div
+        v-if="showForgotPasswordModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs select-none"
+        @click.self="showForgotPasswordModal = false"
+      >
+        <div class="max-w-lg w-full bg-white border border-slate-200 rounded-sm shadow-2xl overflow-hidden font-inter text-slate-800">
+          <!-- Modal Header -->
+          <div class="px-5 py-4 bg-[#0F172A] border-b border-slate-800 flex items-center justify-between text-white">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-sm bg-[#1E3A8A] border border-teal-500/40 flex items-center justify-center font-mono font-bold text-xs text-white">
+                ITW
+              </div>
+              <div>
+                <h3 class="text-sm font-extrabold font-jakarta tracking-tight">Prosedur Pemulihan Kredensial</h3>
+                <p class="text-[10px] font-mono text-teal-400">Direktorat Teknologi Informasi &amp; Akademik</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="showForgotPasswordModal = false"
+              class="text-slate-400 hover:text-white p-1 rounded-sm hover:bg-slate-800 transition"
+              aria-label="Tutup modal"
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-5 space-y-4 text-xs leading-relaxed">
+            <!-- Kebijakan Akun Terpusat -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-sm space-y-1">
+              <p class="font-bold text-[#0F172A] flex items-center gap-1.5 font-jakarta">
+                <ShieldCheck class="w-4 h-4 text-[#0D9488]" />
+                Sistem Pendaftaran Akun Terpusat
+              </p>
+              <p class="text-slate-600 text-[11px]">
+                Pembuatan akun civitas baru (Dosen &amp; Mahasiswa) dikelola secara terpusat oleh Admin Akademik ITW berdasarkan SK pengangkatan atau registrasi semester resmi. Sistem <strong>tidak menyediakan form registrasi publik</strong> demi menjamin validitas NIM/NIDN resmi dan integritas data institusi.
+              </p>
+            </div>
+
+            <!-- Prosedur Reset -->
+            <div class="space-y-2">
+              <p class="font-bold text-slate-800 font-jakarta">Langkah Pemulihan Kata Sandi:</p>
+              <ol class="space-y-2 text-slate-600 text-[11px] list-decimal list-inside pl-1">
+                <li>
+                  <strong class="text-slate-800">Layanan Helpdesk Akademik:</strong> Kunjungi Ruang Layanan Terpadu Gedung Rektorat Lt. 2 (Senin – Jumat, 08:00 – 16:00 WIB) dengan menunjukkan kartu identitas resmi (KTM / Kartu Pegawai).
+                </li>
+                <li>
+                  <strong class="text-slate-800">Tiket Permohonan DTI:</strong> Kirimkan email ke <span class="font-mono text-[#1E3A8A] font-semibold">helpdesk@wakanda.ac.id</span> dengan subjek <code class="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded">[Permohonan Reset Sandi - NIM/NIDN]</code> melampirkan bukti identitas civitas yang valid.
+                </li>
+              </ol>
+            </div>
+
+            <!-- Info Simulasi Demo 1-Klik -->
+            <div class="p-3 bg-teal-50/70 border border-teal-200/80 rounded-sm space-y-1">
+              <p class="font-bold text-[#0D9488] text-[11px] font-mono uppercase tracking-wider flex items-center gap-1">
+                <span>SIMULASI 1-KLIK LOGIN DEMO</span>
+              </p>
+              <p class="text-slate-600 text-[11px]">
+                Jika Anda sedang mengevaluasi sistem LMS Wakanda, Anda dapat langsung mengklik salah satu dari <strong>7 Akun Demo Resmi</strong> pada panel di bawah formulir login dengan kata sandi default <code class="font-mono text-[#0D9488] font-bold">Password123!</code>.
+              </p>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+            <button
+              type="button"
+              @click="showForgotPasswordModal = false"
+              class="px-4 py-2 bg-[#1E3A8A] hover:bg-blue-900 text-white font-jakarta font-bold text-xs rounded-sm transition shadow-none"
+            >
+              Mengerti &amp; Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

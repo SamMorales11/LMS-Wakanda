@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useAcademicStore } from '~/stores/useAcademicStore'
 import { useEwsStore } from '~/stores/useEwsStore'
+import AdminUserManagement from '~/components/workspace/AdminUserManagement.vue'
 
 const academicStore = useAcademicStore()
 const ewsStore = useEwsStore()
@@ -126,5 +127,8 @@ const atRiskTotal = computed(() => {
         </table>
       </div>
     </section>
+
+    <!-- Manajemen Akun Civitas Akademika -->
+    <AdminUserManagement />
   </div>
 </template>

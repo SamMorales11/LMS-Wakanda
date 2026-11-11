@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAcademicStore } from '~/stores/useAcademicStore'
+import ChangePasswordModal from '~/components/workspace/ChangePasswordModal.vue'
 import type { WorkspaceNavItem, WorkspaceSectionId } from '~/utils/workspaceNav'
 
 const props = defineProps<{
@@ -17,6 +18,8 @@ const emit = defineEmits<{
 const router = useRouter()
 const authStore = useAuthStore()
 const academicStore = useAcademicStore()
+
+const showChangePasswordModal = ref(false)
 
 const handleLogout = async () => {
   await authStore.logout()
@@ -181,16 +184,30 @@ const roleLabel = computed(() => {
           </div>
         </div>
 
-        <button
-          type="button"
-          @click="handleLogout"
-          title="Keluar dari Akun"
-          class="p-2 rounded-sm text-slate-400 hover:text-red-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
+        <div class="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            @click="showChangePasswordModal = true"
+            title="Ubah Kata Sandi Mandiri"
+            class="p-2 rounded-sm text-slate-400 hover:text-teal-300 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
+          >
+            <!-- Monochrome line-art SVG key icon -->
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            @click="handleLogout"
+            title="Keluar dari Akun"
+            class="p-2 rounded-sm text-slate-400 hover:text-red-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div v-else class="flex items-center justify-between">
@@ -206,5 +223,11 @@ const roleLabel = computed(() => {
         </NuxtLink>
       </div>
     </div>
+
+    <!-- Modal Ubah Kata Sandi Mandiri -->
+    <ChangePasswordModal
+      :is-open="showChangePasswordModal"
+      @close="showChangePasswordModal = false"
+    />
   </aside>
 </template>
