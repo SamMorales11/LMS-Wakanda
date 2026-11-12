@@ -99,8 +99,18 @@ export const useAcademicStore = defineStore('academic', {
       this.error = null
 
       try {
+        const authStore = useAuthStore()
         const targetTermId = termId || this.activeTerm?.id
-        const url = targetTermId ? `/api/classes?academicTermId=${targetTermId}` : '/api/classes'
+        const params = new URLSearchParams()
+        if (targetTermId) {
+          params.append('academicTermId', targetTermId)
+        }
+        if (authStore.isStudent && authStore.user?.id) {
+          params.append('studentId', authStore.user.id)
+        }
+
+        const qs = params.toString()
+        const url = qs ? `/api/classes?${qs}` : '/api/classes'
         const response = await $fetch<ApiResponse<CourseClassDto[]>>(url)
 
         if (response.success && response.data) {

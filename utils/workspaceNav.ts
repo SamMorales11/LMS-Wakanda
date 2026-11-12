@@ -73,7 +73,7 @@ export function buildWorkspaceNav(role: WorkspaceRole): WorkspaceNavItem[] {
 
   items.push({
     id: 'sessions',
-    label: isStudent ? 'Pertemuan' : 'Struktur Pertemuan',
+    label: isStudent ? 'Materi & Sesi' : 'Struktur Pertemuan',
     icon: NAV_ICONS.sessions
   })
 

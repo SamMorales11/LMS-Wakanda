@@ -21,6 +21,7 @@ export class ClassService {
   public async getAllClasses(filter?: {
     academicTermId?: string
     courseId?: string
+    studentId?: string
     search?: string
     limit?: number
     offset?: number

@@ -29,6 +29,7 @@ export const userQuerySchema = z.object({
 export const classQuerySchema = z.object({
   academicTermId: z.string().trim().optional(),
   courseId: z.string().trim().optional(),
+  studentId: z.string().trim().optional(),
   search: z.string().trim().optional(),
   limit: z.coerce.number().int().positive().max(100).optional().default(100),
   offset: z.coerce.number().int().min(0).optional().default(0)

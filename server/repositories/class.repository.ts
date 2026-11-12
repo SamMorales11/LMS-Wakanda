@@ -1,4 +1,4 @@
-import { eq, and, or, ilike, desc, asc } from 'drizzle-orm'
+import { eq, and, or, ilike, desc, asc, inArray } from 'drizzle-orm'
 import type {
   CourseClassDto,
   CourseClassDetailDto,
@@ -13,6 +13,7 @@ import {
   courses,
   academicTerms,
   classLecturers,
+  classEnrollments,
   classSessions,
   gradeWeights,
   users,
@@ -25,7 +26,7 @@ export interface IClassRepository {
   findById(id: string): Promise<CourseClassDto | null>
   findDetailById(id: string): Promise<CourseClassDetailDto | null>
   findByTermAndCourse(academicTermId: string, courseId: string, code: string): Promise<CourseClassDto | null>
-  findAll(filter?: { academicTermId?: string; courseId?: string; search?: string; limit?: number; offset?: number }): Promise<CourseClassDto[]>
+  findAll(filter?: { academicTermId?: string; courseId?: string; studentId?: string; search?: string; limit?: number; offset?: number }): Promise<CourseClassDto[]>
   createWithSessionsAndWeights(dto: CreateCourseClassDto, baseDate: string): Promise<CourseClassDetailDto>
   update(id: string, dto: UpdateCourseClassDto): Promise<CourseClassDto | null>
   delete(id: string): Promise<boolean>
@@ -144,7 +145,7 @@ export class ClassRepository implements IClassRepository {
       : null
   }
 
-  public async findAll(filter?: { academicTermId?: string; courseId?: string; search?: string; limit?: number; offset?: number }): Promise<CourseClassDto[]> {
+  public async findAll(filter?: { academicTermId?: string; courseId?: string; studentId?: string; search?: string; limit?: number; offset?: number }): Promise<CourseClassDto[]> {
     const conditions = []
 
     if (filter?.academicTermId) {
@@ -153,6 +154,19 @@ export class ClassRepository implements IClassRepository {
 
     if (filter?.courseId) {
       conditions.push(eq(courseClasses.courseId, filter.courseId))
+    }
+
+    if (filter?.studentId) {
+      const enrolledSubquery = db
+        .select({ classId: classEnrollments.classId })
+        .from(classEnrollments)
+        .where(
+          and(
+            eq(classEnrollments.studentId, filter.studentId),
+            eq(classEnrollments.status, 'ENROLLED')
+          )
+        )
+      conditions.push(inArray(courseClasses.id, enrolledSubquery))
     }
 
     if (filter?.search) {

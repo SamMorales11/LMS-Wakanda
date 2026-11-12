@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import WorkspaceShell from '~/components/workspace/WorkspaceShell.vue'
-import SessionWorkspace from '~/components/workspace/SessionWorkspace.vue'
+import StudentWorkspaceShell from '~/components/workspace/StudentWorkspaceShell.vue'
+import StudentSessionWorkspace from '~/components/workspace/StudentSessionWorkspace.vue'
 import AttendanceRecapView from '~/components/workspace/AttendanceRecapView.vue'
 import AssignmentRecapView from '~/components/workspace/AssignmentRecapView.vue'
 import StudentGradesView from '~/components/workspace/StudentGradesView.vue'
@@ -16,12 +16,18 @@ const defaultSection = defaultSectionFor('student')
 </script>
 
 <template>
-  <WorkspaceShell :sections="sections" :default-section="defaultSection">
+  <StudentWorkspaceShell :sections="sections" :default-section="defaultSection">
     <template #default="{ section }">
-      <SessionWorkspace v-if="section === 'sessions'" />
-      <AttendanceRecapView v-else-if="section === 'attendance'" />
-      <AssignmentRecapView v-else-if="section === 'assignments'" />
-      <StudentGradesView v-else-if="section === 'grades'" />
+      <StudentSessionWorkspace v-if="section === 'sessions'" />
+      <div v-else-if="section === 'attendance'" class="flex-1 overflow-y-auto">
+        <AttendanceRecapView />
+      </div>
+      <div v-else-if="section === 'assignments'" class="flex-1 overflow-y-auto">
+        <AssignmentRecapView />
+      </div>
+      <div v-else-if="section === 'grades'" class="flex-1 overflow-y-auto">
+        <StudentGradesView />
+      </div>
     </template>
-  </WorkspaceShell>
+  </StudentWorkspaceShell>
 </template>
