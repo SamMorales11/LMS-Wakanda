@@ -5,11 +5,12 @@ import type { User, UserRole, CreateUserDto } from '~/types'
 
 const userStore = useUserStore()
 
-// 7 Akun Demo Resmi Terproteksi
+// Akun Demo Resmi Terproteksi
 const PROTECTED_DEMO_EMAILS = [
   'admin@wakanda.ac.id',
   'shuri@lecturer.wakanda.ac.id',
   'tchalla@lecturer.wakanda.ac.id',
+  'wkabi@lecturer.wakanda.ac.id',
   'nakia@student.wakanda.ac.id',
   'mbaku@student.wakanda.ac.id',
   'erik@student.wakanda.ac.id',
