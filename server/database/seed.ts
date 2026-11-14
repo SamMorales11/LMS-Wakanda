@@ -20,7 +20,8 @@ import {
   quizAttempts,
   gradeWeights,
   finalGrades,
-  sessionMaterials
+  sessionMaterials,
+  materialReadProgress
 } from './index'
 import {
   seedPrograms,
@@ -34,10 +35,15 @@ import {
   assignmentMasterData,
   seedGradeWeights,
   if2041AttendanceTelemetry,
-  if2041SubmissionsData,
-  if2041QuizAttemptsData,
-  if2041FinalGradesData,
-  sampleMaterialsData
+  // === BAGIAN KEDUA (PENUTUP) ===
+  attendanceTokensP10,
+  supportingStudentAttendanceProfiles,
+  classAssignmentsConfig,
+  classQuizzesConfig,
+  supportingStudentGradeProfiles,
+  generateSupportingSubmissions,
+  generateSupportingQuizAttempt,
+  classMaterialsMap
 } from './seed-data'
 
 async function seed() {
@@ -48,7 +54,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 1. Verify Database Connection
   // --------------------------------------------------------------------------
-  console.log('\n[1/10] Memverifikasi konektivitas ke Neon Serverless PostgreSQL...')
+  console.log('\n[1/16] Memverifikasi konektivitas ke Neon Serverless PostgreSQL...')
   const isConnected = await pingDatabase()
   if (!isConnected) {
     throw new Error('Koneksi ke Neon PostgreSQL gagal. Pastikan DATABASE_URL valid.')
@@ -58,7 +64,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 2. Seed Programs (Program Studi)
   // --------------------------------------------------------------------------
-  console.log('\n[2/10] Menyemai data Program Studi (Programs)...')
+  console.log('\n[2/16] Menyemai data Program Studi (Programs)...')
   const seededPrograms = await db
     .insert(programs)
     .values(seedPrograms)
@@ -80,7 +86,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 3. Seed Tahun Akademik Aktif (Academic Term 20261)
   // --------------------------------------------------------------------------
-  console.log('\n[3/10] Menyemai Tahun Akademik Aktif (Kode: 20261)...')
+  console.log('\n[3/16] Menyemai Tahun Akademik Aktif (Kode: 20261)...')
   // Deaktivasi semester lain agar 20261 menjadi satu-satunya semester aktif
   await db
     .update(academicTerms)
@@ -109,7 +115,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 4. Seed Users: 1 Admin, 3 Dosen, 18 Mahasiswa (Uniform: Password123!)
   // --------------------------------------------------------------------------
-  console.log('\n[4/10] Menyemai seluruh 22 Akun Dummy ITW (1 Admin, 3 Dosen, 18 Mahasiswa)...')
+  console.log('\n[4/16] Menyemai seluruh 22 Akun Dummy ITW (1 Admin, 3 Dosen, 18 Mahasiswa)...')
   const uniformPasswordHash = await bcrypt.hash('Password123!', 10)
 
   const userInsertValues = seedUsers.map(u => ({
@@ -157,7 +163,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 5. Seed Master Mata Kuliah (Courses)
   // --------------------------------------------------------------------------
-  console.log('\n[5/10] Menyemai data Master Mata Kuliah (Courses)...')
+  console.log('\n[5/16] Menyemai data Master Mata Kuliah (Courses)...')
   const courseInsertValues = seedCourses.map(c => {
     const pId = programMap.get(c.programCode)
     if (!pId) throw new Error(`Program dengan kode ${c.programCode} tidak ditemukan`)
@@ -194,7 +200,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 6. Seed Tepat 5 Kelas Aktif & Bersihkan Kelas Lama
   // --------------------------------------------------------------------------
-  console.log('\n[6/10] Menyemai Tepat 5 Kelas Perkuliahan Aktif & Membersihkan Kelas Lama...')
+  console.log('\n[6/16] Menyemai Tepat 5 Kelas Perkuliahan Aktif & Membersihkan Kelas Lama...')
   const officialClassIds: string[] = []
   const classMap = new Map<string, typeof courseClasses.$inferSelect>()
 
@@ -251,7 +257,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 7. Seed Pengampu Dosen (Class Lecturers)
   // --------------------------------------------------------------------------
-  console.log('\n[7/10] Menugaskan Dosen Pengampu untuk 5 Kelas Perkuliahan...')
+  console.log('\n[7/16] Menugaskan Dosen Pengampu untuk 5 Kelas Perkuliahan...')
   for (const c of seedClasses) {
     const cl = classMap.get(`${c.courseCode}:${c.code}`)!
     const primaryUser = userMap.get(c.primaryLecturerEmail.toLowerCase().trim())
@@ -283,7 +289,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 8. Seed Enrollments Mahasiswa (10-12 Mahasiswa per Kelas)
   // --------------------------------------------------------------------------
-  console.log('\n[8/10] Mendaftarkan Mahasiswa ke 5 Kelas Perkuliahan (10-12 Mahasiswa per Kelas)...')
+  console.log('\n[8/16] Mendaftarkan Mahasiswa ke 5 Kelas Perkuliahan (10-12 Mahasiswa per Kelas)...')
   for (const [classKey, studentEmails] of Object.entries(classEnrollmentEmails)) {
     const cl = classMap.get(classKey)
     if (!cl) continue
@@ -315,7 +321,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 9. Seed 16 Pertemuan per Kelas (P-1..P-9 COMPLETED, P-10 IN_PROGRESS, P-11..P-16 SCHEDULED)
   // --------------------------------------------------------------------------
-  console.log('\n[9/10] Menyemai Struktur 16 Pertemuan Perkuliahan untuk ke-5 Kelas...')
+  console.log('\n[9/16] Menyemai Struktur 16 Pertemuan Perkuliahan untuk ke-5 Kelas...')
   const sessionMaps = new Map<string, Map<number, typeof classSessions.$inferSelect>>()
 
   for (const c of seedClasses) {
@@ -367,7 +373,7 @@ async function seed() {
   // --------------------------------------------------------------------------
   // 10. Seed Bobot Gradebook Resmi untuk Seluruh 5 Kelas
   // --------------------------------------------------------------------------
-  console.log('\n[10/10] Menetapkan Bobot Penilaian Gradebook Standar ITW untuk Seluruh Kelas...')
+  console.log('\n[10/16] Menetapkan Bobot Penilaian Gradebook Standar ITW untuk Seluruh Kelas...')
   for (const c of seedClasses) {
     const cl = classMap.get(`${c.courseCode}:${c.code}`)!
     for (const w of seedGradeWeights) {
@@ -391,335 +397,689 @@ async function seed() {
   }
   console.log('  ✓ Bobot Gradebook Ditetapkan: Absensi 10%, Tugas 20%, Kuis 20%, UTS 25%, UAS 25% (Total 100%)')
 
+  // ==========================================================================
+  // BAGIAN KEDUA (PENUTUP) - SEEDING TRANSAKSIONAL LENGKAP 5 KELAS AKTIF
+  // ==========================================================================
+
   // --------------------------------------------------------------------------
-  // ELEMEN HISTORIS DAN EVALUASI LANJUTAN (KHUSUS KELAS UTAMA IF2041-A)
-  // Menjaga 100% Ketersediaan Data Uji & EWS untuk 4 Persona Demo Inti
+  // 11. Seeding Materials (P-1 s/d P-9) & Material Read Progress Seluruh 5 Kelas
   // --------------------------------------------------------------------------
-  const if2041AClass = classMap.get('IF2041:A')!
-  const if2041Sessions = sessionMaps.get('IF2041:A')!
-  const shuriUser = userMap.get('shuri@lecturer.wakanda.ac.id')!
-  const nakiaUser = userMap.get('nakia@student.wakanda.ac.id')!
-  const mbakuUser = userMap.get('mbaku@student.wakanda.ac.id')!
-  const erikUser = userMap.get('erik@student.wakanda.ac.id')!
-  const ririUser = userMap.get('riri@student.wakanda.ac.id')!
+  console.log('\n[11/16] Menyemai Bahan Ajar (Materials P-1 s/d P-9) & Read Progress untuk 5 Kelas...')
+  let totalMaterialsCount = 0
+  let totalReadProgressCount = 0
 
-  // Active Attendance Token (Sesi 10)
-  const session10 = if2041Sessions.get(10)!
-  const activePinToken = '481920'
-  await db
-    .insert(attendanceTokens)
-    .values({
-      sessionId: session10.id,
-      token: activePinToken,
-      qrCodePayload: `WAKANDA_ATT:${session10.id}:${activePinToken}`,
-      validFrom: new Date(Date.now() - 3600_000),
-      validUntil: new Date(Date.now() + 24 * 3600_000),
-      isActive: true,
-      createdBy: shuriUser.id
-    })
-    .onConflictDoUpdate({
-      target: attendanceTokens.token,
-      set: {
-        sessionId: sql`EXCLUDED.session_id`,
-        validFrom: sql`EXCLUDED.valid_from`,
-        validUntil: sql`EXCLUDED.valid_until`,
-        isActive: true
+  for (const [classKey, materials] of Object.entries(classMaterialsMap)) {
+    const sessionMap = sessionMaps.get(classKey)
+    if (!sessionMap) continue
+
+    const enrolledEmails = classEnrollmentEmails[classKey] || []
+
+    for (const mat of materials) {
+      const sess = sessionMap.get(mat.sessionNum)
+      if (!sess) continue
+
+      const existing = await db
+        .select()
+        .from(sessionMaterials)
+        .where(and(eq(sessionMaterials.sessionId, sess.id), eq(sessionMaterials.title, mat.title)))
+        .limit(1)
+
+      let materialId: string
+      if (existing.length > 0) {
+        materialId = existing[0].id
+        await db
+          .update(sessionMaterials)
+          .set({
+            description: `Bahan ajar resmi pertemuan ke-${mat.sessionNum}`,
+            materialType: mat.materialType,
+            fileName: mat.fileName,
+            fileUrl: mat.fileUrl,
+            orderIndex: mat.orderIndex,
+            isPublished: true,
+            updatedAt: new Date()
+          })
+          .where(eq(sessionMaterials.id, materialId))
+      } else {
+        const [inserted] = await db
+          .insert(sessionMaterials)
+          .values({
+            sessionId: sess.id,
+            title: mat.title,
+            description: `Bahan ajar resmi pertemuan ke-${mat.sessionNum}`,
+            materialType: mat.materialType,
+            fileName: mat.fileName,
+            fileUrl: mat.fileUrl,
+            fileSize: 1024 * 512,
+            orderIndex: mat.orderIndex,
+            isPublished: true
+          })
+          .returning({ id: sessionMaterials.id })
+        materialId = inserted.id
       }
-    })
+      totalMaterialsCount++
 
-  // Attendance Logs IF2041-A (16 Sesi)
-  for (let sNum = 1; sNum <= 16; sNum++) {
-    const sess = if2041Sessions.get(sNum)!
-    const mbakuRule = if2041AttendanceTelemetry.mbakuRules(sNum)
-    const erikRule = if2041AttendanceTelemetry.erikRules(sNum)
+      // Material Read Progress:
+      // Nakia & Riri: mahasiswa teladan, selalu membaca seluruh materi
+      // Mahasiswa SAFE: okoye, ramonda, zuri, griot, kaluu juga rajin membaca
+      // M'Baku, Ayo, Bucky: membaca sebagian (pertemuan <= 5)
+      for (const email of enrolledEmails) {
+        const student = userMap.get(email.toLowerCase().trim())
+        if (!student) continue
 
-    const logs = [
-      {
-        sessionId: sess.id,
-        studentId: nakiaUser.id,
-        status: if2041AttendanceTelemetry.nakia.status,
-        checkInMethod: 'TOKEN' as const,
-        notes: if2041AttendanceTelemetry.nakia.note
-      },
-      {
-        sessionId: sess.id,
-        studentId: mbakuUser.id,
-        status: mbakuRule.status,
-        checkInMethod: mbakuRule.method,
-        notes: mbakuRule.note
-      },
-      {
-        sessionId: sess.id,
-        studentId: erikUser.id,
-        status: erikRule.status,
-        checkInMethod: erikRule.method,
-        notes: erikRule.note
-      },
-      {
-        sessionId: sess.id,
-        studentId: ririUser.id,
-        status: if2041AttendanceTelemetry.riri.status,
-        checkInMethod: if2041AttendanceTelemetry.riri.method,
-        notes: if2041AttendanceTelemetry.riri.note
+        const isDilligent = ['nakia@student.wakanda.ac.id', 'riri@student.wakanda.ac.id', 'okoye@student.wakanda.ac.id', 'ramonda@student.wakanda.ac.id'].includes(email)
+        const isModerate = ['mbaku@student.wakanda.ac.id', 'ayo@student.wakanda.ac.id', 'bucky@student.wakanda.ac.id', 'sam@student.wakanda.ac.id'].includes(email)
+
+        if (isDilligent || (isModerate && mat.sessionNum <= 5)) {
+          await db
+            .insert(materialReadProgress)
+            .values({
+              materialId,
+              studentId: student.id,
+              isCompleted: true,
+              completedAt: new Date(new Date(sess.sessionDate + 'T12:00:00Z').getTime() + 86400_000)
+            })
+            .onConflictDoNothing({
+              target: [materialReadProgress.materialId, materialReadProgress.studentId]
+            })
+          totalReadProgressCount++
+        }
       }
-    ]
+    }
+  }
+  console.log(`  ✓ Berhasil menyinkronkan ${totalMaterialsCount} bahan ajar dan ${totalReadProgressCount} progres bacaan`)
 
-    for (const log of logs) {
+  // --------------------------------------------------------------------------
+  // 12. Seeding 5 Token Presensi Aktif 24 Jam pada Sesi 10
+  // --------------------------------------------------------------------------
+  console.log('\n[12/16] Menerbitkan Token Presensi Aktif 24 Jam pada Sesi 10 (P-10 IN_PROGRESS)...')
+  for (const [classKey, tokenCfg] of Object.entries(attendanceTokensP10)) {
+    const sessionMap = sessionMaps.get(classKey)
+    if (!sessionMap) continue
+    const session10 = sessionMap.get(10)
+    if (!session10) continue
+
+    const lecturer = userMap.get(tokenCfg.lecturerEmail.toLowerCase().trim())
+    if (!lecturer) continue
+
+    await db
+      .insert(attendanceTokens)
+      .values({
+        sessionId: session10.id,
+        token: tokenCfg.pin,
+        qrCodePayload: `WAKANDA_ATT:${session10.id}:${tokenCfg.pin}`,
+        validFrom: new Date(Date.now() - 3600_000),
+        validUntil: new Date(Date.now() + 24 * 3600_000),
+        isActive: true,
+        createdBy: lecturer.id
+      })
+      .onConflictDoUpdate({
+        target: attendanceTokens.token,
+        set: {
+          sessionId: sql`EXCLUDED.session_id`,
+          qrCodePayload: sql`EXCLUDED.qr_code_payload`,
+          validFrom: sql`EXCLUDED.valid_from`,
+          validUntil: sql`EXCLUDED.valid_until`,
+          isActive: true
+        }
+      })
+    console.log(`  ✓ Kelas [${classKey}] -> PIN Token: ${tokenCfg.pin} (Dosen: ${lecturer.name}, Berlaku 24 Jam)`)
+  }
+
+  // --------------------------------------------------------------------------
+  // 13. Seeding Riwayat Attendance Logs Sesi P-1 s/d P-9 untuk Seluruh Kelas
+  // --------------------------------------------------------------------------
+  console.log('\n[13/16] Menyemai Riwayat Presensi (Attendance Logs Sesi P-1 s/d P-9)...')
+  // Hapus log presensi sesi 10-16 jika ada, agar tepat sesi 1-9 yang memiliki riwayat log
+  const staleSessionIds: string[] = []
+  for (const [, sessionMap] of sessionMaps) {
+    for (let sNum = 10; sNum <= 16; sNum++) {
+      const sess = sessionMap.get(sNum)
+      if (sess) staleSessionIds.push(sess.id)
+    }
+  }
+  if (staleSessionIds.length > 0) {
+    await db.delete(attendanceLogs).where(inArray(attendanceLogs.sessionId, staleSessionIds))
+  }
+
+  let totalAttendanceLogsCount = 0
+  for (const [classKey, studentEmails] of Object.entries(classEnrollmentEmails)) {
+    const sessionMap = sessionMaps.get(classKey)
+    if (!sessionMap) continue
+
+    for (let sNum = 1; sNum <= 9; sNum++) {
+      const sess = sessionMap.get(sNum)
+      if (!sess) continue
+
+      for (const email of studentEmails) {
+        const student = userMap.get(email.toLowerCase().trim())
+        if (!student) continue
+
+        let status: 'PRESENT' | 'LATE' | 'PERMIT' | 'SICK' | 'ABSENT' = 'PRESENT'
+        let checkInMethod: 'TOKEN' | 'QR_SCAN' | 'MANUAL_LECTURER' = 'TOKEN'
+        let notes: string | null = 'Hadir tepat waktu'
+
+        // Demo persona khusus:
+        if (email === 'nakia@student.wakanda.ac.id') {
+          status = 'PRESENT'
+          checkInMethod = 'TOKEN'
+          notes = 'Hadir tepat waktu'
+        } else if (email === 'riri@student.wakanda.ac.id') {
+          status = 'PRESENT'
+          checkInMethod = 'QR_SCAN'
+          notes = 'Hadir via scan QR dinamis'
+        } else if (email === 'mbaku@student.wakanda.ac.id') {
+          if (classKey === 'IF2041:A') {
+            const rule = if2041AttendanceTelemetry.mbakuRules(sNum)
+            status = rule.status
+            checkInMethod = rule.method
+            notes = rule.note
+          } else {
+            if (sNum === 4) {
+              status = 'LATE'
+              checkInMethod = 'TOKEN'
+              notes = 'Terlambat 15 menit karena kendala transportasi'
+            } else if (sNum === 6) {
+              status = 'SICK'
+              checkInMethod = 'MANUAL_LECTURER'
+              notes = 'Izin sakit dengan surat dokter'
+            } else if (sNum === 7) {
+              status = 'ABSENT'
+              checkInMethod = 'MANUAL_LECTURER'
+              notes = 'Alpa tanpa keterangan'
+            } else {
+              status = 'PRESENT'
+              checkInMethod = 'TOKEN'
+              notes = 'Hadir'
+            }
+          }
+        } else if (email === 'erik@student.wakanda.ac.id') {
+          if (classKey === 'IF2041:A') {
+            const rule = if2041AttendanceTelemetry.erikRules(sNum)
+            status = rule.status
+            checkInMethod = rule.method
+            notes = rule.note
+          } else {
+            if ([2, 4, 5, 7].includes(sNum)) {
+              status = 'ABSENT'
+              checkInMethod = 'MANUAL_LECTURER'
+              notes = 'Tidak hadir tanpa pemberitahuan'
+            } else {
+              status = 'PRESENT'
+              checkInMethod = 'TOKEN'
+              notes = 'Hadir'
+            }
+          }
+        } else {
+          // 14 Mahasiswa pendukung
+          const profile = supportingStudentAttendanceProfiles.find(p => p.email === email)
+          if (profile) {
+            if (profile.absentSessions.includes(sNum)) {
+              status = 'ABSENT'
+              checkInMethod = 'MANUAL_LECTURER'
+              notes = 'Alpa tanpa keterangan resmi'
+            } else if (profile.sickSessions.includes(sNum)) {
+              status = 'SICK'
+              checkInMethod = 'MANUAL_LECTURER'
+              notes = 'Izin sakit dengan surat dokter'
+            } else if (profile.lateSessions.includes(sNum)) {
+              status = 'LATE'
+              checkInMethod = 'TOKEN'
+              notes = 'Terlambat check-in presensi'
+            } else {
+              status = 'PRESENT'
+              checkInMethod = 'TOKEN'
+              notes = 'Hadir tepat waktu'
+            }
+          }
+        }
+
+        const baseTime = new Date(`${sess.sessionDate}T08:05:00Z`).getTime()
+        const checkInTime = new Date(baseTime + (status === 'LATE' ? 25 * 60_000 : 0))
+
+        await db
+          .insert(attendanceLogs)
+          .values({
+            sessionId: sess.id,
+            studentId: student.id,
+            status,
+            checkInMethod,
+            notes,
+            checkInTime
+          })
+          .onConflictDoUpdate({
+            target: [attendanceLogs.sessionId, attendanceLogs.studentId],
+            set: {
+              status,
+              checkInMethod,
+              notes,
+              checkInTime,
+              updatedAt: new Date()
+            }
+          })
+        totalAttendanceLogsCount++
+      }
+    }
+  }
+  console.log(`  ✓ Berhasil menyinkronkan ${totalAttendanceLogsCount} entri riwayat presensi P-1 s/d P-9`)
+
+  // --------------------------------------------------------------------------
+  // 14. Seeding 3 Assignments per Kelas + Submissions + Feedback Dosen
+  // --------------------------------------------------------------------------
+  console.log('\n[14/16] Menyemai 3 Tugas (Assignments) per Kelas beserta Submissions & Feedback...')
+  let totalAssignmentsCount = 0
+  let totalSubmissionsCount = 0
+
+  const allAssignmentsConfigs = [
+    {
+      classKey: 'IF2041:A',
+      lecturerEmail: 'shuri@lecturer.wakanda.ac.id',
+      assignments: assignmentMasterData
+    },
+    ...classAssignmentsConfig
+  ]
+
+  for (const cfg of allAssignmentsConfigs) {
+    const cl = classMap.get(cfg.classKey)
+    const sessionMap = sessionMaps.get(cfg.classKey)
+    const lecturer = userMap.get(cfg.lecturerEmail.toLowerCase().trim())
+    if (!cl || !sessionMap || !lecturer) continue
+
+    const enrolledEmails = classEnrollmentEmails[cfg.classKey] || []
+
+    for (let aIdx = 0; aIdx < cfg.assignments.length; aIdx++) {
+      const a = cfg.assignments[aIdx]
+      const sess = sessionMap.get(a.sessionNum)
+      if (!sess) continue
+
+      const dueDate = new Date(sess.sessionDate)
+      dueDate.setDate(dueDate.getDate() + 7)
+
+      const existingAssign = await db
+        .select()
+        .from(assignments)
+        .where(and(eq(assignments.classId, cl.id), eq(assignments.title, a.title)))
+        .limit(1)
+
+      let assignId: string
+      if (existingAssign.length > 0) {
+        assignId = existingAssign[0].id
+        await db
+          .update(assignments)
+          .set({
+            sessionId: sess.id,
+            description: a.description,
+            instructions: a.instructions,
+            maxScore: a.maxScore,
+            dueDate,
+            updatedAt: new Date()
+          })
+          .where(eq(assignments.id, assignId))
+      } else {
+        const [newAssign] = await db
+          .insert(assignments)
+          .values({
+            classId: cl.id,
+            sessionId: sess.id,
+            title: a.title,
+            description: a.description,
+            instructions: a.instructions,
+            maxScore: a.maxScore,
+            dueDate,
+            allowLateSubmission: true,
+            latePenaltyPercentage: '10.00',
+            isPublished: true,
+            createdBy: lecturer.id
+          })
+          .returning()
+        assignId = newAssign.id
+      }
+      totalAssignmentsCount++
+
+      // Submissions untuk seluruh mahasiswa di kelas ini
+      for (const email of enrolledEmails) {
+        const student = userMap.get(email.toLowerCase().trim())
+        if (!student) continue
+
+        let score = '85.00'
+        let isLate = false
+        let feedback = 'Tugas telah dinilai dan memenuhi kriteria dasar.'
+
+        if (email === 'nakia@student.wakanda.ac.id') {
+          score = aIdx === 0 ? '96.00' : (aIdx === 1 ? '94.00' : '98.00')
+          isLate = false
+          feedback = 'Implementasi sangat bersih, modular, dan efisien.'
+        } else if (email === 'riri@student.wakanda.ac.id') {
+          score = aIdx === 0 ? '90.00' : (aIdx === 1 ? '92.00' : '88.00')
+          isLate = false
+          feedback = 'Solusi elegan, penanganan error lengkap dan optimal.'
+        } else if (email === 'mbaku@student.wakanda.ac.id') {
+          score = aIdx === 0 ? '75.00' : (aIdx === 1 ? '68.00' : '70.00')
+          isLate = aIdx > 0
+          feedback = isLate
+            ? 'Pengumpulan terlambat. Struktur kode cukup baik namun belum diuji edge-case.'
+            : 'Kode berjalan baik, namun perhatikan kerapihan dan penamaan variabel.'
+        } else if (email === 'erik@student.wakanda.ac.id') {
+          score = aIdx === 0 ? '45.00' : (aIdx === 1 ? '40.00' : '35.00')
+          isLate = true
+          feedback = 'Pengumpulan terlambat signifikan. Banyak requirement belum terpenuhi. Hubungi dosen pengampu.'
+        } else {
+          // Mahasiswa pendukung
+          const profile = supportingStudentAttendanceProfiles.find(p => p.email === email)
+          const ewsLevel = profile?.ewsLevel || 'SAFE'
+          const gen = generateSupportingSubmissions(email, ewsLevel, aIdx)
+          score = gen.score
+          isLate = gen.isLate
+          feedback = gen.feedback
+        }
+
+        await db
+          .insert(submissions)
+          .values({
+            assignmentId: assignId,
+            studentId: student.id,
+            isLate,
+            score,
+            status: 'GRADED',
+            feedback,
+            fileKey: `submissions/${assignId}/${student.id}.zip`,
+            fileName: 'tugas_praktikum.zip',
+            fileSize: 1024 * 350,
+            gradedBy: lecturer.id,
+            gradedAt: new Date()
+          })
+          .onConflictDoUpdate({
+            target: [submissions.assignmentId, submissions.studentId],
+            set: {
+              isLate,
+              score,
+              status: 'GRADED',
+              feedback,
+              gradedBy: lecturer.id,
+              gradedAt: new Date(),
+              updatedAt: new Date()
+            }
+          })
+        totalSubmissionsCount++
+      }
+    }
+  }
+  console.log(`  ✓ Berhasil menyinkronkan ${totalAssignmentsCount} tugas perkuliahan dan ${totalSubmissionsCount} submissions tergradasi`)
+
+  // --------------------------------------------------------------------------
+  // 15. Seeding Quizzes / UTS (3 per Kelas) + Quiz Attempts Seluruh Kelas
+  // --------------------------------------------------------------------------
+  console.log('\n[15/16] Menyemai Kuis & UTS (3 per Kelas) beserta Quiz Attempts Seluruh Mahasiswa...')
+  let totalQuizzesCount = 0
+  let totalAttemptsCount = 0
+
+  const allQuizzesConfigs = [
+    {
+      classKey: 'IF2041:A',
+      lecturerEmail: 'shuri@lecturer.wakanda.ac.id',
+      quizzes: quizMasterData
+    },
+    ...classQuizzesConfig
+  ]
+
+  for (const cfg of allQuizzesConfigs) {
+    const cl = classMap.get(cfg.classKey)
+    const sessionMap = sessionMaps.get(cfg.classKey)
+    const lecturer = userMap.get(cfg.lecturerEmail.toLowerCase().trim())
+    if (!cl || !sessionMap || !lecturer) continue
+
+    const enrolledEmails = classEnrollmentEmails[cfg.classKey] || []
+
+    for (let qIdx = 0; qIdx < cfg.quizzes.length; qIdx++) {
+      const q = cfg.quizzes[qIdx]
+      const sess = sessionMap.get(q.sessionNum)
+      if (!sess) continue
+
+      const startTime = new Date(sess.sessionDate + 'T08:00:00Z')
+      const endTime = new Date(sess.sessionDate + 'T12:00:00Z')
+
+      const existingQuiz = await db
+        .select()
+        .from(quizzes)
+        .where(and(eq(quizzes.classId, cl.id), eq(quizzes.title, q.title)))
+        .limit(1)
+
+      let quizId: string
+      if (existingQuiz.length > 0) {
+        quizId = existingQuiz[0].id
+        await db
+          .update(quizzes)
+          .set({
+            sessionId: sess.id,
+            quizType: q.type,
+            durationMinutes: q.duration,
+            questionsJsonb: q.questions,
+            startTime,
+            endTime,
+            isPublished: true,
+            updatedAt: new Date()
+          })
+          .where(eq(quizzes.id, quizId))
+      } else {
+        const [newQuiz] = await db
+          .insert(quizzes)
+          .values({
+            classId: cl.id,
+            sessionId: sess.id,
+            title: q.title,
+            description: `Evaluasi terstruktur pertemuan ${q.sessionNum} mata kuliah [${cfg.classKey}].`,
+            quizType: q.type,
+            durationMinutes: q.duration,
+            maxScore: '100.00',
+            passingScore: '55.00',
+            startTime,
+            endTime,
+            shuffleQuestions: true,
+            maxAttempts: 1,
+            questionsJsonb: q.questions,
+            isPublished: true,
+            createdBy: lecturer.id
+          })
+          .returning()
+        quizId = newQuiz.id
+      }
+      totalQuizzesCount++
+
+      // Attempts untuk seluruh mahasiswa di kelas ini
+      for (const email of enrolledEmails) {
+        const student = userMap.get(email.toLowerCase().trim())
+        if (!student) continue
+
+        let score = '80.00'
+        let autoScore = '80.00'
+        let manualScore = '0.00'
+
+        if (email === 'nakia@student.wakanda.ac.id') {
+          score = qIdx === 0 ? '95.00' : (qIdx === 1 ? '92.00' : '94.00')
+          autoScore = qIdx === 2 ? '40.00' : score
+          manualScore = qIdx === 2 ? '54.00' : '0.00'
+        } else if (email === 'riri@student.wakanda.ac.id') {
+          score = qIdx === 0 ? '88.00' : (qIdx === 1 ? '90.00' : '89.00')
+          autoScore = qIdx === 2 ? '40.00' : score
+          manualScore = qIdx === 2 ? '49.00' : '0.00'
+        } else if (email === 'mbaku@student.wakanda.ac.id') {
+          score = qIdx === 0 ? '65.00' : (qIdx === 1 ? '60.00' : '62.00')
+          autoScore = qIdx === 2 ? '25.00' : score
+          manualScore = qIdx === 2 ? '37.00' : '0.00'
+        } else if (email === 'erik@student.wakanda.ac.id') {
+          score = qIdx === 0 ? '35.00' : (qIdx === 1 ? '40.00' : '42.00')
+          autoScore = qIdx === 2 ? '20.00' : score
+          manualScore = qIdx === 2 ? '22.00' : '0.00'
+        } else {
+          const profile = supportingStudentAttendanceProfiles.find(p => p.email === email)
+          const ewsLevel = profile?.ewsLevel || 'SAFE'
+          const gen = generateSupportingQuizAttempt(email, ewsLevel, qIdx)
+          score = gen.score
+          autoScore = gen.autoScore
+          manualScore = gen.manualScore
+        }
+
+        const existingAtt = await db
+          .select()
+          .from(quizAttempts)
+          .where(and(eq(quizAttempts.quizId, quizId), eq(quizAttempts.studentId, student.id)))
+          .limit(1)
+
+        if (existingAtt.length > 0) {
+          await db
+            .update(quizAttempts)
+            .set({
+              score,
+              autoScore,
+              manualScore,
+              status: 'GRADED',
+              submittedAt: new Date(sess.sessionDate + 'T10:00:00Z'),
+              gradedBy: lecturer.id,
+              gradedAt: new Date(),
+              updatedAt: new Date()
+            })
+            .where(eq(quizAttempts.id, existingAtt[0].id))
+        } else {
+          await db.insert(quizAttempts).values({
+            quizId,
+            studentId: student.id,
+            attemptNumber: 1,
+            score,
+            autoScore,
+            manualScore,
+            status: 'GRADED',
+            startedAt: new Date(sess.sessionDate + 'T08:30:00Z'),
+            expiresAt: new Date(sess.sessionDate + 'T10:30:00Z'),
+            submittedAt: new Date(sess.sessionDate + 'T10:00:00Z'),
+            gradedBy: lecturer.id,
+            gradedAt: new Date()
+          })
+        }
+        totalAttemptsCount++
+      }
+    }
+  }
+  console.log(`  ✓ Berhasil menyinkronkan ${totalQuizzesCount} kuis & UTS dan ${totalAttemptsCount} quiz attempts tergradasi`)
+
+  // --------------------------------------------------------------------------
+  // 16. Seeding Final Grades Distribusi EWS Kontras untuk Seluruh Mahasiswa
+  // --------------------------------------------------------------------------
+  console.log('\n[16/16] Menetapkan Nilai Akhir (Final Grades) Kontras EWS untuk Seluruh 5 Kelas...')
+  let totalFinalGradesCount = 0
+
+  for (const [classKey, studentEmails] of Object.entries(classEnrollmentEmails)) {
+    const cl = classMap.get(classKey)
+    if (!cl) continue
+    const classConfig = seedClasses.find(c => `${c.courseCode}:${c.code}` === classKey)
+    const lecturer = userMap.get(classConfig?.primaryLecturerEmail?.toLowerCase().trim() || '')
+
+    for (const email of studentEmails) {
+      const student = userMap.get(email.toLowerCase().trim())
+      if (!student) continue
+
+      let attendanceScore = '100.00'
+      let assignmentScore = '88.00'
+      let quizScore = '85.00'
+      let midtermScore = '86.00'
+      let finalExamScore = '88.00'
+      let totalScore = '88.10'
+      let letterGrade = 'A'
+      let gradePoint = '4.00'
+      let status: 'DRAFT' | 'PUBLISHED' = 'DRAFT'
+
+      if (email === 'nakia@student.wakanda.ac.id') {
+        attendanceScore = '100.00'
+        assignmentScore = '96.00'
+        quizScore = '93.50'
+        midtermScore = '94.00'
+        finalExamScore = '92.00'
+        totalScore = '94.10'
+        letterGrade = 'A'
+        gradePoint = '4.00'
+        status = 'PUBLISHED'
+      } else if (email === 'riri@student.wakanda.ac.id') {
+        attendanceScore = '100.00'
+        assignmentScore = '90.00'
+        quizScore = '89.00'
+        midtermScore = '89.00'
+        finalExamScore = '91.00'
+        totalScore = '90.80'
+        letterGrade = 'A'
+        gradePoint = '4.00'
+        status = 'PUBLISHED'
+      } else if (email === 'mbaku@student.wakanda.ac.id') {
+        attendanceScore = '75.00'
+        assignmentScore = '71.00'
+        quizScore = '62.50'
+        midtermScore = '62.00'
+        finalExamScore = '68.00'
+        totalScore = '66.70'
+        letterGrade = 'BC'
+        gradePoint = '2.50'
+        status = 'DRAFT'
+      } else if (email === 'erik@student.wakanda.ac.id') {
+        // Diskualifikasi UAS karena kehadiran < 75% -> Nilai E
+        attendanceScore = '50.00'
+        assignmentScore = '45.00'
+        quizScore = '37.50'
+        midtermScore = '42.00'
+        finalExamScore = '0.00'
+        totalScore = '32.00'
+        letterGrade = 'E'
+        gradePoint = '0.00'
+        status = 'DRAFT'
+      } else {
+        const gradeProf = supportingStudentGradeProfiles.find(p => p.email === email)
+        if (gradeProf) {
+          attendanceScore = gradeProf.attendanceScore
+          assignmentScore = gradeProf.assignmentScore
+          quizScore = gradeProf.quizScore
+          midtermScore = gradeProf.midtermScore
+          finalExamScore = gradeProf.finalExamScore
+          totalScore = gradeProf.totalScore
+          letterGrade = gradeProf.letterGrade
+          gradePoint = gradeProf.gradePoint
+          status = gradeProf.status
+        }
+      }
+
       await db
-        .insert(attendanceLogs)
-        .values(log)
+        .insert(finalGrades)
+        .values({
+          classId: cl.id,
+          studentId: student.id,
+          attendanceScore,
+          assignmentScore,
+          quizScore,
+          midtermScore,
+          finalExamScore,
+          totalScore,
+          letterGrade,
+          gradePoint,
+          status,
+          publishedAt: status === 'PUBLISHED' ? new Date() : null,
+          approvedBy: status === 'PUBLISHED' && lecturer ? lecturer.id : null
+        })
         .onConflictDoUpdate({
-          target: [attendanceLogs.sessionId, attendanceLogs.studentId],
+          target: [finalGrades.classId, finalGrades.studentId],
           set: {
-            status: log.status,
-            checkInMethod: log.checkInMethod,
-            notes: log.notes,
+            attendanceScore,
+            assignmentScore,
+            quizScore,
+            midtermScore,
+            finalExamScore,
+            totalScore,
+            letterGrade,
+            gradePoint,
+            status,
+            publishedAt: status === 'PUBLISHED' ? new Date() : null,
+            approvedBy: status === 'PUBLISHED' && lecturer ? lecturer.id : null,
             updatedAt: new Date()
           }
         })
+      totalFinalGradesCount++
     }
   }
-
-  // Assignments & Submissions IF2041-A
-  const seededAssignments = []
-  for (const a of assignmentMasterData) {
-    const sess = if2041Sessions.get(a.sessionNum)!
-    const dueDate = new Date(sess.sessionDate)
-    dueDate.setDate(dueDate.getDate() + 7)
-
-    const existingAssign = await db
-      .select()
-      .from(assignments)
-      .where(and(eq(assignments.classId, if2041AClass.id), eq(assignments.title, a.title)))
-      .limit(1)
-
-    let assignId: string
-    if (existingAssign.length > 0) {
-      assignId = existingAssign[0].id
-      await db
-        .update(assignments)
-        .set({
-          sessionId: sess.id,
-          description: a.description,
-          instructions: a.instructions,
-          dueDate,
-          updatedAt: new Date()
-        })
-        .where(eq(assignments.id, assignId))
-    } else {
-      const [newAssign] = await db
-        .insert(assignments)
-        .values({
-          classId: if2041AClass.id,
-          sessionId: sess.id,
-          title: a.title,
-          description: a.description,
-          instructions: a.instructions,
-          maxScore: a.maxScore,
-          dueDate,
-          allowLateSubmission: true,
-          latePenaltyPercentage: '10.00',
-          isPublished: true,
-          createdBy: shuriUser.id
-        })
-        .returning()
-      assignId = newAssign.id
-    }
-    seededAssignments.push({ id: assignId, title: a.title })
-  }
-
-  for (const sub of if2041SubmissionsData) {
-    const assign = seededAssignments[sub.assignIdx]
-    const student = userMap.get(sub.studentEmail)!
-
-    await db
-      .insert(submissions)
-      .values({
-        assignmentId: assign.id,
-        studentId: student.id,
-        isLate: sub.isLate,
-        score: sub.score,
-        status: sub.status,
-        feedback: sub.feedback,
-        fileKey: `submissions/${assign.id}/${student.id}.zip`,
-        fileName: 'tugas_praktikum.zip',
-        fileSize: 1024 * 350,
-        gradedBy: shuriUser.id,
-        gradedAt: new Date()
-      })
-      .onConflictDoUpdate({
-        target: [submissions.assignmentId, submissions.studentId],
-        set: {
-          isLate: sub.isLate,
-          score: sub.score,
-          status: sub.status,
-          feedback: sub.feedback,
-          gradedBy: shuriUser.id,
-          gradedAt: new Date(),
-          updatedAt: new Date()
-        }
-      })
-  }
-
-  // Quizzes & Attempts IF2041-A
-  const seededQuizzes = []
-  for (const q of quizMasterData) {
-    const sess = if2041Sessions.get(q.sessionNum)!
-    const startTime = new Date(sess.sessionDate + 'T08:00:00Z')
-    const endTime = new Date(sess.sessionDate + 'T12:00:00Z')
-
-    const existingQuiz = await db
-      .select()
-      .from(quizzes)
-      .where(and(eq(quizzes.classId, if2041AClass.id), eq(quizzes.title, q.title)))
-      .limit(1)
-
-    let quizId: string
-    if (existingQuiz.length > 0) {
-      quizId = existingQuiz[0].id
-      await db
-        .update(quizzes)
-        .set({
-          sessionId: sess.id,
-          quizType: q.type,
-          durationMinutes: q.duration,
-          questionsJsonb: q.questions,
-          startTime,
-          endTime,
-          isPublished: true,
-          updatedAt: new Date()
-        })
-        .where(eq(quizzes.id, quizId))
-    } else {
-      const [newQuiz] = await db
-        .insert(quizzes)
-        .values({
-          classId: if2041AClass.id,
-          sessionId: sess.id,
-          title: q.title,
-          description: `Evaluasi terstruktur pertemuan ${q.sessionNum} mata kuliah IF2041.`,
-          quizType: q.type,
-          durationMinutes: q.duration,
-          maxScore: '100.00',
-          passingScore: '55.00',
-          startTime,
-          endTime,
-          shuffleQuestions: true,
-          maxAttempts: 1,
-          questionsJsonb: q.questions,
-          isPublished: true,
-          createdBy: shuriUser.id
-        })
-        .returning()
-      quizId = newQuiz.id
-    }
-    seededQuizzes.push({ id: quizId, title: q.title, type: q.type })
-  }
-
-  for (const att of if2041QuizAttemptsData) {
-    const quiz = seededQuizzes[att.quizIdx]
-    const student = userMap.get(att.studentEmail)!
-
-    const existing = await db
-      .select()
-      .from(quizAttempts)
-      .where(and(eq(quizAttempts.quizId, quiz.id), eq(quizAttempts.studentId, student.id)))
-      .limit(1)
-
-    if (existing.length > 0) {
-      await db
-        .update(quizAttempts)
-        .set({
-          score: att.score,
-          autoScore: att.autoScore,
-          manualScore: att.manualScore,
-          status: 'GRADED',
-          submittedAt: new Date(),
-          gradedBy: shuriUser.id,
-          gradedAt: new Date(),
-          updatedAt: new Date()
-        })
-        .where(eq(quizAttempts.id, existing[0].id))
-    } else {
-      await db.insert(quizAttempts).values({
-        quizId: quiz.id,
-        studentId: student.id,
-        attemptNumber: 1,
-        score: att.score,
-        autoScore: att.autoScore,
-        manualScore: att.manualScore,
-        status: 'GRADED',
-        startedAt: new Date(Date.now() - 3600_000),
-        expiresAt: new Date(Date.now() + 3600_000),
-        submittedAt: new Date(),
-        gradedBy: shuriUser.id,
-        gradedAt: new Date()
-      })
-    }
-  }
-
-  // Final Grades IF2041-A
-  for (const fg of if2041FinalGradesData) {
-    const student = userMap.get(fg.studentEmail)!
-    await db
-      .insert(finalGrades)
-      .values({
-        classId: if2041AClass.id,
-        studentId: student.id,
-        attendanceScore: fg.attendanceScore,
-        assignmentScore: fg.assignmentScore,
-        quizScore: fg.quizScore,
-        midtermScore: fg.midtermScore,
-        finalExamScore: fg.finalExamScore,
-        totalScore: fg.totalScore,
-        letterGrade: fg.letterGrade,
-        gradePoint: fg.gradePoint,
-        status: fg.status,
-        publishedAt: fg.status === 'PUBLISHED' ? new Date() : null,
-        approvedBy: fg.status === 'PUBLISHED' ? shuriUser.id : null
-      })
-      .onConflictDoUpdate({
-        target: [finalGrades.classId, finalGrades.studentId],
-        set: {
-          attendanceScore: fg.attendanceScore,
-          assignmentScore: fg.assignmentScore,
-          quizScore: fg.quizScore,
-          midtermScore: fg.midtermScore,
-          finalExamScore: fg.finalExamScore,
-          totalScore: fg.totalScore,
-          letterGrade: fg.letterGrade,
-          gradePoint: fg.gradePoint,
-          status: fg.status,
-          publishedAt: fg.status === 'PUBLISHED' ? new Date() : null,
-          approvedBy: fg.status === 'PUBLISHED' ? shuriUser.id : null,
-          updatedAt: new Date()
-        }
-      })
-  }
-
-  // Session Materials IF2041-A
-  for (const mat of sampleMaterialsData) {
-    const sess = if2041Sessions.get(mat.sessionNum)!
-    const existing = await db
-      .select()
-      .from(sessionMaterials)
-      .where(and(eq(sessionMaterials.sessionId, sess.id), eq(sessionMaterials.title, mat.title)))
-      .limit(1)
-
-    if (existing.length === 0) {
-      await db.insert(sessionMaterials).values({
-        sessionId: sess.id,
-        title: mat.title,
-        description: `Bahan ajar resmi pertemuan ke-${mat.sessionNum}`,
-        materialType: mat.materialType,
-        fileName: mat.fileName,
-        fileUrl: mat.fileUrl,
-        fileSize: 1024 * 512,
-        orderIndex: 1,
-        isPublished: true
-      })
-    }
-  }
+  console.log(`  ✓ Berhasil menetapkan ${totalFinalGradesCount} nilai akhir (Final Grades) kontras EWS across 5 kelas`)
 
   // --------------------------------------------------------------------------
   // Ringkasan Kredensial 8 Akun Terproteksi (7 Akun Utama + W'Kabi)
@@ -751,9 +1111,10 @@ async function seed() {
       }))
   )
   console.log('='.repeat(105))
-  console.log('  ✨  PROSES SEEDING TAHAP AWAL SELESAI SECARA IDEMPOTENT KE DATABASE NEON!')
+  console.log('  ✨  PROSES SEEDING INSTITUSIONAL LENGKAP SELESAI SECARA IDEMPOTENT KE DATABASE NEON!')
   console.log('  📊  Tepat 5 Kelas Aktif terdaftar dengan total 80 sesi dan 10-12 mahasiswa per kelas.')
-  console.log('  🔑  Seluruh akun dummy siap digunakan untuk login dengan password: Password123!')
+  console.log('  📚  Bahan Ajar (P-1 s/d P-9), Token Presensi Sesi 10, Log Kehadiran, Tugas, Kuis, & Nilai Akhir Tersemai.')
+  console.log('  🔑  Seluruh 22 akun (Admin, Dosen, Mahasiswa) siap digunakan login dengan password: Password123!')
   console.log('='.repeat(105) + '\n')
 }
 

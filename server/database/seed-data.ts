@@ -974,3 +974,1066 @@ export const sampleMaterialsData = [
     fileUrl: '/materials/pertemuan_03.pdf'
   }
 ]
+
+
+// ============================================================================
+// BAGIAN KEDUA (PENUTUP) - EXTENSION DATA UNTUK PART 2 SEEDER
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// 12. TOKEN PRESENSI P-10 UNTUK SELURUH 5 KELAS AKTIF (Aktif 24 Jam)
+// ----------------------------------------------------------------------------
+export const attendanceTokensP10: Record<string, { pin: string; lecturerEmail: string }> = {
+  'IF2041:A': { pin: '481920', lecturerEmail: 'shuri@lecturer.wakanda.ac.id' },
+  'IF2041:B': { pin: '592831', lecturerEmail: 'tchalla@lecturer.wakanda.ac.id' },
+  'IF202:A':  { pin: '318492', lecturerEmail: 'shuri@lecturer.wakanda.ac.id' },
+  'IF302:A':  { pin: '729401', lecturerEmail: 'tchalla@lecturer.wakanda.ac.id' },
+  'CY101:A':  { pin: '641829', lecturerEmail: 'wkabi@lecturer.wakanda.ac.id' }
+}
+
+// ----------------------------------------------------------------------------
+// 13. PROFIL KEHADIRAN MAHASISWA PENDUKUNG (14 Mahasiswa)
+//     Distribusi EWS Kontras Natural untuk Realisme Institusional
+// ----------------------------------------------------------------------------
+export interface StudentAttendanceProfile {
+  email: string
+  ewsLevel: 'SAFE' | 'WARNING' | 'CRITICAL'
+  absentSessions: number[] // Session numbers di mana mahasiswa ABSEN
+  lateSessions: number[]   // Session numbers di mana mahasiswa TERLAMBAT
+  sickSessions: number[]   // Session numbers di mana mahasiswa SAKIT
+}
+
+export const supportingStudentAttendanceProfiles: StudentAttendanceProfile[] = [
+  // === EWS AMAN (≥80% dari 16 sesi = ≥13 hadir) ===
+  {
+    email: 'okoye@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    absentSessions: [],
+    lateSessions: [3],
+    sickSessions: []
+  },
+  {
+    email: 'ramonda@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    absentSessions: [],
+    lateSessions: [],
+    sickSessions: [5]
+  },
+  {
+    email: 'zuri@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    absentSessions: [9],
+    lateSessions: [4],
+    sickSessions: []
+  },
+  {
+    email: 'griot@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    absentSessions: [7],
+    lateSessions: [2],
+    sickSessions: []
+  },
+  {
+    email: 'kaluu@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    absentSessions: [5],
+    lateSessions: [],
+    sickSessions: [9]
+  },
+
+  // === EWS WASPADA (75-79% dari 16 sesi) ===
+  {
+    email: 'ayo@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    absentSessions: [3, 6],
+    lateSessions: [4],
+    sickSessions: []
+  },
+  {
+    email: 'bucky@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    absentSessions: [5, 8],
+    lateSessions: [3],
+    sickSessions: [7]
+  },
+  {
+    email: 'sam@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    absentSessions: [4, 7, 9],
+    lateSessions: [6],
+    sickSessions: []
+  },
+  {
+    email: 'taku@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    absentSessions: [2, 6, 9],
+    lateSessions: [],
+    sickSessions: [4]
+  },
+  {
+    email: 'zawavari@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    absentSessions: [3, 7],
+    lateSessions: [5],
+    sickSessions: [8]
+  },
+
+  // === EWS KRITIS (<75% dari 16 sesi) ===
+  {
+    email: 'aneka@student.wakanda.ac.id',
+    ewsLevel: 'CRITICAL',
+    absentSessions: [1, 2, 5, 7, 8],
+    lateSessions: [],
+    sickSessions: []
+  },
+  {
+    email: 'attuma@student.wakanda.ac.id',
+    ewsLevel: 'CRITICAL',
+    absentSessions: [2, 4, 6, 8, 9],
+    lateSessions: [],
+    sickSessions: []
+  },
+  {
+    email: 'namora@student.wakanda.ac.id',
+    ewsLevel: 'CRITICAL',
+    absentSessions: [1, 3, 5, 6, 8],
+    lateSessions: [],
+    sickSessions: []
+  },
+  {
+    email: 'nomble@student.wakanda.ac.id',
+    ewsLevel: 'CRITICAL',
+    absentSessions: [2, 3, 7, 8, 9],
+    lateSessions: [],
+    sickSessions: []
+  }
+]
+
+// ----------------------------------------------------------------------------
+// 14. TUGAS PERKULIAHAN PER MATA KULIAH (3 Tugas per Kelas, 4 kelas lainnya)
+// ----------------------------------------------------------------------------
+export interface ClassAssignmentConfig {
+  classKey: string
+  lecturerEmail: string
+  assignments: AssignmentDefinition[]
+}
+
+export const classAssignmentsConfig: ClassAssignmentConfig[] = [
+  // IF2041-B
+  {
+    classKey: 'IF2041:B',
+    lecturerEmail: 'tchalla@lecturer.wakanda.ac.id',
+    assignments: [
+      {
+        title: 'Tugas 1 IF2041-B: Implementasi ADT Linked List',
+        sessionNum: 3,
+        description: 'Implementasikan Singly, Doubly, dan Circular Linked List dengan kompleksitas operasi O(1) untuk insertion dan deletion.',
+        instructions: 'Kumpulkan format ZIP berisi source code Python/TypeScript dan laporan analisis Big-O.',
+        maxScore: '100.00'
+      },
+      {
+        title: 'Tugas 2 IF2041-B: BST dan Traversal Tree',
+        sessionNum: 6,
+        description: 'Implementasikan Binary Search Tree dengan semua operasi traversal: pre-order, in-order, dan post-order.',
+        instructions: 'Sertakan unit test untuk setiap operasi dan visualisasi pohon dalam format ASCII.',
+        maxScore: '100.00'
+      },
+      {
+        title: 'Tugas 3 IF2041-B: Implementasi Graph dengan Algoritma Traversal',
+        sessionNum: 9,
+        description: 'Implementasikan representasi graph menggunakan adjacency list dan terapkan BFS serta DFS.',
+        instructions: 'Visualisasikan hasil traversal dan hitung kompleksitas waktu dan ruang implementasi.',
+        maxScore: '100.00'
+      }
+    ]
+  },
+  // IF202-A
+  {
+    classKey: 'IF202:A',
+    lecturerEmail: 'shuri@lecturer.wakanda.ac.id',
+    assignments: [
+      {
+        title: 'Tugas 1 IF202: Desain ERD & Normalisasi Skema Database',
+        sessionNum: 3,
+        description: 'Rancang Entity Relationship Diagram untuk sistem informasi perpustakaan digital dan normalisasikan hingga 3NF.',
+        instructions: 'Gunakan tools draw.io atau dbdiagram.io, export PDF beserta laporan normalisasi step-by-step.',
+        maxScore: '100.00'
+      },
+      {
+        title: 'Tugas 2 IF202: Advanced SQL Query & Optimasi Index',
+        sessionNum: 6,
+        description: 'Tulis 10 kueri SQL kompleks menggunakan JOIN, CTE, Window Function, dan tunjukkan perbandingan EXPLAIN ANALYZE dengan/tanpa index.',
+        instructions: 'Jalankan query di PostgreSQL, screenshot EXPLAIN ANALYZE output, dan analisis query plan.',
+        maxScore: '100.00'
+      },
+      {
+        title: 'Tugas 3 IF202: Implementasi ORM dengan Drizzle & Migrasi Schema',
+        sessionNum: 9,
+        description: 'Buat mini-project TypeScript menggunakan Drizzle ORM dengan skema 5 tabel, relasi, dan 3 migrasi database terstruktur.',
+        instructions: 'Sertakan README instruksi setup, file migrasi drizzle-kit, dan seed data 20 baris per tabel.',
+        maxScore: '100.00'
+      }
+    ]
+  },
+  // IF302-A
+  {
+    classKey: 'IF302:A',
+    lecturerEmail: 'tchalla@lecturer.wakanda.ac.id',
+    assignments: [
+      {
+        title: 'Tugas 1 IF302: Nuxt 3 Project Setup & File-System Routing',
+        sessionNum: 3,
+        description: 'Buat aplikasi Nuxt 3 dengan minimal 5 halaman berbeda menggunakan file-system routing dan satu layout dinamis.',
+        instructions: 'Push ke GitHub repository, deploy ke Netlify/Vercel, sertakan README dan link deploy.',
+        maxScore: '100.00'
+      },
+      {
+        title: 'Tugas 2 IF302: REST API dengan Nitro & Pinia State Management',
+        sessionNum: 6,
+        description: 'Implementasikan 3 endpoint REST API menggunakan Nitro server routes, integrasikan dengan Pinia store di frontend.',
+        instructions: 'Dokumentasikan API menggunakan komentar JSDoc, sertakan screenshot alur data request-response.',
+        maxScore: '100.00'
+      },
+      {
+        title: 'Tugas 3 IF302: Authentication System & Protected Routes',
+        sessionNum: 9,
+        description: 'Implementasikan sistem autentikasi lengkap: registrasi, login, session cookie, middleware proteksi rute, dan logout.',
+        instructions: 'Gunakan bcrypt untuk hashing password, implementasikan rate limiting, dan tulis 5 test case.',
+        maxScore: '100.00'
+      }
+    ]
+  },
+  // CY101-A
+  {
+    classKey: 'CY101:A',
+    lecturerEmail: 'wkabi@lecturer.wakanda.ac.id',
+    assignments: [
+      {
+        title: 'Tugas 1 CY101: Implementasi Caesar & Vigenère Cipher',
+        sessionNum: 3,
+        description: 'Implementasikan Caesar Cipher dan Vigenère Cipher dengan fungsi enkripsi, dekripsi, dan analisis frekuensi kriptanalisis.',
+        instructions: 'Gunakan Python atau TypeScript, sertakan contoh teks 100 karakter dengan validasi output enkripsi/dekripsi.',
+        maxScore: '100.00'
+      },
+      {
+        title: 'Tugas 2 CY101: Implementasi AES-256 & Mode Operasi CBC',
+        sessionNum: 6,
+        description: 'Implementasikan enkripsi AES-256 dengan mode CBC menggunakan library kriptografi dan tunjukkan kelemahan mode ECB.',
+        instructions: 'Enkripsi pesan 500 karakter, perbandingan visual output ECB vs CBC, laporan analisis pola.',
+        maxScore: '100.00'
+      },
+      {
+        title: 'Tugas 3 CY101: PKI Simulation - RSA Keypair & Digital Signature',
+        sessionNum: 9,
+        description: 'Simulasikan Public Key Infrastructure dengan pembangkitan keypair RSA-2048, enkripsi/dekripsi asimetrik, dan tanda tangan digital.',
+        instructions: 'Gunakan library openssl atau node-forge, demonstrasikan verify signature, sertakan analisis keamanan.',
+        maxScore: '100.00'
+      }
+    ]
+  }
+]
+
+// ----------------------------------------------------------------------------
+// 15. KONFIGURASI KUIS PER KELAS (selain IF2041-A yang sudah ada)
+// ----------------------------------------------------------------------------
+export interface ClassQuizConfig {
+  classKey: string
+  lecturerEmail: string
+  quizzes: QuizDefinition[]
+}
+
+export const classQuizzesConfig: ClassQuizConfig[] = [
+  // IF2041-B
+  {
+    classKey: 'IF2041:B',
+    lecturerEmail: 'tchalla@lecturer.wakanda.ac.id',
+    quizzes: [
+      {
+        title: 'Kuis 1 IF2041-B: Stack & Queue',
+        sessionNum: 4,
+        type: 'QUIZ',
+        duration: 45,
+        questions: [
+          {
+            id: 'q-b-k1-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Operasi manakah yang digunakan untuk menambahkan elemen ke dalam Stack?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'Push' },
+              { id: 'opt-b', text: 'Enqueue' },
+              { id: 'opt-c', text: 'Insert' },
+              { id: 'opt-d', text: 'Add' }
+            ],
+            correctOptionId: 'opt-a',
+            explanation: 'Push adalah operasi standar untuk menambahkan elemen ke puncak (top) Stack.'
+          },
+          {
+            id: 'q-b-k1-2',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Kompleksitas waktu operasi Enqueue dan Dequeue pada Queue berbasis linked list adalah?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'O(N)' },
+              { id: 'opt-b', text: 'O(log N)' },
+              { id: 'opt-c', text: 'O(1)' },
+              { id: 'opt-d', text: 'O(N²)' }
+            ],
+            correctOptionId: 'opt-c',
+            explanation: 'Dengan menjaga pointer head dan tail, Enqueue dan Dequeue berjalan dalam O(1) konstan.'
+          }
+        ]
+      },
+      {
+        title: 'Kuis 2 IF2041-B: Tree & Rekursi',
+        sessionNum: 7,
+        type: 'QUIZ',
+        duration: 45,
+        questions: [
+          {
+            id: 'q-b-k2-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Traversal Binary Tree manakah yang mengunjungi simpul dalam urutan Left → Root → Right?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'Pre-order' },
+              { id: 'opt-b', text: 'In-order' },
+              { id: 'opt-c', text: 'Post-order' },
+              { id: 'opt-d', text: 'Level-order' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'In-order traversal mengunjungi Left subtree, kemudian Root, kemudian Right subtree.'
+          },
+          {
+            id: 'q-b-k2-2',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Berapa tinggi BST yang menyimpan N kunci dalam kasus terbaik (perfectly balanced)?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'N' },
+              { id: 'opt-b', text: 'N/2' },
+              { id: 'opt-c', text: 'log₂(N)' },
+              { id: 'opt-d', text: '√N' }
+            ],
+            correctOptionId: 'opt-c',
+            explanation: 'Dalam BST yang seimbang sempurna, tinggi pohon adalah log₂(N).'
+          }
+        ]
+      },
+      {
+        title: 'UTS IF2041-B: Struktur Data & Algoritma',
+        sessionNum: 8,
+        type: 'MIDTERM_EXAM',
+        duration: 90,
+        questions: [
+          {
+            id: 'q-b-uts-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Algoritma pengurutan dengan kompleksitas O(N²) dalam kasus terburuk namun O(N log N) rata-rata dan umumnya tercepat di praktik?',
+            points: 40,
+            options: [
+              { id: 'opt-a', text: 'Bubble Sort' },
+              { id: 'opt-b', text: 'Merge Sort' },
+              { id: 'opt-c', text: 'Quick Sort' },
+              { id: 'opt-d', text: 'Insertion Sort' }
+            ],
+            correctOptionId: 'opt-c',
+            explanation: 'Quick Sort memiliki average case O(N log N) dengan cache performance yang sangat baik.'
+          },
+          {
+            id: 'q-b-uts-2',
+            type: 'ESSAY',
+            prompt: 'Jelaskan konsep rekursi dan berikan contoh implementasi fungsi Fibonacci rekursif beserta analisis kompleksitasnya!',
+            points: 60,
+            rubric: 'Definisi rekursi yang tepat (20 poin), implementasi fungsi Fibonacci (20 poin), analisis kompleksitas O(2^N) dan optimasi memoization (20 poin).'
+          }
+        ]
+      }
+    ]
+  },
+
+  // IF202-A
+  {
+    classKey: 'IF202:A',
+    lecturerEmail: 'shuri@lecturer.wakanda.ac.id',
+    quizzes: [
+      {
+        title: 'Kuis 1 IF202: DDL & Integritas Data',
+        sessionNum: 4,
+        type: 'QUIZ',
+        duration: 45,
+        questions: [
+          {
+            id: 'q-db-k1-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Constraint mana yang memastikan nilai pada suatu kolom selalu UNIK dan BUKAN NULL?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'FOREIGN KEY' },
+              { id: 'opt-b', text: 'PRIMARY KEY' },
+              { id: 'opt-c', text: 'CHECK' },
+              { id: 'opt-d', text: 'DEFAULT' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'PRIMARY KEY secara implisit menerapkan NOT NULL dan UNIQUE pada kolom yang ditentukan.'
+          },
+          {
+            id: 'q-db-k1-2',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Pada bentuk normal manakah setiap atribut non-kunci harus bergantung penuh pada seluruh primary key komposit?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: '1NF' },
+              { id: 'opt-b', text: '2NF' },
+              { id: 'opt-c', text: '3NF' },
+              { id: 'opt-d', text: 'BCNF' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'Bentuk Normal Kedua (2NF) mensyaratkan setiap atribut non-kunci bergantung penuh pada keseluruhan primary key.'
+          }
+        ]
+      },
+      {
+        title: 'Kuis 2 IF202: SQL Advanced & Indexing',
+        sessionNum: 7,
+        type: 'QUIZ',
+        duration: 45,
+        questions: [
+          {
+            id: 'q-db-k2-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Fungsi window SQL manakah yang mengembalikan peringkat tanpa celah (gap) untuk nilai yang sama?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'RANK()' },
+              { id: 'opt-b', text: 'ROW_NUMBER()' },
+              { id: 'opt-c', text: 'DENSE_RANK()' },
+              { id: 'opt-d', text: 'NTILE()' }
+            ],
+            correctOptionId: 'opt-c',
+            explanation: 'DENSE_RANK() memberikan peringkat berurutan tanpa celah, berbeda dengan RANK() yang membiarkan celah untuk nilai duplikat.'
+          },
+          {
+            id: 'q-db-k2-2',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Jenis index PostgreSQL manakah yang paling efisien untuk kueri pencarian exact-match pada kolom teks?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'GiST Index' },
+              { id: 'opt-b', text: 'B-Tree Index' },
+              { id: 'opt-c', text: 'Hash Index' },
+              { id: 'opt-d', text: 'BRIN Index' }
+            ],
+            correctOptionId: 'opt-c',
+            explanation: 'Hash Index sangat efisien untuk operasi equality (=) namun tidak mendukung range query.'
+          }
+        ]
+      },
+      {
+        title: 'UTS IF202: Basis Data Relasional',
+        sessionNum: 8,
+        type: 'MIDTERM_EXAM',
+        duration: 90,
+        questions: [
+          {
+            id: 'q-db-uts-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Sifat transaksi database manakah yang menjamin bahwa perubahan yang sudah di-commit tidak hilang meskipun terjadi system crash?',
+            points: 40,
+            options: [
+              { id: 'opt-a', text: 'Atomicity' },
+              { id: 'opt-b', text: 'Consistency' },
+              { id: 'opt-c', text: 'Isolation' },
+              { id: 'opt-d', text: 'Durability' }
+            ],
+            correctOptionId: 'opt-d',
+            explanation: 'Durability menjamin bahwa transaksi yang telah berhasil di-commit akan tetap tersimpan secara permanen.'
+          },
+          {
+            id: 'q-db-uts-2',
+            type: 'ESSAY',
+            prompt: 'Jelaskan perbedaan antara LEFT JOIN, RIGHT JOIN, dan INNER JOIN beserta kapan masing-masing digunakan!',
+            points: 60,
+            rubric: 'Definisi INNER JOIN (20 poin), LEFT JOIN dengan penanganan NULL (20 poin), skenario penggunaan tepat (20 poin).'
+          }
+        ]
+      }
+    ]
+  },
+
+  // IF302-A
+  {
+    classKey: 'IF302:A',
+    lecturerEmail: 'tchalla@lecturer.wakanda.ac.id',
+    quizzes: [
+      {
+        title: 'Kuis 1 IF302: Nuxt 3 & Pinia',
+        sessionNum: 4,
+        type: 'QUIZ',
+        duration: 45,
+        questions: [
+          {
+            id: 'q-web-k1-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Folder manakah dalam Nuxt 3 yang digunakan untuk mendefinisikan Server API endpoint secara otomatis?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'server/routes/' },
+              { id: 'opt-b', text: 'server/api/' },
+              { id: 'opt-c', text: 'api/handlers/' },
+              { id: 'opt-d', text: 'server/endpoints/' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'Nuxt 3 secara otomatis mendaftarkan file di folder server/api/ sebagai API endpoint.'
+          },
+          {
+            id: 'q-web-k1-2',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Composable Pinia manakah yang digunakan untuk mendefinisikan sebuah store?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'createStore()' },
+              { id: 'opt-b', text: 'defineStore()' },
+              { id: 'opt-c', text: 'useStore()' },
+              { id: 'opt-d', text: 'newStore()' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'defineStore() adalah API utama Pinia untuk mendefinisikan store dengan id unik, state, getters, dan actions.'
+          }
+        ]
+      },
+      {
+        title: 'Kuis 2 IF302: TypeScript & Nitro API',
+        sessionNum: 7,
+        type: 'QUIZ',
+        duration: 45,
+        questions: [
+          {
+            id: 'q-web-k2-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Keyword TypeScript manakah yang digunakan untuk mendefinisikan tipe yang bisa berupa salah satu dari beberapa tipe?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'interface' },
+              { id: 'opt-b', text: 'type (union dengan |)' },
+              { id: 'opt-c', text: 'enum' },
+              { id: 'opt-d', text: 'class' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'Union type dengan operator pipe (|) memungkinkan sebuah nilai memiliki lebih dari satu tipe alternatif.'
+          },
+          {
+            id: 'q-web-k2-2',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Utility Nuxt 3 manakah yang digunakan untuk membaca query parameter dari URL di server handler?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'getQuery(event)' },
+              { id: 'opt-b', text: 'readBody(event)' },
+              { id: 'opt-c', text: 'getRouterParam(event)' },
+              { id: 'opt-d', text: 'getRequestHeaders(event)' }
+            ],
+            correctOptionId: 'opt-a',
+            explanation: 'getQuery(event) mengekstrak semua query parameter dari URL request di server event handler Nitro.'
+          }
+        ]
+      },
+      {
+        title: 'UTS IF302: Full-Stack Web Development',
+        sessionNum: 8,
+        type: 'MIDTERM_EXAM',
+        duration: 90,
+        questions: [
+          {
+            id: 'q-web-uts-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Perbedaan utama antara Server-Side Rendering (SSR) dan Static Site Generation (SSG) dalam konteks Nuxt 3 adalah?',
+            points: 40,
+            options: [
+              { id: 'opt-a', text: 'SSR menghasilkan HTML statis, SSG merender di server saat request' },
+              { id: 'opt-b', text: 'SSR merender HTML di server saat setiap request, SSG menghasilkan HTML saat build time' },
+              { id: 'opt-c', text: 'SSR hanya untuk halaman dinamis, SSG tidak mendukung data fetching' },
+              { id: 'opt-d', text: 'SSR dan SSG tidak memiliki perbedaan signifikan' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'SSR merender setiap request di server (data selalu fresh), SSG menghasilkan HTML statis saat build.'
+          },
+          {
+            id: 'q-web-uts-2',
+            type: 'ESSAY',
+            prompt: 'Jelaskan arsitektur sistem autentikasi berbasis session cookie dalam aplikasi Nuxt 3 beserta langkah-langkah keamanan yang perlu diterapkan!',
+            points: 60,
+            rubric: 'Alur login-session-logout (20 poin), atribut cookie HttpOnly, Secure, SameSite (20 poin), proteksi CSRF dan middleware rute (20 poin).'
+          }
+        ]
+      }
+    ]
+  },
+
+  // CY101-A
+  {
+    classKey: 'CY101:A',
+    lecturerEmail: 'wkabi@lecturer.wakanda.ac.id',
+    quizzes: [
+      {
+        title: 'Kuis 1 CY101: Kriptografi Klasik & Simetrik',
+        sessionNum: 4,
+        type: 'QUIZ',
+        duration: 45,
+        questions: [
+          {
+            id: 'q-cy-k1-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Kelemahan utama Cipher Vigenère yang membuatnya rentan terhadap Kasiski examination adalah?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'Kunci terlalu panjang' },
+              { id: 'opt-b', text: 'Pengulangan pola kunci menciptakan periodisitas yang dapat dieksploitasi' },
+              { id: 'opt-c', text: 'Hanya menggunakan substitusi tunggal' },
+              { id: 'opt-d', text: 'Tidak mendukung huruf kapital' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'Vigenère mengulang kunci, menciptakan pola yang dapat dideteksi melalui Kasiski test atau Indeks of Coincidence.'
+          },
+          {
+            id: 'q-cy-k1-2',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'AES-256 menggunakan berapa putaran (rounds) enkripsi?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: '10 rounds' },
+              { id: 'opt-b', text: '12 rounds' },
+              { id: 'opt-c', text: '14 rounds' },
+              { id: 'opt-d', text: '16 rounds' }
+            ],
+            correctOptionId: 'opt-c',
+            explanation: 'AES-128 = 10 rounds, AES-192 = 12 rounds, AES-256 = 14 rounds enkripsi.'
+          }
+        ]
+      },
+      {
+        title: 'Kuis 2 CY101: RSA & Hash Functions',
+        sessionNum: 7,
+        type: 'QUIZ',
+        duration: 45,
+        questions: [
+          {
+            id: 'q-cy-k2-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Properti kriptografi hash manakah yang menjamin bahwa tidak mungkin menemukan dua input berbeda yang menghasilkan hash yang sama?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'Pre-image resistance' },
+              { id: 'opt-b', text: 'Second pre-image resistance' },
+              { id: 'opt-c', text: 'Collision resistance' },
+              { id: 'opt-d', text: 'Avalanche effect' }
+            ],
+            correctOptionId: 'opt-c',
+            explanation: 'Collision resistance menjamin tidak ada dua pesan berbeda yang bisa menghasilkan nilai hash yang identik.'
+          },
+          {
+            id: 'q-cy-k2-2',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Keamanan RSA bergantung pada kesulitan komputasional dari masalah matematika apa?',
+            points: 50,
+            options: [
+              { id: 'opt-a', text: 'Discrete logarithm problem' },
+              { id: 'opt-b', text: 'Integer factorization problem' },
+              { id: 'opt-c', text: 'Shortest vector problem' },
+              { id: 'opt-d', text: 'Elliptic curve discrete log' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'RSA bergantung pada sulitnya memfaktorkan bilangan bulat besar N = p × q menjadi faktor prima p dan q.'
+          }
+        ]
+      },
+      {
+        title: 'UTS CY101: Kriptografi & Keamanan Sistem',
+        sessionNum: 8,
+        type: 'MIDTERM_EXAM',
+        duration: 90,
+        questions: [
+          {
+            id: 'q-cy-uts-1',
+            type: 'MULTIPLE_CHOICE',
+            prompt: 'Dalam protokol TLS, proses negosiasi cipher suite dan pertukaran kunci terjadi pada fase apa?',
+            points: 40,
+            options: [
+              { id: 'opt-a', text: 'Application Data Phase' },
+              { id: 'opt-b', text: 'TLS Handshake Protocol' },
+              { id: 'opt-c', text: 'Record Layer Protocol' },
+              { id: 'opt-d', text: 'Alert Protocol' }
+            ],
+            correctOptionId: 'opt-b',
+            explanation: 'TLS Handshake Protocol menangani autentikasi server/klien, negosiasi cipher suite, dan pembangkitan session key.'
+          },
+          {
+            id: 'q-cy-uts-2',
+            type: 'ESSAY',
+            prompt: 'Jelaskan bagaimana Digital Signature bekerja menggunakan kriptografi asimetrik dan apa yang ia jamin dalam komunikasi digital!',
+            points: 60,
+            rubric: 'Proses penandatanganan menggunakan private key (20 poin), verifikasi menggunakan public key (20 poin), jaminan authenticity, integrity, dan non-repudiation (20 poin).'
+          }
+        ]
+      }
+    ]
+  }
+]
+
+// ----------------------------------------------------------------------------
+// 16. PROFIL NILAI FINAL GRADE DISTRIBUSI NATURAL UNTUK 14 MAHASISWA PENDUKUNG
+// ----------------------------------------------------------------------------
+export interface StudentFinalGradeProfile {
+  email: string
+  ewsLevel: 'SAFE' | 'WARNING' | 'CRITICAL'
+  attendanceScore: string
+  assignmentScore: string
+  quizScore: string
+  midtermScore: string
+  finalExamScore: string
+  totalScore: string
+  letterGrade: 'A' | 'AB' | 'B' | 'BC' | 'C' | 'D' | 'E'
+  gradePoint: string
+  status: 'DRAFT' | 'PUBLISHED'
+}
+
+export const supportingStudentGradeProfiles: StudentFinalGradeProfile[] = [
+  // === EWS AMAN: Nilai Baik (A/AB) ===
+  {
+    email: 'okoye@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    attendanceScore: '100.00',
+    assignmentScore: '91.00',
+    quizScore: '89.00',
+    midtermScore: '88.00',
+    finalExamScore: '90.00',
+    totalScore: '90.50',
+    letterGrade: 'A',
+    gradePoint: '4.00',
+    status: 'DRAFT'
+  },
+  {
+    email: 'ramonda@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    attendanceScore: '100.00',
+    assignmentScore: '94.00',
+    quizScore: '91.00',
+    midtermScore: '92.00',
+    finalExamScore: '93.00',
+    totalScore: '93.25',
+    letterGrade: 'A',
+    gradePoint: '4.00',
+    status: 'DRAFT'
+  },
+  {
+    email: 'zuri@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    attendanceScore: '93.80',
+    assignmentScore: '88.00',
+    quizScore: '85.00',
+    midtermScore: '87.00',
+    finalExamScore: '86.00',
+    totalScore: '87.23',
+    letterGrade: 'A',
+    gradePoint: '4.00',
+    status: 'DRAFT'
+  },
+  {
+    email: 'griot@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    attendanceScore: '93.80',
+    assignmentScore: '92.00',
+    quizScore: '90.00',
+    midtermScore: '91.00',
+    finalExamScore: '89.00',
+    totalScore: '90.78',
+    letterGrade: 'A',
+    gradePoint: '4.00',
+    status: 'DRAFT'
+  },
+  {
+    email: 'kaluu@student.wakanda.ac.id',
+    ewsLevel: 'SAFE',
+    attendanceScore: '93.80',
+    assignmentScore: '84.00',
+    quizScore: '82.00',
+    midtermScore: '80.00',
+    finalExamScore: '83.00',
+    totalScore: '83.33',
+    letterGrade: 'AB',
+    gradePoint: '3.50',
+    status: 'DRAFT'
+  },
+
+  // === EWS WASPADA: Nilai Menengah (B/BC) ===
+  {
+    email: 'ayo@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    attendanceScore: '87.50',
+    assignmentScore: '75.00',
+    quizScore: '72.00',
+    midtermScore: '71.00',
+    finalExamScore: '73.00',
+    totalScore: '74.15',
+    letterGrade: 'B',
+    gradePoint: '3.00',
+    status: 'DRAFT'
+  },
+  {
+    email: 'bucky@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    attendanceScore: '87.50',
+    assignmentScore: '72.00',
+    quizScore: '68.00',
+    midtermScore: '70.00',
+    finalExamScore: '71.00',
+    totalScore: '72.00',
+    letterGrade: 'B',
+    gradePoint: '3.00',
+    status: 'DRAFT'
+  },
+  {
+    email: 'sam@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    attendanceScore: '81.30',
+    assignmentScore: '68.00',
+    quizScore: '65.00',
+    midtermScore: '64.00',
+    finalExamScore: '66.00',
+    totalScore: '67.23',
+    letterGrade: 'BC',
+    gradePoint: '2.50',
+    status: 'DRAFT'
+  },
+  {
+    email: 'taku@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    attendanceScore: '81.30',
+    assignmentScore: '70.00',
+    quizScore: '67.00',
+    midtermScore: '68.00',
+    finalExamScore: '69.00',
+    totalScore: '69.78',
+    letterGrade: 'BC',
+    gradePoint: '2.50',
+    status: 'DRAFT'
+  },
+  {
+    email: 'zawavari@student.wakanda.ac.id',
+    ewsLevel: 'WARNING',
+    attendanceScore: '87.50',
+    assignmentScore: '73.00',
+    quizScore: '71.00',
+    midtermScore: '72.00',
+    finalExamScore: '74.00',
+    totalScore: '74.05',
+    letterGrade: 'B',
+    gradePoint: '3.00',
+    status: 'DRAFT'
+  },
+
+  // === EWS KRITIS: Diskualifikasi UAS → E ===
+  {
+    email: 'aneka@student.wakanda.ac.id',
+    ewsLevel: 'CRITICAL',
+    attendanceScore: '68.75',
+    assignmentScore: '48.00',
+    quizScore: '42.00',
+    midtermScore: '45.00',
+    finalExamScore: '0.00',
+    totalScore: '36.13',
+    letterGrade: 'E',
+    gradePoint: '0.00',
+    status: 'DRAFT'
+  },
+  {
+    email: 'attuma@student.wakanda.ac.id',
+    ewsLevel: 'CRITICAL',
+    attendanceScore: '68.75',
+    assignmentScore: '50.00',
+    quizScore: '44.00',
+    midtermScore: '48.00',
+    finalExamScore: '0.00',
+    totalScore: '37.68',
+    letterGrade: 'E',
+    gradePoint: '0.00',
+    status: 'DRAFT'
+  },
+  {
+    email: 'namora@student.wakanda.ac.id',
+    ewsLevel: 'CRITICAL',
+    attendanceScore: '68.75',
+    assignmentScore: '52.00',
+    quizScore: '46.00',
+    midtermScore: '50.00',
+    finalExamScore: '0.00',
+    totalScore: '38.98',
+    letterGrade: 'E',
+    gradePoint: '0.00',
+    status: 'DRAFT'
+  },
+  {
+    email: 'nomble@student.wakanda.ac.id',
+    ewsLevel: 'CRITICAL',
+    attendanceScore: '68.75',
+    assignmentScore: '46.00',
+    quizScore: '40.00',
+    midtermScore: '43.00',
+    finalExamScore: '0.00',
+    totalScore: '34.83',
+    letterGrade: 'E',
+    gradePoint: '0.00',
+    status: 'DRAFT'
+  }
+]
+
+// ----------------------------------------------------------------------------
+// 17. HELPER: GENERATE SUBMISSION UNTUK MAHASISWA PENDUKUNG
+// ----------------------------------------------------------------------------
+export function generateSupportingSubmissions(
+  studentEmail: string,
+  ewsLevel: 'SAFE' | 'WARNING' | 'CRITICAL',
+  assignIdx: number
+): { score: string; isLate: boolean; status: 'GRADED'; feedback: string } {
+  const scoreRanges: Record<string, [number, number]> = {
+    SAFE:     [80, 95],
+    WARNING:  [60, 78],
+    CRITICAL: [30, 55]
+  }
+  const [min, max] = scoreRanges[ewsLevel]
+  const hash = studentEmail.charCodeAt(0) + studentEmail.charCodeAt(5) + assignIdx * 7
+  const score = min + (hash % (max - min + 1))
+  const isLate = ewsLevel === 'WARNING' && assignIdx > 0
+  const feedbacks: Record<string, string[]> = {
+    SAFE: [
+      'Implementasi sangat baik dan sesuai spesifikasi.',
+      'Kode bersih dengan dokumentasi lengkap.',
+      'Solusi efisien dengan kompleksitas optimal.'
+    ],
+    WARNING: [
+      `${isLate ? 'Pengumpulan terlambat. ' : ''}Implementasi cukup baik namun perlu peningkatan.`,
+      `${isLate ? 'Terlambat 1 hari. ' : ''}Sebagian edge case belum ditangani.`,
+      `${isLate ? 'Pengumpulan melewati deadline. ' : ''}Logika inti sudah benar, kerapihan perlu perbaikan.`
+    ],
+    CRITICAL: [
+      'Pengumpulan terlambat signifikan. Banyak komponen belum diimplementasikan.',
+      'Implementasi tidak lengkap. Hanya 40% requirement terpenuhi.',
+      'Terlambat dan tidak memenuhi standar minimum. Perlu konsultasi dosen.'
+    ]
+  }
+  return {
+    score: `${score}.00`,
+    isLate,
+    status: 'GRADED',
+    feedback: feedbacks[ewsLevel][assignIdx % 3]
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 18. HELPER: GENERATE QUIZ ATTEMPT UNTUK MAHASISWA PENDUKUNG
+// ----------------------------------------------------------------------------
+export function generateSupportingQuizAttempt(
+  studentEmail: string,
+  ewsLevel: 'SAFE' | 'WARNING' | 'CRITICAL',
+  quizIdx: number  // 0=Kuis1, 1=Kuis2, 2=UTS
+): { score: string; autoScore: string; manualScore: string } {
+  const scoreRanges: Record<string, [number, number]> = {
+    SAFE:     [78, 95],
+    WARNING:  [58, 75],
+    CRITICAL: [25, 52]
+  }
+  const [min, max] = scoreRanges[ewsLevel]
+  const hash = studentEmail.charCodeAt(2) + studentEmail.charCodeAt(4) + quizIdx * 11
+  const rawScore = min + (hash % (max - min + 1))
+  const isUTS = quizIdx === 2
+  if (isUTS) {
+    const autoPoints = Math.min(40, Math.floor(rawScore * 0.4))
+    const manualPoints = Math.max(0, rawScore - autoPoints)
+    return {
+      score: `${rawScore}.00`,
+      autoScore: `${autoPoints}.00`,
+      manualScore: `${manualPoints}.00`
+    }
+  }
+  return {
+    score: `${rawScore}.00`,
+    autoScore: `${rawScore}.00`,
+    manualScore: '0.00'
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 19. MATERIAL LENGKAP PER SESI (P-1 s/d P-9) UNTUK SEMUA KELAS
+// ----------------------------------------------------------------------------
+export interface SessionMaterialConfig {
+  sessionNum: number
+  title: string
+  materialType: 'SLIDE' | 'CODE' | 'VIDEO' | 'DOCUMENT'
+  fileName: string
+  fileUrl: string
+  orderIndex: number
+}
+
+export const if2041MaterialsAll: SessionMaterialConfig[] = [
+  { sessionNum: 1, title: 'Slide 01: Pengantar Struktur Data & Big-O', materialType: 'SLIDE', fileName: 'P01_BigO_Intro.pdf', fileUrl: '/materials/if2041/p01_bigo_intro.pdf', orderIndex: 1 },
+  { sessionNum: 1, title: 'Video 01: Visualisasi Kompleksitas Algoritma', materialType: 'VIDEO', fileName: 'p01_complexity_visual.mp4', fileUrl: 'https://drive.google.com/if2041/p01_complexity', orderIndex: 2 },
+  { sessionNum: 2, title: 'Slide 02: Abstract Data Type & Pointer', materialType: 'SLIDE', fileName: 'P02_ADT_Pointer.pdf', fileUrl: '/materials/if2041/p02_adt_pointer.pdf', orderIndex: 1 },
+  { sessionNum: 2, title: 'Code 02: Demonstrasi Alokasi Memori C++', materialType: 'CODE', fileName: 'p02_memory_alloc.zip', fileUrl: '/materials/if2041/p02_memory_alloc.zip', orderIndex: 2 },
+  { sessionNum: 3, title: 'Slide 03: Linked List Singly & Doubly', materialType: 'SLIDE', fileName: 'P03_LinkedList.pdf', fileUrl: '/materials/if2041/p03_linked_list.pdf', orderIndex: 1 },
+  { sessionNum: 3, title: 'Code 03: Implementasi Linked List TypeScript', materialType: 'CODE', fileName: 'p03_linked_list.zip', fileUrl: '/materials/if2041/p03_linked_list.zip', orderIndex: 2 },
+  { sessionNum: 4, title: 'Slide 04: Stack, Queue & Notasi Postfix', materialType: 'SLIDE', fileName: 'P04_Stack_Queue.pdf', fileUrl: '/materials/if2041/p04_stack_queue.pdf', orderIndex: 1 },
+  { sessionNum: 5, title: 'Slide 05: Rekursi & Divide-and-Conquer', materialType: 'SLIDE', fileName: 'P05_Recursion_DnC.pdf', fileUrl: '/materials/if2041/p05_recursion.pdf', orderIndex: 1 },
+  { sessionNum: 5, title: 'Code 05: MergeSort & QuickSort', materialType: 'CODE', fileName: 'p05_sorting.zip', fileUrl: '/materials/if2041/p05_sorting.zip', orderIndex: 2 },
+  { sessionNum: 6, title: 'Slide 06: Binary Tree & BST', materialType: 'SLIDE', fileName: 'P06_BST.pdf', fileUrl: '/materials/if2041/p06_bst.pdf', orderIndex: 1 },
+  { sessionNum: 7, title: 'Slide 07: AVL Tree & Self-Balancing', materialType: 'SLIDE', fileName: 'P07_AVL_Tree.pdf', fileUrl: '/materials/if2041/p07_avl.pdf', orderIndex: 1 },
+  { sessionNum: 8, title: 'Dokumen 08: Panduan UTS Struktur Data', materialType: 'DOCUMENT', fileName: 'UTS_Guide_IF2041.pdf', fileUrl: '/materials/if2041/uts_guide.pdf', orderIndex: 1 },
+  { sessionNum: 9, title: 'Slide 09: Priority Queue & Binary Heap', materialType: 'SLIDE', fileName: 'P09_Heap.pdf', fileUrl: '/materials/if2041/p09_heap.pdf', orderIndex: 1 }
+]
+
+export const if202MaterialsAll: SessionMaterialConfig[] = [
+  { sessionNum: 1, title: 'Slide 01: Konsep DBMS & Model Relasional', materialType: 'SLIDE', fileName: 'P01_DBMS_Intro.pdf', fileUrl: '/materials/if202/p01_dbms_intro.pdf', orderIndex: 1 },
+  { sessionNum: 2, title: 'Slide 02: ERD & Relational Mapping', materialType: 'SLIDE', fileName: 'P02_ERD.pdf', fileUrl: '/materials/if202/p02_erd.pdf', orderIndex: 1 },
+  { sessionNum: 2, title: 'Video 02: Tutorial draw.io ERD Design', materialType: 'VIDEO', fileName: 'p02_erd_tutorial.mp4', fileUrl: 'https://drive.google.com/if202/p02_erd', orderIndex: 2 },
+  { sessionNum: 3, title: 'Slide 03: Normalisasi 1NF-BCNF', materialType: 'SLIDE', fileName: 'P03_Normalization.pdf', fileUrl: '/materials/if202/p03_normalization.pdf', orderIndex: 1 },
+  { sessionNum: 4, title: 'Slide 04: DDL & Integritas Referensial', materialType: 'SLIDE', fileName: 'P04_DDL.pdf', fileUrl: '/materials/if202/p04_ddl.pdf', orderIndex: 1 },
+  { sessionNum: 4, title: 'Code 04: Script DDL PostgreSQL', materialType: 'CODE', fileName: 'p04_ddl_scripts.zip', fileUrl: '/materials/if202/p04_ddl_scripts.zip', orderIndex: 2 },
+  { sessionNum: 5, title: 'Slide 05: DML & Agregasi SQL Kompleks', materialType: 'SLIDE', fileName: 'P05_DML_Advanced.pdf', fileUrl: '/materials/if202/p05_dml_advanced.pdf', orderIndex: 1 },
+  { sessionNum: 6, title: 'Slide 06: CTE & Window Functions', materialType: 'SLIDE', fileName: 'P06_CTE_Window.pdf', fileUrl: '/materials/if202/p06_cte_window.pdf', orderIndex: 1 },
+  { sessionNum: 7, title: 'Slide 07: Indexing & Query Optimization', materialType: 'SLIDE', fileName: 'P07_Indexing.pdf', fileUrl: '/materials/if202/p07_indexing.pdf', orderIndex: 1 },
+  { sessionNum: 8, title: 'Dokumen 08: Panduan UTS Basis Data', materialType: 'DOCUMENT', fileName: 'UTS_Guide_IF202.pdf', fileUrl: '/materials/if202/uts_guide.pdf', orderIndex: 1 },
+  { sessionNum: 9, title: 'Slide 09: Transaksi ACID & Isolasi', materialType: 'SLIDE', fileName: 'P09_ACID.pdf', fileUrl: '/materials/if202/p09_acid.pdf', orderIndex: 1 }
+]
+
+export const if302MaterialsAll: SessionMaterialConfig[] = [
+  { sessionNum: 1, title: 'Slide 01: Modern Web Architecture & SSR', materialType: 'SLIDE', fileName: 'P01_Web_Architecture.pdf', fileUrl: '/materials/if302/p01_architecture.pdf', orderIndex: 1 },
+  { sessionNum: 2, title: 'Slide 02: Nuxt 3 Fundamentals & File Routing', materialType: 'SLIDE', fileName: 'P02_Nuxt3_Basics.pdf', fileUrl: '/materials/if302/p02_nuxt3.pdf', orderIndex: 1 },
+  { sessionNum: 2, title: 'Code 02: Nuxt 3 Starter Template', materialType: 'CODE', fileName: 'p02_nuxt3_starter.zip', fileUrl: '/materials/if302/p02_nuxt3_starter.zip', orderIndex: 2 },
+  { sessionNum: 3, title: 'Slide 03: TypeScript Strict Mode', materialType: 'SLIDE', fileName: 'P03_TypeScript_Strict.pdf', fileUrl: '/materials/if302/p03_typescript.pdf', orderIndex: 1 },
+  { sessionNum: 4, title: 'Slide 04: Pinia State Management', materialType: 'SLIDE', fileName: 'P04_Pinia.pdf', fileUrl: '/materials/if302/p04_pinia.pdf', orderIndex: 1 },
+  { sessionNum: 5, title: 'Slide 05: Nitro Server Engine & API Routes', materialType: 'SLIDE', fileName: 'P05_Nitro_API.pdf', fileUrl: '/materials/if302/p05_nitro.pdf', orderIndex: 1 },
+  { sessionNum: 6, title: 'Slide 06: Auth Middleware & Session Cookies', materialType: 'SLIDE', fileName: 'P06_Auth.pdf', fileUrl: '/materials/if302/p06_auth.pdf', orderIndex: 1 },
+  { sessionNum: 7, title: 'Slide 07: Tailwind CSS & UI Components', materialType: 'SLIDE', fileName: 'P07_Tailwind.pdf', fileUrl: '/materials/if302/p07_tailwind.pdf', orderIndex: 1 },
+  { sessionNum: 8, title: 'Dokumen 08: Panduan UTS Full-Stack Dev', materialType: 'DOCUMENT', fileName: 'UTS_Guide_IF302.pdf', fileUrl: '/materials/if302/uts_guide.pdf', orderIndex: 1 },
+  { sessionNum: 9, title: 'Slide 09: Zod Validation & Input Sanitasi', materialType: 'SLIDE', fileName: 'P09_Zod.pdf', fileUrl: '/materials/if302/p09_zod.pdf', orderIndex: 1 }
+]
+
+export const cy101MaterialsAll: SessionMaterialConfig[] = [
+  { sessionNum: 1, title: 'Slide 01: Keamanan Informasi & CIA Triad', materialType: 'SLIDE', fileName: 'P01_CIA_Triad.pdf', fileUrl: '/materials/cy101/p01_cia_triad.pdf', orderIndex: 1 },
+  { sessionNum: 2, title: 'Slide 02: Matematika Kriptografi', materialType: 'SLIDE', fileName: 'P02_Crypto_Math.pdf', fileUrl: '/materials/cy101/p02_crypto_math.pdf', orderIndex: 1 },
+  { sessionNum: 3, title: 'Slide 03: Kriptografi Klasik', materialType: 'SLIDE', fileName: 'P03_Classical_Crypto.pdf', fileUrl: '/materials/cy101/p03_classical.pdf', orderIndex: 1 },
+  { sessionNum: 3, title: 'Code 03: Implementasi Caesar & Vigenere Python', materialType: 'CODE', fileName: 'p03_ciphers.zip', fileUrl: '/materials/cy101/p03_ciphers.zip', orderIndex: 2 },
+  { sessionNum: 4, title: 'Slide 04: AES & Block Cipher', materialType: 'SLIDE', fileName: 'P04_AES.pdf', fileUrl: '/materials/cy101/p04_aes.pdf', orderIndex: 1 },
+  { sessionNum: 5, title: 'Slide 05: Mode Operasi Block Cipher', materialType: 'SLIDE', fileName: 'P05_Block_Modes.pdf', fileUrl: '/materials/cy101/p05_block_modes.pdf', orderIndex: 1 },
+  { sessionNum: 6, title: 'Slide 06: Kriptografi Asimetrik & RSA', materialType: 'SLIDE', fileName: 'P06_RSA.pdf', fileUrl: '/materials/cy101/p06_rsa.pdf', orderIndex: 1 },
+  { sessionNum: 7, title: 'Slide 07: Hash Functions SHA-256 & HMAC', materialType: 'SLIDE', fileName: 'P07_Hash_HMAC.pdf', fileUrl: '/materials/cy101/p07_hash.pdf', orderIndex: 1 },
+  { sessionNum: 8, title: 'Dokumen 08: Panduan UTS Kriptografi', materialType: 'DOCUMENT', fileName: 'UTS_Guide_CY101.pdf', fileUrl: '/materials/cy101/uts_guide.pdf', orderIndex: 1 },
+  { sessionNum: 9, title: 'Slide 09: Digital Signature & PKI', materialType: 'SLIDE', fileName: 'P09_PKI.pdf', fileUrl: '/materials/cy101/p09_pki.pdf', orderIndex: 1 }
+]
+
+export const classMaterialsMap: Record<string, SessionMaterialConfig[]> = {
+  'IF2041:A': if2041MaterialsAll,
+  'IF2041:B': if2041MaterialsAll,
+  'IF202:A':  if202MaterialsAll,
+  'IF302:A':  if302MaterialsAll,
+  'CY101:A':  cy101MaterialsAll
+}
