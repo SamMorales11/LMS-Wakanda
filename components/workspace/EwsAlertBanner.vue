@@ -66,8 +66,8 @@ const issues = computed(() => {
     v-if="authStore.isStudent && isAtRisk && profile"
     class="rounded-3xl border transition-all duration-300 overflow-hidden shadow-xs"
     :class="isCritical
-      ? 'bg-rose-50/95 border-semantic-danger/40 text-rose-950'
-      : 'bg-amber-50/95 border-amber-alert/40 text-amber-950'"
+      ? 'bg-red-50/95 border-[#DC2626]/40 text-red-950'
+      : 'bg-amber-50/95 border-[#D97706]/40 text-amber-950'"
   >
     <!-- Header Banner Bar -->
     <div class="p-4 sm:p-5 flex items-start sm:items-center justify-between gap-3">
@@ -75,7 +75,7 @@ const issues = computed(() => {
         <!-- Icon Badge -->
         <div
           class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
-          :class="isCritical ? 'bg-semantic-danger text-white' : 'bg-amber-alert text-white'"
+          :class="isCritical ? 'bg-[#DC2626] text-white' : 'bg-[#D97706] text-white'"
         >
           <svg v-if="isCritical" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -90,7 +90,7 @@ const issues = computed(() => {
             <span
               class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border"
               :class="isCritical
-                ? 'bg-rose-100 text-rose-800 border-rose-300'
+                ? 'bg-red-100 text-red-800 border-red-300'
                 : 'bg-amber-100 text-amber-800 border-amber-300'"
             >
               Early Warning System: Kategori {{ profile.riskLabel }}
@@ -132,7 +132,7 @@ const issues = computed(() => {
         </span>
         <ul class="space-y-1 text-xs font-inter pl-1">
           <li v-for="(issue, idx) in issues" :key="idx" class="flex items-start gap-2">
-            <span class="text-sm font-bold" :class="isCritical ? 'text-semantic-danger' : 'text-amber-alert'">•</span>
+            <span class="text-sm font-bold" :class="isCritical ? 'text-[#DC2626]' : 'text-[#D97706]'">•</span>
             <span>{{ issue }}</span>
           </li>
         </ul>
@@ -141,7 +141,7 @@ const issues = computed(() => {
       <!-- Rekomendasi Tindakan Mandiri Mahasiswa -->
       <div
         class="p-3 rounded-2xl bg-white/80 border text-xs font-inter flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
-        :class="isCritical ? 'border-rose-200' : 'border-amber-200'"
+        :class="isCritical ? 'border-red-200' : 'border-amber-200'"
       >
         <div class="space-y-0.5">
           <span class="font-bold font-jakarta block text-slate-800">

@@ -131,6 +131,36 @@ const isEligibleForUAS = computed(() => {
   return attendancePercentage.value >= 75
 })
 
+// Konfigurasi 3-Tier EWS Kehadiran (PRD: Safe >=85%, Warning 75-84.9%, Critical <75%)
+const attendanceTierConfig = computed(() => {
+  const pct = attendancePercentage.value
+  if (pct >= 85) {
+    return {
+      tier: 'SAFE',
+      textColor: 'text-[#16A34A]',
+      progressBar: 'bg-[#16A34A]',
+      badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      badgeText: 'MEMENUHI SYARAT UAS'
+    }
+  }
+  if (pct >= 75) {
+    return {
+      tier: 'WARNING',
+      textColor: 'text-[#D97706]',
+      progressBar: 'bg-[#D97706]',
+      badge: 'bg-amber-50 text-amber-700 border-amber-300',
+      badgeText: 'WASPADA • MEMENUHI SYARAT UAS'
+    }
+  }
+  return {
+    tier: 'CRITICAL',
+    textColor: 'text-[#DC2626]',
+    progressBar: 'bg-[#DC2626]',
+    badge: 'bg-red-50 text-red-700 border-red-300',
+    badgeText: 'KRITIS • TIDAK MEMENUHI SYARAT'
+  }
+})
+
 const attendedSessionsCount = computed(() => {
   return attendanceStore.studentSummary?.attendedSessions ?? 0
 })
@@ -422,25 +452,23 @@ const dynamicDeadlines = computed(() => {
             </span>
           </div>
 
-          <!-- Progress Bar Otomatis -->
+          <!-- Progress Bar Otomatis 3-Tier -->
           <div class="w-full h-2 bg-slate-200 rounded-sm overflow-hidden">
             <div
               class="h-full rounded-sm transition-all duration-500"
-              :class="isEligibleForUAS ? 'bg-emerald-600' : 'bg-[#D97706]'"
+              :class="attendanceTierConfig.progressBar"
               :style="{ width: `${Math.min(100, Math.max(0, attendancePercentage))}%` }"
             ></div>
           </div>
 
-          <!-- Indikator Kelayakan UAS 75% -->
+          <!-- Indikator Kelayakan UAS 75% 3-Tier -->
           <div class="flex items-center justify-between text-[10px] text-slate-500 font-inter">
             <span>Syarat Min. UAS: 75%</span>
             <span
-              class="font-semibold px-2 py-0.5 rounded-sm font-mono text-[9px] uppercase"
-              :class="isEligibleForUAS
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                : 'bg-amber-50 text-amber-800 border border-amber-200'"
+              class="font-semibold px-2 py-0.5 rounded-sm font-mono text-[9px] uppercase border"
+              :class="attendanceTierConfig.badge"
             >
-              {{ isEligibleForUAS ? 'Memenuhi Syarat UAS' : 'Belum Memenuhi Syarat' }}
+              {{ attendanceTierConfig.badgeText }}
             </span>
           </div>
         </div>

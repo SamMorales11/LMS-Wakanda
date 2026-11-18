@@ -113,6 +113,36 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
       return 'bg-slate-100 text-slate-700'
   }
 }
+
+// Konfigurasi 3-Tier EWS Kehadiran (PRD: Safe >=85%, Warning 75-84.9%, Critical <75%)
+const attendanceTierConfig = computed(() => {
+  const pct = myGrade.value?.attendance.attendancePercentage ?? 0
+  if (pct >= 85) {
+    return {
+      tier: 'SAFE',
+      textColor: 'text-[#16A34A]',
+      progressBar: 'bg-[#16A34A]',
+      badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      badgeText: 'MEMENUHI SYARAT UAS'
+    }
+  }
+  if (pct >= 75) {
+    return {
+      tier: 'WARNING',
+      textColor: 'text-[#D97706]',
+      progressBar: 'bg-[#D97706]',
+      badge: 'bg-amber-50 text-amber-700 border-amber-300',
+      badgeText: 'WASPADA • MEMENUHI SYARAT UAS'
+    }
+  }
+  return {
+    tier: 'CRITICAL',
+    textColor: 'text-[#DC2626]',
+    progressBar: 'bg-[#DC2626]',
+    badge: 'bg-red-50 text-red-700 border-red-300',
+    badgeText: 'KRITIS • TIDAK MEMENUHI SYARAT'
+  }
+})
 </script>
 
 <template>
@@ -165,15 +195,21 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
         </div>
       </div>
 
-      <!-- Warning Banner Jika Presensi < 75% (Diskualifikasi Otomatis E) -->
+      <!-- Status Kehadiran 3-Tier -->
+      <!-- Kategori KRITIS (< 75%) -->
       <div
-        v-if="myGrade && !myGrade.attendance.isEligible"
+        v-if="myGrade && attendanceTierConfig.tier === 'CRITICAL'"
         class="p-4 sm:p-5 rounded-sm bg-red-50 border border-red-200 border-l-3 border-l-[#DC2626] flex items-start gap-3.5 text-semantic-danger"
       >
         <div class="w-7 h-7 rounded-sm bg-red-100 flex items-center justify-center shrink-0 font-bold">
           !
         </div>
-        <div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-sm font-mono text-[9px] font-bold uppercase border bg-red-50 text-red-700 border-red-300">
+              KRITIS • TIDAK MEMENUHI SYARAT
+            </span>
+          </div>
           <h4 class="text-xs font-bold font-jakarta">
             Peringatan Kritis: Syarat Kehadiran Minimal 75% Belum Terpenuhi
           </h4>
@@ -183,12 +219,37 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
         </div>
       </div>
 
-      <!-- Success Badge Jika Presensi >= 75% -->
+      <!-- Kategori WASPADA (75% - 84.9%) -->
       <div
-        v-else-if="myGrade && myGrade.attendance.isEligible"
+        v-else-if="myGrade && attendanceTierConfig.tier === 'WARNING'"
+        class="p-4 sm:p-5 rounded-sm bg-amber-50 border border-amber-200 border-l-3 border-l-[#D97706] flex items-start gap-3.5 text-amber-900"
+      >
+        <div class="w-7 h-7 rounded-sm bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-bold">
+          ⚠
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-sm font-mono text-[9px] font-bold uppercase border bg-amber-50 text-amber-700 border-amber-300">
+              WASPADA • MEMENUHI SYARAT UAS
+            </span>
+          </div>
+          <h4 class="text-xs font-bold font-jakarta">
+            Peringatan Waspada: Ambang Batas Kehadiran UAS
+          </h4>
+          <p class="text-xs font-inter mt-0.5 text-amber-800 leading-relaxed">
+            Persentase kehadiran Anda saat ini adalah <strong class="font-mono">{{ myGrade.attendance.attendancePercentage }}%</strong> ({{ myGrade.attendance.attendedSessions }} dari {{ myGrade.attendance.totalSessions }} sesi). Anda memenuhi syarat mengikuti UAS (&ge; 75%), namun berada di zona waspada. Tingkatkan kehadiran pada pertemuan berikutnya agar tetap aman.
+          </p>
+        </div>
+      </div>
+
+      <!-- Kategori AMAN (>= 85%) -->
+      <div
+        v-else-if="myGrade && attendanceTierConfig.tier === 'SAFE'"
         class="p-3.5 rounded-sm bg-emerald-50 border border-emerald-200 border-l-3 border-l-emerald-600 flex items-center gap-3 text-emerald-900"
       >
-        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+        <span class="px-2 py-0.5 rounded-sm font-mono text-[9px] font-bold uppercase border bg-emerald-50 text-emerald-700 border-emerald-200">
+          MEMENUHI SYARAT UAS
+        </span>
         <span class="text-xs font-inter">
           Syarat kelayakan presensi terpenuhi: <strong class="font-mono">{{ myGrade.attendance.attendancePercentage }}%</strong> (Hadir {{ myGrade.attendance.attendedSessions }} dari {{ myGrade.attendance.totalSessions }} sesi). Anda berhak mengikuti UAS.
         </span>
@@ -388,7 +449,7 @@ const getLetterBadgeClass = (letter: LetterGrade) => {
           <span class="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 uppercase">
             Presensi ({{ weights.attendance }}%)
           </span>
-          <span class="text-xs font-mono font-bold" :class="myGrade?.attendance.isEligible ? 'text-semantic-success' : 'text-semantic-danger'">
+          <span class="text-xs font-mono font-bold" :class="attendanceTierConfig.textColor">
             {{ myGrade?.attendance.attendancePercentage }}%
           </span>
         </div>

@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useAcademicStore } from '~/stores/useAcademicStore'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useAttendanceStore } from '~/stores/useAttendanceStore'
+import EwsAlertBanner from './EwsAlertBanner.vue'
 import type { StudentAttendanceSummaryDto, ApiResponse } from '~/types'
 
 const academicStore = useAcademicStore()
@@ -11,6 +12,71 @@ const attendanceStore = useAttendanceStore()
 
 const currentClass = computed(() => academicStore.selectedClassDetail || academicStore.selectedClass)
 const sessions = computed(() => academicStore.sessions)
+
+// Konfigurasi 3-Tier EWS Kehadiran (PRD: Safe >=85%, Warning 75-84.9%, Critical <75%)
+const studentAttendancePercentage = computed(() => {
+  return attendanceStore.studentSummary?.attendancePercentage ?? 0
+})
+
+const studentTierConfig = computed(() => {
+  const pct = studentAttendancePercentage.value
+  if (pct >= 85) {
+    return {
+      tier: 'SAFE',
+      textColor: 'text-[#16A34A]',
+      progressBar: 'bg-[#16A34A]',
+      badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      badgeText: 'MEMENUHI SYARAT UAS',
+      desc: 'Syarat kelayakan presensi terpenuhi. Anda berhak mengikuti Ujian Akhir Semester.'
+    }
+  }
+  if (pct >= 75) {
+    return {
+      tier: 'WARNING',
+      textColor: 'text-[#D97706]',
+      progressBar: 'bg-[#D97706]',
+      badge: 'bg-amber-50 text-amber-700 border-amber-300',
+      badgeText: 'WASPADA • MEMENUHI SYARAT UAS',
+      desc: 'Kehadiran Anda memenuhi syarat minimal UAS (75%), namun berada di zona waspada. Tingkatkan kehadiran pada sesi berikutnya.'
+    }
+  }
+  return {
+    tier: 'CRITICAL',
+    textColor: 'text-[#DC2626]',
+    progressBar: 'bg-[#DC2626]',
+    badge: 'bg-red-50 text-red-700 border-red-300',
+    badgeText: 'KRITIS • TIDAK MEMENUHI SYARAT',
+    desc: 'Persentase kehadiran berada di bawah ambang batas minimal 75.0%. Anda terancam diskualifikasi UAS otomatis ke huruf E.'
+  }
+})
+
+const getStudentTierConfig = (pct: number) => {
+  if (pct >= 85) {
+    return {
+      tier: 'SAFE',
+      textColor: 'text-[#16A34A]',
+      progressBar: 'bg-[#16A34A]',
+      badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      badgeText: 'MEMENUHI'
+    }
+  }
+  if (pct >= 75) {
+    return {
+      tier: 'WARNING',
+      textColor: 'text-[#D97706]',
+      progressBar: 'bg-[#D97706]',
+      badge: 'bg-amber-50 text-amber-700 border-amber-300',
+      badgeText: 'WASPADA'
+    }
+  }
+  return {
+    tier: 'CRITICAL',
+    textColor: 'text-[#DC2626]',
+    progressBar: 'bg-[#DC2626]',
+    badge: 'bg-red-50 text-red-700 border-red-300',
+    badgeText: 'KRITIS'
+  }
+}
 
 // State Rekap Dosen
 const classRecap = ref<{
@@ -137,6 +203,9 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
 
     <!-- TAMPILAN KHUSUS MAHASISWA -->
     <div v-if="authStore.isStudent" class="space-y-6">
+      <!-- 1. Banner EWS Mahasiswa -->
+      <EwsAlertBanner />
+
       <!-- Kartu Status Kehadiran Personal -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Metric 1: Persentase Kehadiran -->
@@ -145,18 +214,18 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
           <div class="flex items-baseline gap-2">
             <span
               class="text-3xl font-black font-mono"
-              :class="attendanceStore.studentSummary?.isEligibleForFinalExam ? 'text-semantic-success' : 'text-[#D97706]'"
+              :class="studentTierConfig.textColor"
             >
-              {{ attendanceStore.studentSummary?.attendancePercentage?.toFixed(1) || '0.0' }}%
+              {{ studentAttendancePercentage.toFixed(1) }}%
             </span>
             <span class="text-xs text-slate-400 font-mono">/ 100%</span>
           </div>
-          <!-- Progress Bar -->
+          <!-- Progress Bar Otomatis 3-Tier -->
           <div class="w-full h-2 bg-slate-100 rounded-sm overflow-hidden mt-2">
             <div
               class="h-full rounded-sm transition-all duration-500"
-              :class="attendanceStore.studentSummary?.isEligibleForFinalExam ? 'bg-semantic-success' : 'bg-[#D97706]'"
-              :style="{ width: `${attendanceStore.studentSummary?.attendancePercentage || 0}%` }"
+              :class="studentTierConfig.progressBar"
+              :style="{ width: `${Math.min(100, Math.max(0, studentAttendancePercentage))}%` }"
             ></div>
           </div>
         </div>
@@ -168,38 +237,35 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
             <span class="text-3xl font-black font-mono text-[#1E3A8A]">
               {{ attendanceStore.studentSummary?.attendedSessions || 0 }}
             </span>
-            <span class="text-xs text-slate-400 font-mono">/ 16 Pertemuan</span>
+            <span class="text-xs text-slate-400 font-mono">/ {{ attendanceStore.studentSummary?.totalSessions || 16 }} Sesi</span>
           </div>
           <p class="text-[11px] text-slate-500 font-inter">
             Hadir: {{ attendanceStore.studentSummary?.presentCount || 0 }} • Terlambat: {{ attendanceStore.studentSummary?.lateCount || 0 }}
           </p>
         </div>
 
-        <!-- Metric 3: Kelayakan Ikut UAS -->
+        <!-- Metric 3: Kelayakan Ikut UAS 3-Tier -->
         <div class="p-5 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#0D9488] space-y-2">
           <span class="text-xs font-semibold text-slate-500 font-jakarta block">Status Kelayakan UAS</span>
           <div>
             <span
-              v-if="attendanceStore.studentSummary?.isEligibleForFinalExam"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-emerald-50 text-emerald-700 font-bold font-mono text-xs border border-emerald-200"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm font-bold font-mono text-xs border"
+              :class="studentTierConfig.badge"
             >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-if="studentTierConfig.tier === 'SAFE'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
-              MEMENUHI SYARAT UAS
-            </span>
-            <span
-              v-else
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-amber-50 text-amber-800 font-bold font-mono text-xs border border-amber-200"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-else-if="studentTierConfig.tier === 'WARNING'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
               </svg>
-              BELUM MEMENUHI SYARAT (&lt; 75%)
+              <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              {{ studentTierConfig.badgeText }}
             </span>
           </div>
           <p class="text-[11px] text-slate-500 font-inter">
-            {{ attendanceStore.studentSummary?.isEligibleForFinalExam ? 'Anda berhak mengikuti Ujian Akhir Semester.' : 'Tingkatkan kehadiran sesi berikutnya agar mencapai minimal 75%.' }}
+            {{ studentTierConfig.desc }}
           </p>
         </div>
       </div>
@@ -418,20 +484,20 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
                   {{ st.attendedSessions }} / 16
                 </td>
 
-                <!-- Percentage -->
-                <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-700">
+                <!-- Percentage 3-Tier -->
+                <td class="py-2.5 px-3 text-center font-mono font-bold"
+                  :class="getStudentTierConfig(st.attendancePercentage).textColor"
+                >
                   {{ st.attendancePercentage.toFixed(1) }}%
                 </td>
 
-                <!-- UAS Status Badge — hanya untuk dosen pengampu kelas -->
+                <!-- UAS Status Badge — hanya untuk dosen pengampu kelas 3-Tier -->
                 <td v-if="authStore.isLecturer" class="py-2.5 px-3 text-center">
                   <span
-                    class="px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase tracking-wider inline-block min-w-[70px]"
-                    :class="st.isEligibleForFinalExam
-                      ? 'bg-emerald-100 text-semantic-success border border-emerald-200'
-                      : 'bg-red-100 text-semantic-danger border border-red-200'"
+                    class="px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase tracking-wider inline-block min-w-[70px] border"
+                    :class="getStudentTierConfig(st.attendancePercentage).badge"
                   >
-                    {{ st.isEligibleForFinalExam ? 'Memenuhi' : 'Gagal' }}
+                    {{ getStudentTierConfig(st.attendancePercentage).badgeText }}
                   </span>
                 </td>
               </tr>
