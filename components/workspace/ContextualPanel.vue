@@ -101,7 +101,26 @@ const handleStudentCheckIn = async () => {
       }
     }
   } catch (err: any) {
-    actionError.value = err.message || 'Presensi gagal. Periksa kembali PIN Anda.'
+    actionError.value = err.message || 'Presensi gagal. Periksa kembali kode presensi kamu.'
+  }
+}
+
+// Format status kehadiran mahasiswa ramah pengguna
+const formatStudentStatus = (status?: string | null) => {
+  if (!status) return 'Hadir'
+  switch (status.toUpperCase()) {
+    case 'PRESENT':
+      return 'Hadir'
+    case 'LATE':
+      return 'Terlambat'
+    case 'SICK':
+      return 'Sakit'
+    case 'PERMIT':
+      return 'Izin'
+    case 'ABSENT':
+      return 'Alpa'
+    default:
+      return status
   }
 }
 
@@ -391,7 +410,7 @@ const dynamicDeadlines = computed(() => {
           <!-- State: Mahasiswa Belum Hadir -->
           <div v-if="!attendanceStore.isStudentAttended" class="space-y-2.5">
             <label class="block text-xs font-bold text-slate-700 font-jakarta">
-              Masukkan 6-Digit Token Perkuliahan:
+              Masukkan 6 Digit Kode Presensi:
             </label>
             <div class="flex gap-2">
               <input
@@ -412,11 +431,11 @@ const dynamicDeadlines = computed(() => {
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                 </svg>
-                <span v-else>Kirim</span>
+                <span v-else>Isi Presensi</span>
               </button>
             </div>
             <p class="text-[10px] text-slate-500 font-inter">
-              PIN 6-digit diberikan Dosen Pengampu saat sesi tatap muka berlangsung.
+              Kode 6 digit diumumkan oleh dosen saat kelas tatap muka berlangsung.
             </p>
           </div>
 
@@ -427,10 +446,10 @@ const dynamicDeadlines = computed(() => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
             </div>
-            <p class="text-xs font-bold text-emerald-700 font-jakarta">Presensi Terverifikasi</p>
+            <p class="text-xs font-bold text-emerald-700 font-jakarta">Kehadiran Berhasil Dicatat</p>
             <p class="text-[10px] text-slate-600 font-inter">
-              Status: <strong class="font-mono text-[#0F172A]">{{ attendanceStore.currentStudentSessionLog?.status }}</strong>
-              (Strict Server Timestamp)
+              Status: <strong class="font-mono text-[#0F172A]">{{ formatStudentStatus(attendanceStore.currentStudentSessionLog?.status) }}</strong>
+              &bull; Waktu tercatat otomatis
             </p>
           </div>
         </div>
@@ -446,7 +465,7 @@ const dynamicDeadlines = computed(() => {
         <!-- Rekap Persentase Kehadiran Semester — hanya relevan bagi mahasiswa -->
         <div v-if="authStore.isStudent" class="pt-2.5 border-t border-slate-200 space-y-2">
           <div class="flex items-center justify-between text-xs font-inter">
-            <span class="text-slate-600 font-medium">Rekap Kehadiran:</span>
+            <span class="text-slate-600 font-medium">Total Kehadiran:</span>
             <span class="font-bold text-[#1E3A8A] font-mono">
               {{ attendedSessionsCount }} / {{ totalSessionsCount }} Sesi ({{ attendancePercentage.toFixed(1) }}%)
             </span>
@@ -463,7 +482,7 @@ const dynamicDeadlines = computed(() => {
 
           <!-- Indikator Kelayakan UAS 75% 3-Tier -->
           <div class="flex items-center justify-between text-[10px] text-slate-500 font-inter">
-            <span>Syarat Min. UAS: 75%</span>
+            <span>Syarat Ikut UAS: Min. 75%</span>
             <span
               class="font-semibold px-2 py-0.5 rounded-sm font-mono text-[9px] uppercase border"
               :class="attendanceTierConfig.badge"
@@ -475,14 +494,14 @@ const dynamicDeadlines = computed(() => {
       </div>
     </section>
 
-    <!-- PANEL 2: TENGGAT TERDEKAT (Amber Alert #D97706) -->
+    <!-- PANEL 2: TENGGAT WAKTU TERDEKAT -->
     <section class="space-y-3">
       <div class="flex items-center justify-between">
         <h3 class="text-xs font-extrabold uppercase tracking-wider text-[#0F172A] font-jakarta flex items-center gap-1.5">
           <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>Tenggat Terdekat</span>
+          <span>Tenggat Waktu Terdekat</span>
         </h3>
         <span class="text-[10px] font-mono px-2 py-0.5 rounded-sm bg-amber-50 text-amber-900 border border-amber-300 font-bold">
           {{ dynamicDeadlines.length }} Agenda

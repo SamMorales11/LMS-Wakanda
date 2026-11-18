@@ -73,7 +73,7 @@ export function buildWorkspaceNav(role: WorkspaceRole): WorkspaceNavItem[] {
 
   items.push({
     id: 'sessions',
-    label: isStudent ? 'Materi & Sesi' : 'Struktur Pertemuan',
+    label: isStudent ? 'Materi Kuliah' : 'Struktur Pertemuan',
     icon: NAV_ICONS.sessions
   })
 
@@ -91,7 +91,7 @@ export function buildWorkspaceNav(role: WorkspaceRole): WorkspaceNavItem[] {
 
   items.push({
     id: 'grades',
-    label: isStudent ? 'Nilai & Simulasi UAS' : 'Gradebook',
+    label: isStudent ? 'Nilai & Target UAS' : 'Gradebook',
     icon: NAV_ICONS.grades
   })
 

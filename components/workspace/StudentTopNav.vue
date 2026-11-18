@@ -86,7 +86,7 @@ const handleLogout = async () => {
               Institut Teknologi Wakanda
             </h1>
             <p class="text-[10px] text-slate-500 font-mono truncate">
-              Student Learning Portal &bull; {{ academicStore.activeTerm ? `${academicStore.activeTerm.code}` : '20261' }}
+              Ruang Belajar Mahasiswa &bull; Semester Ganjil 2026/2027
             </p>
           </div>
         </div>
@@ -105,7 +105,7 @@ const handleLogout = async () => {
               class="w-full appearance-none pl-3 pr-8 py-1.5 text-xs font-semibold text-[#0F172A] bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-sm truncate transition focus:outline-none focus:ring-1 focus:ring-[#0D9488] focus:border-[#0D9488] disabled:opacity-60 cursor-pointer"
             >
               <option v-if="enrolledClasses.length === 0" value="" disabled>
-                Tidak ada kelas terdaftar
+                Belum ada mata kuliah yang diambil
               </option>
               <option
                 v-for="c in enrolledClasses"
@@ -168,7 +168,7 @@ const handleLogout = async () => {
         <button
           type="button"
           @click="showChangePasswordModal = true"
-          title="Ubah Kata Sandi Mandiri"
+          title="Ganti Kata Sandi"
           class="p-2 rounded-sm text-slate-500 hover:text-[#1E3A8A] hover:bg-slate-100 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,7 +180,7 @@ const handleLogout = async () => {
         <button
           type="button"
           @click="handleLogout"
-          title="Keluar dari Akun"
+          title="Keluar"
           class="p-2 rounded-sm text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

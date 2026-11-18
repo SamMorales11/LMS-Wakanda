@@ -249,9 +249,9 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </div>
-        <h3 class="text-sm font-bold text-[#0F172A] font-jakarta">Pilih Kelas Perkuliahan</h3>
+        <h3 class="text-sm font-bold text-[#0F172A] font-jakarta">Pilih Mata Kuliah untuk Memulai</h3>
         <p class="text-xs text-slate-500 font-inter">
-          Silakan pilih kelas perkuliahan Anda melalui dropdown di atas untuk memulai sesi belajar.
+          Pilih mata kuliah dari menu di atas untuk melihat materi, tugas, dan jadwal kuliah.
         </p>
       </div>
     </div>
@@ -266,10 +266,10 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
         <div class="p-3.5 border-b border-slate-200/90 bg-slate-50/70 shrink-0 space-y-1.5">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700">
-              Silabus 16 Pertemuan
+              Daftar 16 Pertemuan
             </span>
             <span class="px-1.5 py-0.5 rounded-xs bg-[#1E3A8A] text-white font-mono text-[9px] font-bold">
-              P-{{ selectedSessionNum }} Aktif
+              Pertemuan {{ selectedSessionNum }} (Sedang Aktif)
             </span>
           </div>
           <div class="flex items-center gap-2 text-[10px] font-mono text-slate-500">
@@ -360,7 +360,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
                   'bg-teal-50 text-[#0D9488] border border-teal-200': selectedSession.sessionType === 'REGULAR'
                 }"
               >
-                {{ selectedSession.sessionType === 'MIDTERM_EXAM' ? 'Ujian Tengah Semester (UTS)' : (selectedSession.sessionType === 'FINAL_EXAM' ? 'Ujian Akhir Semester (UAS)' : 'Sesi Perkuliahan Tatap Muka') }}
+                {{ selectedSession.sessionType === 'MIDTERM_EXAM' ? 'Ujian Tengah Semester (UTS)' : (selectedSession.sessionType === 'FINAL_EXAM' ? 'Ujian Akhir Semester (UAS)' : 'Kuliah Tatap Muka') }}
               </span>
               <span class="text-xs text-slate-400 font-mono">
                 Pertemuan Ke-{{ selectedSession.sessionNumber }} dari 16
@@ -421,7 +421,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
             <div class="flex items-center gap-2">
               <span class="w-1.5 h-4 rounded-full bg-[#0D9488]"></span>
               <h3 class="text-sm font-bold text-[#0F172A] font-jakarta">
-                Materi & Bahan Bacaan Sesi
+                Materi & Modul Kuliah
               </h3>
             </div>
 
@@ -444,9 +444,9 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
             v-if="materials.length === 0"
             class="p-6 rounded-sm border border-dashed border-slate-300 text-center space-y-1.5 bg-slate-50/50"
           >
-            <p class="text-xs font-bold text-slate-700 font-jakarta">Belum Ada Materi Diunggah</p>
+            <p class="text-xs font-bold text-slate-700 font-jakarta">Materi Belum Tersedia</p>
             <p class="text-[11px] text-slate-500 font-inter">
-              Dosen pengampu belum mengunggah dokumen bacaan pada pertemuan ini.
+              Dosen pengampu belum mengunggah materi untuk pertemuan ini.
             </p>
           </div>
 
@@ -500,7 +500,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>{{ m.isCompleted ? 'Selesai' : 'Tandai Dibaca' }}</span>
+                  <span>{{ m.isCompleted ? 'Selesai Dibaca' : 'Tandai Sudah Dibaca' }}</span>
                 </button>
 
                 <!-- Pratinjau Dokumen In-App -->
@@ -536,7 +536,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
             <div class="flex items-center gap-2">
               <span class="w-1.5 h-4 rounded-full bg-[#1E3A8A]"></span>
               <h3 class="text-sm font-bold text-[#0F172A] font-jakarta">
-                Tugas & Evaluasi Mandiri
+                Tugas Pertemuan Ini
               </h3>
             </div>
             <span class="text-xs font-mono text-slate-500">
@@ -549,9 +549,9 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
             v-if="assignmentStore.assignments.length === 0"
             class="p-6 rounded-sm border border-dashed border-slate-300 text-center space-y-1.5 bg-slate-50/50"
           >
-            <p class="text-xs font-bold text-slate-700 font-jakarta">Tidak Ada Tugas pada Sesi Ini</p>
+            <p class="text-xs font-bold text-slate-700 font-jakarta">Tidak Ada Tugas pada Pertemuan Ini</p>
             <p class="text-[11px] text-slate-500 font-inter">
-              Silakan fokus pada materi bacaan dan persiapan evaluasi berkala.
+              Kamu bisa fokus mempelajari materi dan modul yang telah disediakan.
             </p>
           </div>
 
@@ -602,7 +602,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
                   </span>
                 </div>
                 <div v-else class="text-xs text-rose-600 font-inter">
-                  Belum Mengumpulkan Tugas
+                  Belum dikumpulkan
                 </div>
 
                 <!-- Tombol Kumpulkan -->
@@ -611,7 +611,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
                   @click="handleOpenSubmitModal(a)"
                   class="px-3.5 py-1.5 rounded-sm bg-[#0D9488] hover:bg-teal-700 text-white text-xs font-semibold font-jakarta transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]"
                 >
-                  {{ a.mySubmission ? 'Unggah Ulang Berkas' : 'Kumpulkan Tugas' }}
+                  {{ a.mySubmission ? 'Kirim Ulang Tugas' : 'Kumpulkan Tugas' }}
                 </button>
               </div>
             </div>
@@ -624,7 +624,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
             <div class="flex items-center gap-2">
               <span class="w-1.5 h-4 rounded-full bg-[#1E3A8A]"></span>
               <h3 class="text-sm font-bold text-[#0F172A] font-jakarta">
-                Evaluasi Daring (Kuis / UTS / UAS)
+                Kuis & Ujian Online
               </h3>
             </div>
             <span class="text-xs font-mono text-slate-500">
@@ -637,9 +637,9 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
             v-if="quizStore.sessionQuizzes.length === 0"
             class="p-6 rounded-sm border border-dashed border-slate-300 text-center space-y-1.5 bg-slate-50/50"
           >
-            <p class="text-xs font-bold text-slate-700 font-jakarta">Tidak Ada Ujian pada Sesi Ini</p>
+            <p class="text-xs font-bold text-slate-700 font-jakarta">Tidak Ada Kuis atau Ujian</p>
             <p class="text-[11px] text-slate-500 font-inter">
-              Evaluasi kuis mingguan dan ujian tengah/akhir semester akan tampil otomatis sesuai kalender perkuliahan.
+              Kuis mingguan atau jadwal ujian akan otomatis muncul di sini saat sesi dibuka.
             </p>
           </div>
 
@@ -665,7 +665,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                     : 'bg-slate-100 text-slate-600 border border-slate-200'"
                 >
-                  {{ q.accessStatus === 'ACTIVE' ? 'Sedang Berlangsung' : 'Ditutup / Belum Dibuka' }}
+                  {{ q.accessStatus === 'ACTIVE' ? 'Sedang Berlangsung' : 'Belum Dibuka / Selesai' }}
                 </span>
               </div>
 
@@ -680,7 +680,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
 
               <!-- Hasil Mahasiswa jika sudah mencoba -->
               <div v-if="q.myLatestAttempt" class="p-2.5 rounded-sm bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs font-mono">
-                <span class="text-emerald-800 font-jakarta font-bold">Hasil Ujian Anda:</span>
+                <span class="text-emerald-800 font-jakarta font-bold">Hasil Ujianmu:</span>
                 <span class="text-emerald-900 font-bold">
                   Nilai: {{ q.myLatestAttempt.score || q.myLatestAttempt.autoScore || '0.00' }} / {{ q.maxScore }} ({{ q.myLatestAttempt.status }})
                 </span>
@@ -695,7 +695,7 @@ const getAttendanceBadgeInfo = (sessionId: string) => {
                   class="px-4 py-2 rounded-sm text-white text-xs font-bold font-jakarta transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488] disabled:opacity-40"
                   :class="q.accessStatus === 'ACTIVE' ? 'bg-[#1E3A8A] hover:bg-blue-900' : 'bg-slate-300 text-slate-500'"
                 >
-                  {{ q.myLatestAttempt && q.myLatestAttempt.status === 'IN_PROGRESS' ? 'Lanjutkan Ujian Daring' : 'Mulai Kerjakan Ujian Daring' }}
+                  {{ q.myLatestAttempt && q.myLatestAttempt.status === 'IN_PROGRESS' ? 'Lanjutkan Ujian' : 'Mulai Kerjakan Ujian' }}
                 </button>
               </div>
             </div>
