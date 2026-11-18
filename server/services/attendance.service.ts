@@ -376,8 +376,6 @@ export class AttendanceService {
       this.repo.findStudentLogsByClassId(classId, studentId)
     ])
 
-    const totalSessions = sessions.length > 0 ? sessions.length : 16
-
     let presentCount = 0
     let lateCount = 0
     let permitCount = 0
@@ -407,11 +405,30 @@ export class AttendanceService {
     // Sesi hadir: PRESENT dihitung penuh, LATE dihitung hadir
     const attendedSessions = presentCount + lateCount
 
-    // Hitung persentase kehadiran (berbasis total kurikulum 16 sesi)
-    const attendancePercentage =
-      totalSessions > 0
-        ? Math.round((attendedSessions / totalSessions) * 10000) / 100
-        : 0
+    // Sesi berstatus COMPLETED (jika tidak ada data status sesi sama sekali, fallback ke semua sesi)
+    const hasAnyStatus = sessions.some((s) => s.status)
+    const completedSessions = sessions.filter(
+      (s) => s.status === 'COMPLETED' || (!hasAnyStatus && s)
+    )
+
+    // Sesi IN_PROGRESS hanya dihitung jika mahasiswa yang bersangkutan sudah memiliki log kehadiran valid (PRESENT, LATE, PERMIT, atau SICK)
+    const validStatuses = new Set(['PRESENT', 'LATE', 'PERMIT', 'SICK'])
+    const inProgressSessions = sessions.filter((s) => s.status === 'IN_PROGRESS')
+    const inProgressAttendedCount = inProgressSessions.filter((s) =>
+      logs.some((l) => l.sessionId === s.id && validStatuses.has(l.status))
+    ).length
+
+    // Hitung pembagi efektif (effectiveTotalSessions)
+    let effectiveTotalSessions = completedSessions.length + inProgressAttendedCount
+    if (effectiveTotalSessions === 0) {
+      effectiveTotalSessions = 1
+    }
+
+    // Hitung persentase kehadiran berjalan
+    const attendancePercentage = Math.min(
+      100,
+      Number(((attendedSessions / effectiveTotalSessions) * 100).toFixed(1))
+    )
 
     // Syarat kelayakan UAS: Minimal 75.00%
     const minimumRequirementPercentage = 75.0
@@ -420,7 +437,7 @@ export class AttendanceService {
     return {
       classId,
       studentId,
-      totalSessions,
+      totalSessions: effectiveTotalSessions,
       attendedSessions,
       presentCount,
       lateCount,
@@ -442,7 +459,21 @@ export class AttendanceService {
     totalSessions: number
     students: StudentAttendanceSummaryDto[]
   }> {
-    const students = await this.repo.findEnrolledStudents(classId)
+    const [students, sessions] = await Promise.all([
+      this.repo.findEnrolledStudents(classId),
+      memoryCache.remember(
+        `class_sessions:${classId}`,
+        600_000,
+        () => this.repo.findClassSessions(classId)
+      )
+    ])
+
+    const hasAnyStatus = sessions.some((s) => s.status)
+    const completedSessions = sessions.filter(
+      (s) => s.status === 'COMPLETED' || (!hasAnyStatus && s)
+    )
+    const effectiveTotalSessions = completedSessions.length > 0 ? completedSessions.length : (sessions.length > 0 ? sessions.length : 16)
+
     const summaries = await Promise.all(
       students.map(async (st) => {
         const sum = await this.calculateStudentAttendanceSummary(classId, st.id)
@@ -457,7 +488,7 @@ export class AttendanceService {
 
     return {
       classId,
-      totalSessions: 16,
+      totalSessions: effectiveTotalSessions,
       students: summaries
     }
   }

@@ -157,14 +157,33 @@ export class GradebookService {
     data: ClassGradeAssessmentData,
     weightMap: Map<GradeComponent, number>
   ): StudentGradeBreakdownDto {
-    const totalSessions = data.sessions.length > 0 ? data.sessions.length : 16
-
     // Attendance
     const studentLogs = data.attendanceLogs.filter((l) => l.studentId === student.studentId)
     const attendedSessions = studentLogs.filter((l) => l.status === 'PRESENT' || l.status === 'LATE').length
-    const attendancePercentage = totalSessions > 0
-      ? Math.round((attendedSessions / totalSessions) * 10000) / 100
-      : 0
+
+    // Sesi berstatus COMPLETED (jika tidak ada data status sesi sama sekali, fallback ke semua sesi data.sessions)
+    const hasAnyStatus = data.sessions.some((s) => s.status)
+    const completedSessions = data.sessions.filter(
+      (s) => s.status === 'COMPLETED' || (!hasAnyStatus && s)
+    )
+
+    // Sesi IN_PROGRESS hanya dihitung jika mahasiswa yang bersangkutan sudah memiliki log kehadiran valid (PRESENT, LATE, PERMIT, atau SICK)
+    const validStatuses = new Set(['PRESENT', 'LATE', 'PERMIT', 'SICK'])
+    const inProgressSessions = data.sessions.filter((s) => s.status === 'IN_PROGRESS')
+    const inProgressAttendedCount = inProgressSessions.filter((s) =>
+      studentLogs.some((l) => l.sessionId === s.id && validStatuses.has(l.status))
+    ).length
+
+    // Hitung pembagi efektif (effectiveTotalSessions)
+    let effectiveTotalSessions = completedSessions.length + inProgressAttendedCount
+    if (effectiveTotalSessions === 0) {
+      effectiveTotalSessions = 1
+    }
+
+    const attendancePercentage = Math.min(
+      100,
+      Number(((attendedSessions / effectiveTotalSessions) * 100).toFixed(1))
+    )
     const attendanceScore = attendancePercentage
     const attendanceWeight = weightMap.get('ATTENDANCE') ?? 10.0
     const weightedAttendance = Math.round(((attendanceScore * attendanceWeight) / 100) * 100) / 100
@@ -303,7 +322,7 @@ export class GradebookService {
       studentEmail: student.email,
       attendance: {
         attendedSessions,
-        totalSessions,
+        totalSessions: effectiveTotalSessions,
         attendancePercentage,
         score: attendanceScore,
         weightPercentage: attendanceWeight,

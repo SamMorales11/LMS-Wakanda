@@ -28,7 +28,6 @@ export class EwsService {
     studentId: string,
     data: EwsRawClassData
   ): AttendanceTelemetryDto {
-    const totalSessions = data.sessions.length > 0 ? data.sessions.length : 16
     const studentLogs = data.attendanceLogs.filter((l) => l.studentId === studentId)
 
     const presentCount = studentLogs.filter((l) => l.status === 'PRESENT').length
@@ -37,9 +36,30 @@ export class EwsService {
     const excusedCount = studentLogs.filter((l) => l.status === 'PERMIT' || l.status === 'SICK').length
 
     const attendedSessions = presentCount + lateCount
-    const attendancePercentage = totalSessions > 0
-      ? Math.round((attendedSessions / totalSessions) * 10000) / 100
-      : 0
+
+    // Sesi berstatus COMPLETED (jika tidak ada data status sesi sama sekali, fallback ke semua sesi data.sessions)
+    const hasAnyStatus = data.sessions.some((s) => s.status)
+    const completedSessions = data.sessions.filter(
+      (s) => s.status === 'COMPLETED' || (!hasAnyStatus && s)
+    )
+
+    // Sesi IN_PROGRESS hanya dihitung jika mahasiswa yang bersangkutan sudah memiliki log kehadiran valid (PRESENT, LATE, PERMIT, atau SICK)
+    const validStatuses = new Set(['PRESENT', 'LATE', 'PERMIT', 'SICK'])
+    const inProgressSessions = data.sessions.filter((s) => s.status === 'IN_PROGRESS')
+    const inProgressAttendedCount = inProgressSessions.filter((s) =>
+      studentLogs.some((l) => l.sessionId === s.id && validStatuses.has(l.status))
+    ).length
+
+    // Hitung pembagi efektif (effectiveTotalSessions)
+    let effectiveTotalSessions = completedSessions.length + inProgressAttendedCount
+    if (effectiveTotalSessions === 0) {
+      effectiveTotalSessions = 1
+    }
+
+    const attendancePercentage = Math.min(
+      100,
+      Number(((attendedSessions / effectiveTotalSessions) * 100).toFixed(1))
+    )
 
     const isDisqualified = attendancePercentage < 75.0
     const isNearThreshold = attendancePercentage >= 75.0 && attendancePercentage < 80.0
@@ -73,7 +93,7 @@ export class EwsService {
     }
 
     return {
-      totalSessions,
+      totalSessions: effectiveTotalSessions,
       attendedSessions,
       absentSessions: absentCount,
       lateSessions: lateCount,

@@ -45,7 +45,12 @@ export interface ClassGradeAssessmentData {
   termName: string
   weights: GradeWeight[]
   enrolledStudents: EnrolledStudentInfo[]
-  sessions: { id: string; sessionNumber: number; title: string }[]
+  sessions: {
+    id: string
+    sessionNumber: number
+    title: string
+    status?: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | string
+  }[]
   attendanceLogs: {
     sessionId: string
     studentId: string
@@ -260,7 +265,8 @@ export class GradebookRepository implements IGradebookRepository {
         .select({
           id: classSessions.id,
           sessionNumber: classSessions.sessionNumber,
-          title: classSessions.title
+          title: classSessions.title,
+          status: classSessions.status
         })
         .from(classSessions)
         .where(eq(classSessions.classId, classId))

@@ -27,6 +27,7 @@ export interface EwsRawClassData {
     sessionNumber: number
     title: string
     sessionType: string
+    status?: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | string
   }[]
   enrolledStudents: {
     studentId: string
@@ -147,7 +148,8 @@ export class EwsRepository implements IEwsRepository {
           id: classSessions.id,
           sessionNumber: classSessions.sessionNumber,
           title: classSessions.title,
-          sessionType: classSessions.sessionType
+          sessionType: classSessions.sessionType,
+          status: classSessions.status
         })
         .from(classSessions)
         .where(eq(classSessions.classId, classId))

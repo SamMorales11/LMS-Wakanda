@@ -43,7 +43,7 @@ export interface IAttendanceRepository {
   }): Promise<AttendanceLog>
 
   // Class & Student Operations
-  findClassSessions(classId: string): Promise<{ id: string; sessionNumber: number; title: string }[]>
+  findClassSessions(classId: string): Promise<{ id: string; sessionNumber: number; title: string; status?: string }[]>
   findStudentLogsByClassId(classId: string, studentId: string): Promise<AttendanceLogDto[]>
   findEnrolledStudents(classId: string): Promise<{ id: string; name: string; nimNidn: string | null; email: string }[]>
   isStudentEnrolledInClass(classId: string, studentId: string): Promise<boolean>
@@ -199,12 +199,13 @@ export class AttendanceRepository implements IAttendanceRepository {
     return rows[0] || null
   }
 
-  public async findClassSessions(classId: string): Promise<{ id: string; sessionNumber: number; title: string }[]> {
+  public async findClassSessions(classId: string): Promise<{ id: string; sessionNumber: number; title: string; status?: string }[]> {
     return db
       .select({
         id: classSessions.id,
         sessionNumber: classSessions.sessionNumber,
-        title: classSessions.title
+        title: classSessions.title,
+        status: classSessions.status
       })
       .from(classSessions)
       .where(eq(classSessions.classId, classId))
