@@ -245,13 +245,13 @@ const getQuestionStatusClass = (questionId: string, idx: number) => {
             Ujian Berhasil Dikumpulkan!
           </h3>
           <p class="text-xs text-slate-500 font-inter mt-1">
-            Lembar jawaban Anda telah diterima server dan diverifikasi dengan Strict Server-Side Timestamp.
+            Lembar jawabanmu telah berhasil diterima dan tersimpan di sistem.
           </p>
         </div>
 
         <!-- Skor Instan Pilihan Ganda -->
         <div class="p-5 rounded-2xl bg-alabaster-slate border border-slate-200 space-y-2">
-          <span class="text-[11px] text-slate-500 font-inter">Nilai Terkoreksi Otomatis (MCQ)</span>
+          <span class="text-[11px] text-slate-500 font-inter">Nilai Pilihan Ganda (Terkoreksi Otomatis)</span>
           <div class="font-mono text-4xl font-black text-academic-navy">
             {{ quizStore.examResult.autoScore || quizStore.examResult.score || '0.00' }}
           </div>
@@ -360,7 +360,7 @@ const getQuestionStatusClass = (questionId: string, idx: number) => {
               @input="handleEssayChange"
               rows="10"
               class="w-full p-4 rounded-2xl border border-slate-200 font-mono text-xs sm:text-sm text-deep-ink focus:ring-2 focus:ring-scholarly-teal focus:border-scholarly-teal transition placeholder:text-slate-400 bg-white"
-              placeholder="Ketik jawaban penjelasan teknis atau potongan kode Anda di sini..."
+              placeholder="Ketik jawaban atau penjelasanmu di sini..."
             ></textarea>
           </div>
         </div>
@@ -437,7 +437,7 @@ const getQuestionStatusClass = (questionId: string, idx: number) => {
           </div>
           <div class="flex items-center gap-2">
             <span class="w-3.5 h-3.5 rounded-md bg-amber-500 shrink-0"></span>
-            <span>Ragu-ragu (#D97706) ({{ quizStore.doubtfulCount }})</span>
+            <span>Ragu-ragu ({{ quizStore.doubtfulCount }})</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="w-3.5 h-3.5 rounded-md bg-white border border-slate-300 shrink-0"></span>
@@ -465,7 +465,7 @@ const getQuestionStatusClass = (questionId: string, idx: number) => {
             <h3 class="text-base font-bold font-jakarta text-academic-navy">
               Konfirmasi Pengumpulan Ujian
             </h3>
-            <p class="text-xs text-slate-500 font-inter">Periksa kembali ringkasan lembar jawaban Anda.</p>
+            <p class="text-xs text-slate-500 font-inter">Periksa kembali ringkasan lembar jawabanmu sebelum mengumpulkan.</p>
           </div>
         </div>
 

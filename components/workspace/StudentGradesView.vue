@@ -163,7 +163,7 @@ const attendanceTierConfig = computed(() => {
             Capaian Akademik & Rapor Berjalan
           </h2>
           <p class="text-xs text-slate-500 font-inter mt-1 max-w-xl">
-            Rincian nilai transparan sesuai bobot resmi kelas. Evaluasi diproses menggunakan Strict Server-Side Timestamp dan batas kelulusan presensi 75%.
+            Rincian nilai transparan sesuai bobot resmi kelas dengan batas minimal kehadiran 75% untuk kelayakan UAS.
           </p>
         </div>
 
@@ -211,10 +211,10 @@ const attendanceTierConfig = computed(() => {
             </span>
           </div>
           <h4 class="text-xs font-bold font-jakarta">
-            Peringatan Kritis: Syarat Kehadiran Minimal 75% Belum Terpenuhi
+            Peringatan: Syarat Kehadiran Minimal 75% Belum Terpenuhi
           </h4>
           <p class="text-xs font-inter mt-0.5 text-red-700 leading-relaxed">
-            Persentase kehadiran Anda saat ini adalah <strong class="font-mono">{{ myGrade.attendance.attendancePercentage }}%</strong> ({{ myGrade.attendance.attendedSessions }} dari {{ myGrade.attendance.totalSessions }} sesi). Sesuai kebijakan evaluasi akademik ITW, mahasiswa dengan kehadiran di bawah 75.00% otomatis memperoleh huruf mutu <strong class="font-mono">E (0.00)</strong> terlepas dari nilai tugas atau ujian.
+            Persentase kehadiranmu saat ini adalah <strong class="font-mono">{{ myGrade.attendance.attendancePercentage }}%</strong> ({{ myGrade.attendance.attendedSessions }} dari {{ myGrade.attendance.totalSessions }} sesi). Sesuai kebijakan akademik ITW, batas minimal kehadiran untuk mengikuti UAS adalah 75.00%. Mahasiswa dengan kehadiran di bawah batas ini berisiko memperoleh nilai akhir <strong class="font-mono">E (0.00)</strong>. Segera berkonsultasi dengan dosen pengampu atau dosen wali untuk opsi perbaikan.
           </p>
         </div>
       </div>
@@ -234,10 +234,10 @@ const attendanceTierConfig = computed(() => {
             </span>
           </div>
           <h4 class="text-xs font-bold font-jakarta">
-            Peringatan Waspada: Ambang Batas Kehadiran UAS
+            Perhatian: Ambang Batas Kehadiran UAS
           </h4>
           <p class="text-xs font-inter mt-0.5 text-amber-800 leading-relaxed">
-            Persentase kehadiran Anda saat ini adalah <strong class="font-mono">{{ myGrade.attendance.attendancePercentage }}%</strong> ({{ myGrade.attendance.attendedSessions }} dari {{ myGrade.attendance.totalSessions }} sesi). Anda memenuhi syarat mengikuti UAS (&ge; 75%), namun berada di zona waspada. Tingkatkan kehadiran pada pertemuan berikutnya agar tetap aman.
+            Persentase kehadiranmu saat ini adalah <strong class="font-mono">{{ myGrade.attendance.attendancePercentage }}%</strong> ({{ myGrade.attendance.attendedSessions }} dari {{ myGrade.attendance.totalSessions }} sesi). Kamu masih memenuhi syarat mengikuti UAS (&ge; 75%), namun berada di zona waspada. Pertahankan dan tingkatkan kehadiran pada pertemuan berikutnya agar tetap aman.
           </p>
         </div>
       </div>
@@ -251,7 +251,7 @@ const attendanceTierConfig = computed(() => {
           MEMENUHI SYARAT UAS
         </span>
         <span class="text-xs font-inter">
-          Syarat kelayakan presensi terpenuhi: <strong class="font-mono">{{ myGrade.attendance.attendancePercentage }}%</strong> (Hadir {{ myGrade.attendance.attendedSessions }} dari {{ myGrade.attendance.totalSessions }} sesi). Anda berhak mengikuti UAS.
+          Syarat kelayakan presensi terpenuhi: <strong class="font-mono">{{ myGrade.attendance.attendancePercentage }}%</strong> (Hadir {{ myGrade.attendance.attendedSessions }} dari {{ myGrade.attendance.totalSessions }} sesi). Kamu berhak mengikuti UAS.
         </span>
       </div>
     </section>
@@ -269,7 +269,7 @@ const attendanceTierConfig = computed(() => {
             Simulasi Target Nilai Ujian Akhir Semester (UAS)
           </h3>
           <p class="text-xs text-slate-600 font-inter mt-1 max-w-2xl">
-            Hitung skor minimal yang wajib Anda raih pada Ujian Akhir Semester (UAS - Bobot 30%) berdasarkan akumulasi nilai presensi, tugas mandiri, kuis, dan UTS yang telah terkumpul.
+            Hitung skor minimal yang perlu kamu raih pada Ujian Akhir Semester (UAS - Bobot 30%) berdasarkan akumulasi nilai presensi, tugas mandiri, kuis, dan UTS yang telah terkumpul.
           </p>
         </div>
 
@@ -285,7 +285,7 @@ const attendanceTierConfig = computed(() => {
       <!-- Quick Selector Tombol Target Huruf Mutu -->
       <div class="space-y-3">
         <label class="text-xs font-bold font-jakarta uppercase tracking-wider text-slate-600">
-          Pilih Target Huruf Mutu Anda:
+          Pilih Target Huruf Mutu Kamu:
         </label>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <!-- Target A -->
@@ -377,7 +377,7 @@ const attendanceTierConfig = computed(() => {
             <span class="font-bold text-sm font-jakarta">Simulasi Dinonaktifkan:</span>
           </div>
           <p class="text-xs font-inter leading-relaxed text-slate-600">
-            Karena kehadiran Anda di bawah 75%, Anda belum memenuhi syarat mengikuti UAS dan nilai akhir Anda otomatis E. Konsultasikan dengan dosen wali atau bagian akademik.
+            Karena kehadiranmu di bawah 75%, kamu belum memenuhi syarat mengikuti UAS dan nilai akhir otomatis E. Segera konsultasikan dengan dosen pengampu atau dosen wali untuk opsi bantuan akademik.
           </p>
         </div>
 
@@ -392,7 +392,7 @@ const attendanceTierConfig = computed(() => {
             </h4>
           </div>
           <p class="text-xs font-inter text-slate-600 leading-relaxed">
-            Akumulasi poin berjalan Anda dari Presensi, Tugas, Kuis, dan UTS (<strong class="font-mono text-deep-ink">{{ currentPartialWeightedPoints.toFixed(2) }} poin</strong>) sudah melampaui batas minimal target <strong class="font-mono text-deep-ink">{{ targetThresholdScore.toFixed(2) }}</strong>. Anda bahkan telah mengamankan huruf mutu <strong class="font-mono text-semantic-success">{{ selectedTargetGrade }}</strong> meskipun skor UAS Anda bernilai <strong class="font-mono">0.00</strong>.
+            Akumulasi poin berjalanmu dari Presensi, Tugas, Kuis, dan UTS (<strong class="font-mono text-deep-ink">{{ currentPartialWeightedPoints.toFixed(2) }} poin</strong>) sudah melampaui batas minimal target <strong class="font-mono text-deep-ink">{{ targetThresholdScore.toFixed(2) }}</strong>. Kamu sudah mengamankan huruf mutu <strong class="font-mono text-semantic-success">{{ selectedTargetGrade }}</strong> bahkan jika skor UAS bernilai <strong class="font-mono">0.00</strong>.
           </p>
         </div>
 
@@ -408,7 +408,7 @@ const attendanceTierConfig = computed(() => {
               </h4>
             </div>
             <p class="text-xs font-inter text-slate-600 leading-relaxed max-w-xl">
-              Untuk mengamankan Huruf Mutu <strong>{{ selectedTargetGrade }}</strong> (Ambang batas NA: <span class="font-mono font-bold">{{ targetThresholdScore.toFixed(2) }}</span>), Anda harus memperoleh skor minimal sebesar <strong class="font-mono text-academic-navy">{{ requiredFinalExamScore }}</strong> dari 100 pada ujian UAS.
+              Untuk mengamankan Huruf Mutu <strong>{{ selectedTargetGrade }}</strong> (Ambang batas NA: <span class="font-mono font-bold">{{ targetThresholdScore.toFixed(2) }}</span>), kamu perlu memperoleh skor minimal sebesar <strong class="font-mono text-academic-navy">{{ requiredFinalExamScore }}</strong> dari 100 pada ujian UAS.
             </p>
           </div>
 
@@ -432,8 +432,8 @@ const attendanceTierConfig = computed(() => {
             </h4>
           </div>
           <p class="text-xs font-inter text-slate-600 leading-relaxed">
-            Untuk mencapai target NA <strong class="font-mono">{{ targetThresholdScore }}</strong>, Anda membutuhkan skor UAS sebesar <strong class="font-mono text-amber-800">{{ requiredFinalExamScore }}</strong> (melebihi batas maksimal 100).
-            Berdasarkan poin berjalan saat ini, Nilai Akhir (NA) maksimal yang dapat Anda raih jika memperoleh skor UAS sempurna (100) adalah <strong class="font-mono text-academic-navy">{{ maxPossibleFinalScore.toFixed(2) }}</strong>.
+            Untuk mencapai target NA <strong class="font-mono">{{ targetThresholdScore }}</strong>, kamu membutuhkan skor UAS sebesar <strong class="font-mono text-amber-800">{{ requiredFinalExamScore }}</strong> (melebihi skor maksimal 100).
+            Berdasarkan poin berjalan saat ini, Nilai Akhir (NA) maksimal yang bisa kamu raih jika memperoleh skor UAS sempurna (100) adalah <strong class="font-mono text-academic-navy">{{ maxPossibleFinalScore.toFixed(2) }}</strong>.
           </p>
         </div>
       </div>

@@ -146,7 +146,7 @@ const handleUploadAndSubmit = async () => {
           </div>
 
           <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-            <span class="text-slate-500 block">Batas Akhir Cutoff:</span>
+            <span class="text-slate-500 block">Batas Akhir Pengumpulan:</span>
             <span class="font-bold text-amber-800 font-mono block">{{ formatDateTime(assignment.cutoffDate) || 'Tidak Dibatasi' }}</span>
           </div>
         </div>
@@ -159,7 +159,7 @@ const handleUploadAndSubmit = async () => {
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
           </svg>
-          <span>Batas akhir penutupan (cutoff date) telah lewat. Pengunggahan berkas ditolak oleh server!</span>
+          <span>Batas akhir pengumpulan tugas telah lewat. Pengunggahan berkas sudah ditutup.</span>
         </div>
 
         <div
@@ -169,7 +169,7 @@ const handleUploadAndSubmit = async () => {
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
-          <span>Batas waktu normal telah lewat. Pengumpulan Anda akan ditandai berstatus <strong>Terlambat (#DC2626)</strong>.</span>
+          <span>Tenggat waktu normal telah lewat. Tugas yang kamu kumpulkan akan ditandai berstatus <strong>Terlambat</strong>.</span>
         </div>
 
         <div
@@ -179,7 +179,7 @@ const handleUploadAndSubmit = async () => {
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>Pengumpulan dalam batas waktu normal akan ditandai berstatus <strong>Tepat Waktu (#16A34A)</strong>.</span>
+          <span>Tugas yang dikumpulkan sebelum tenggat waktu akan ditandai berstatus <strong>Tepat Waktu</strong>.</span>
         </div>
       </div>
 
@@ -235,7 +235,7 @@ const handleUploadAndSubmit = async () => {
               </div>
               <div v-else>
                 <p class="font-bold text-slate-700 text-xs">Klik untuk memilih berkas tugas</p>
-                <p class="text-[10px] text-slate-400 mt-0.5">Mendukung format PDF atau arsip ZIP melalui Cloudflare R2 / S3</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">Format yang didukung: dokumen PDF atau arsip ZIP</p>
               </div>
             </label>
           </div>
@@ -277,7 +277,7 @@ const handleUploadAndSubmit = async () => {
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
           </svg>
-          <span v-if="isUploading">Mengunggah ke Storage...</span>
+          <span v-if="isUploading">Mengunggah berkas...</span>
           <span v-else-if="isPastDueDate">Kirim Tugas (Terlambat)</span>
           <span v-else>Kirim Tugas (Tepat Waktu)</span>
         </button>

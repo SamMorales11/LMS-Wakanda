@@ -39,9 +39,9 @@ const issues = computed(() => {
   const list: string[] = []
 
   if (profile.value.attendance.isDisqualified) {
-    list.push(`Kehadiran Anda saat ini ${profile.value.attendance.attendancePercentage.toFixed(1)}% (di bawah batas minimal 75.0% untuk mengikuti UAS).`)
+    list.push(`Kehadiranmu saat ini ${profile.value.attendance.attendancePercentage.toFixed(1)}% (di bawah batas minimal 75.0% untuk mengikuti UAS).`)
   } else if (profile.value.attendance.isNearThreshold) {
-    list.push(`Kehadiran Anda saat ini ${profile.value.attendance.attendancePercentage.toFixed(1)}% (mendekati ambang batas kelulusan 75.0%).`)
+    list.push(`Kehadiranmu saat ini ${profile.value.attendance.attendancePercentage.toFixed(1)}% (mendekati batas minimal 75.0%).`)
   }
 
   if (profile.value.assignments.missingCount > 0) {
@@ -54,7 +54,7 @@ const issues = computed(() => {
 
   if (profile.value.exams.isBelowPassingStandard) {
     const avg = profile.value.exams.combinedExamAverage !== null ? profile.value.exams.combinedExamAverage.toFixed(1) : '0.0'
-    list.push(`Rata-rata skor evaluasi kuis/UTS Anda (${avg}) berada di bawah standar kelulusan standar ITW (55.0).`)
+    list.push(`Rata-rata skor kuis dan ujianmu (${avg}) berada di bawah batas minimum kelulusan (55.0).`)
   }
 
   return list
@@ -93,14 +93,14 @@ const issues = computed(() => {
                 ? 'bg-red-100 text-red-800 border-red-300'
                 : 'bg-amber-100 text-amber-800 border-amber-300'"
             >
-              Early Warning System: Kategori {{ profile.riskLabel }}
+              Peringatan Akademik: Kategori {{ profile.riskLabel }}
             </span>
             <span class="text-xs font-mono font-semibold opacity-75">
               Skor Risiko: {{ profile.compositeRiskScore.toFixed(0) }}/100
             </span>
           </div>
           <h4 class="text-sm sm:text-base font-extrabold font-jakarta mt-0.5">
-            {{ isCritical ? 'PERINGATAN AKADEMIK KRITIS: Kelayakan Kelulusan Anda Dalam Risiko' : 'PERINGATAN DINI AKADEMIK: Pantauan Nilai & Presensi Anda' }}
+            {{ isCritical ? 'Peringatan Akademik Kritis: Kelayakan kelulusanmu dalam risiko' : 'Perhatian Akademik: Pantauan nilai dan presensimu' }}
           </h4>
         </div>
       </div>
@@ -128,7 +128,7 @@ const issues = computed(() => {
     <div v-if="isExpanded" class="px-4 pb-4 sm:px-5 sm:pb-5 space-y-3 pt-1 border-t border-black/5">
       <div class="space-y-1.5">
         <span class="text-xs font-bold uppercase tracking-wider font-mono opacity-80 block">
-          Indikator Masalah Terdeteksi Sistem:
+          Catatan Akademik untuk Kamu:
         </span>
         <ul class="space-y-1 text-xs font-inter pl-1">
           <li v-for="(issue, idx) in issues" :key="idx" class="flex items-start gap-2">
@@ -145,10 +145,10 @@ const issues = computed(() => {
       >
         <div class="space-y-0.5">
           <span class="font-bold font-jakarta block text-slate-800">
-            Langkah Penyelamatan Akademik Disarankan:
+            Saran Tindakan yang Perlu Kamu Ambil:
           </span>
           <p class="text-slate-600 text-[11px]">
-            Segera konsultasikan kondisi akademik Anda dengan Dosen Pengampu mata kuliah atau hubungi Dosen Wali untuk perencanaan perbaikan.
+            Segera bicarakan kondisi akademikmu dengan dosen pengampu atau dosen wali untuk menyusun rencana perbaikan nilai.
           </p>
         </div>
 

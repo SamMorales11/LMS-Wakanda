@@ -27,7 +27,7 @@ const studentTierConfig = computed(() => {
       progressBar: 'bg-[#16A34A]',
       badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       badgeText: 'MEMENUHI SYARAT UAS',
-      desc: 'Syarat kelayakan presensi terpenuhi. Anda berhak mengikuti Ujian Akhir Semester.'
+      desc: 'Syarat kelayakan presensi terpenuhi. Kamu berhak mengikuti Ujian Akhir Semester.'
     }
   }
   if (pct >= 75) {
@@ -37,7 +37,7 @@ const studentTierConfig = computed(() => {
       progressBar: 'bg-[#D97706]',
       badge: 'bg-amber-50 text-amber-700 border-amber-300',
       badgeText: 'WASPADA • MEMENUHI SYARAT UAS',
-      desc: 'Kehadiran Anda memenuhi syarat minimal UAS (75%), namun berada di zona waspada. Tingkatkan kehadiran pada sesi berikutnya.'
+      desc: 'Kehadiranmu memenuhi syarat minimal UAS (75%), namun berada di zona waspada. Tingkatkan kehadiran pada sesi berikutnya agar tetap aman.'
     }
   }
   return {
@@ -46,9 +46,32 @@ const studentTierConfig = computed(() => {
     progressBar: 'bg-[#DC2626]',
     badge: 'bg-red-50 text-red-700 border-red-300',
     badgeText: 'KRITIS • TIDAK MEMENUHI SYARAT',
-    desc: 'Persentase kehadiran berada di bawah ambang batas minimal 75.0%. Anda terancam diskualifikasi UAS otomatis ke huruf E.'
+    desc: 'Persentase kehadiran berada di bawah ambang batas minimal 75.0%. Kamu berisiko tidak memenuhi syarat UAS. Segera hubungi dosen pengampu atau dosen wali untuk konsultasi.'
   }
 })
+
+// Helper format bahasa Indonesia untuk status dan metode presensi mahasiswa
+const formatAttendanceStatus = (status?: string | null) => {
+  if (!status) return '-'
+  switch (status.toUpperCase()) {
+    case 'PRESENT': return 'Hadir'
+    case 'LATE': return 'Terlambat'
+    case 'PERMIT': return 'Izin'
+    case 'SICK': return 'Sakit'
+    case 'ABSENT': return 'Alpa'
+    default: return status
+  }
+}
+
+const formatCheckInMethod = (method?: string | null) => {
+  if (!method) return '-'
+  switch (method.toUpperCase()) {
+    case 'TOKEN_PIN': return 'Kode Presensi'
+    case 'QR_CODE': return 'QR Code'
+    case 'MANUAL_LECTURER': return 'Manual Dosen'
+    default: return method
+  }
+}
 
 const getStudentTierConfig = (pct: number) => {
   if (pct >= 85) {
@@ -210,7 +233,7 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Metric 1: Persentase Kehadiran -->
         <div class="p-5 rounded-sm bg-white border border-slate-200 border-t-2 border-t-[#0D9488] space-y-2">
-          <span class="text-xs font-semibold text-slate-500 font-jakarta block">Persentase Kehadiran Anda</span>
+          <span class="text-xs font-semibold text-slate-500 font-jakarta block">Persentase Kehadiranmu</span>
           <div class="flex items-baseline gap-2">
             <span
               class="text-3xl font-black font-mono"
@@ -284,7 +307,7 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
                 <th class="py-3 px-4">Topik Sesi</th>
                 <th class="py-3 px-4">Tipe</th>
                 <th class="py-3 px-4">Metode</th>
-                <th class="py-3 px-4">Waktu Presensi (Server)</th>
+                <th class="py-3 px-4">Waktu Presensi</th>
                 <th class="py-3 px-4 text-center">Status</th>
               </tr>
             </thead>
@@ -301,9 +324,9 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
                     {{ s.sessionType === 'MIDTERM_EXAM' ? 'UTS' : (s.sessionType === 'FINAL_EXAM' ? 'UAS' : 'REGULER') }}
                   </span>
                 </td>
-                <td class="py-3 px-4 font-mono text-slate-500">
+                <td class="py-3 px-4 font-inter text-slate-600">
                   <template v-if="attendanceStore.studentSummary?.sessionLogs.find(l => l.sessionId === s.id)">
-                    {{ attendanceStore.studentSummary?.sessionLogs.find(l => l.sessionId === s.id)?.checkInMethod }}
+                    {{ formatCheckInMethod(attendanceStore.studentSummary?.sessionLogs.find(l => l.sessionId === s.id)?.checkInMethod) }}
                   </template>
                   <span v-else class="text-slate-300">-</span>
                 </td>
@@ -325,7 +348,7 @@ const getStudentSessionStatus = (st: StudentAttendanceSummaryDto, sessionNum: nu
                         'bg-semantic-danger': attendanceStore.studentSummary?.sessionLogs.find(l => l.sessionId === s.id)?.status === 'ABSENT'
                       }"
                     >
-                      {{ attendanceStore.studentSummary?.sessionLogs.find(l => l.sessionId === s.id)?.status }}
+                      {{ formatAttendanceStatus(attendanceStore.studentSummary?.sessionLogs.find(l => l.sessionId === s.id)?.status) }}
                     </span>
                   </template>
                   <span v-else class="text-slate-400 font-mono text-[11px]">-</span>

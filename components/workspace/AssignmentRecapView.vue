@@ -123,10 +123,13 @@ const handleOpenOverview = async (a: AssignmentDto) => {
           <span class="text-xs text-slate-300 font-inter">Semester Aktif 2026/2027</span>
         </div>
         <h2 class="text-xl sm:text-2xl font-extrabold font-jakarta">
-          {{ authStore.isStudent ? 'Portofolio & Pengumpulan Tugas Mahasiswa' : 'Rekapitulasi Tugas & Penilaian Mahasiswa' }}
+          {{ authStore.isStudent ? 'Tugas & Portofolio Mahasiswa' : 'Rekapitulasi Tugas & Penilaian Mahasiswa' }}
         </h2>
-        <p class="text-xs text-slate-300 font-inter max-w-xl">
-          Pengunggahan berkas tugas divalidasi dengan Strict Server-Side Timestamp: status <strong>Tepat Waktu</strong> dan <strong>Terlambat</strong>.
+        <p v-if="authStore.isStudent" class="text-xs text-slate-300 font-inter max-w-xl">
+          Pantau batas waktu pengumpulan tugasmu. Tugas yang dikumpulkan sebelum tenggat berstatus <strong>Tepat Waktu</strong>.
+        </p>
+        <p v-else class="text-xs text-slate-300 font-inter max-w-xl">
+          Pengunggahan berkas tugas diverifikasi dengan pencatatan waktu otomatis: status <strong>Tepat Waktu</strong> dan <strong>Terlambat</strong>.
         </p>
       </div>
 
@@ -217,13 +220,13 @@ const handleOpenOverview = async (a: AssignmentDto) => {
                 v-if="a.isClosed"
                 class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-red-100 text-semantic-danger border border-red-200 uppercase"
               >
-                Penutupan Berakhir
+                Pengumpulan Ditutup
               </span>
               <span
                 v-else-if="a.isExpired"
                 class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase"
               >
-                Batas Normal Lewat
+                Tenggat Waktu Lewat
               </span>
             </div>
 
@@ -239,13 +242,13 @@ const handleOpenOverview = async (a: AssignmentDto) => {
           <!-- Schedule Meta -->
           <div class="text-xs font-mono space-y-1 shrink-0 p-3 rounded-2xl bg-alabaster-slate border border-slate-200 min-w-[220px]">
             <div class="flex items-center justify-between text-[11px]">
-              <span class="text-slate-500">Batas Normal:</span>
+              <span class="text-slate-500">Tenggat Waktu:</span>
               <span class="font-bold text-academic-navy">
                 {{ new Date(a.dueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }}
               </span>
             </div>
             <div v-if="a.cutoffDate" class="flex items-center justify-between text-[11px]">
-              <span class="text-slate-500">Batas Cutoff:</span>
+              <span class="text-slate-500">Batas Susulan:</span>
               <span class="font-bold text-amber-800">
                 {{ new Date(a.cutoffDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }}
               </span>
@@ -271,7 +274,7 @@ const handleOpenOverview = async (a: AssignmentDto) => {
           </div>
 
           <div v-else class="text-xs text-slate-400 font-inter">
-            Status: <span class="text-amber-alert font-bold">Belum Mengumpulkan</span>
+            Status: <span class="text-amber-alert font-bold">Belum Dikumpulkan</span>
           </div>
 
           <div>
@@ -281,7 +284,7 @@ const handleOpenOverview = async (a: AssignmentDto) => {
               disabled
               class="px-4 py-2 rounded-xl bg-slate-100 text-slate-400 font-semibold text-xs font-jakarta cursor-not-allowed"
             >
-              Akses Ditutup (Melewati Cutoff)
+              Pengumpulan Ditutup
             </button>
             <button
               v-else
@@ -290,7 +293,7 @@ const handleOpenOverview = async (a: AssignmentDto) => {
               class="px-4 py-2 rounded-xl text-white font-semibold text-xs font-jakarta transition shadow-xs"
               :class="a.isExpired ? 'bg-semantic-danger hover:bg-red-700' : 'bg-scholarly-teal hover:bg-teal-700'"
             >
-              {{ a.mySubmission ? 'Unggah Ulang Berkas' : 'Kirim Tugas Sekarang' }}
+              {{ a.mySubmission ? 'Kirim Ulang Tugas' : 'Kumpulkan Tugas' }}
             </button>
           </div>
         </div>
